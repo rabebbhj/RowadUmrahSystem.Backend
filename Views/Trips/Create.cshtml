@@ -1,0 +1,141 @@
+﻿@model RowadUmrahSystem.Web.Models.Trip
+
+@{
+    ViewData["Title"] = "إضافة رحلة عمرة";
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1 class="page-title mb-1">إضافة رحلة عمرة</h1>
+
+            <p class="text-muted mb-0">
+                إنشاء رحلة جديدة وربطها بملف المسافر.
+            </p>
+        </div>
+
+        <a asp-controller="Travelers"
+           asp-action="Details"
+           asp-route-id="@ViewBag.TravelerId"
+           class="btn btn-outline-secondary">
+            الرجوع لملف المسافر
+        </a>
+
+    </div>
+
+    <div class="row">
+
+        <div class="col-lg-4 mb-4">
+
+            <div class="page-card h-100">
+
+                <h4 class="section-title">
+                    معلومات المسافر
+                </h4>
+
+                <div class="mb-3">
+
+                    <small class="text-muted">
+                        اسم المسافر
+                    </small>
+
+                    <div>
+                        <strong>@ViewBag.TravelerName</strong>
+                    </div>
+
+                </div>
+
+                <div class="alert alert-info mb-0">
+                    سيتم إضافة رحلة جديدة لهذا المسافر وزيادة عدد رحلاته تلقائياً.
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-8 mb-4">
+
+            <div class="page-card h-100">
+
+                <h4 class="section-title">
+                    بيانات الرحلة
+                </h4>
+
+                <form asp-action="Create" method="post">
+
+                    <input type="hidden"
+                           asp-for="TravelerId"
+                           value="@ViewBag.TravelerId" />
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                تاريخ الرحلة
+                            </label>
+
+                            <input asp-for="TripDate"
+                                   type="date"
+                                   class="form-control" />
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                نوع الرحلة
+                            </label>
+
+                            <select class="form-select" disabled>
+                                <option selected>
+                                    عمرة
+                                </option>
+                            </select>
+
+                        </div>
+
+                        <div class="col-12 mb-3">
+
+                            <label class="form-label">
+                                ملاحظات الرحلة
+                            </label>
+
+                            <textarea asp-for="Notes"
+                                      rows="5"
+                                      class="form-control"
+                                      placeholder="أي ملاحظات تخص هذه الرحلة..."></textarea>
+
+                        </div>
+
+                    </div>
+
+                    <hr />
+
+                    <div class="action-bar">
+
+                        <button type="submit"
+                                class="btn btn-gold">
+                            حفظ الرحلة
+                        </button>
+
+                        <a asp-controller="Travelers"
+                           asp-action="Details"
+                           asp-route-id="@ViewBag.TravelerId"
+                           class="btn btn-outline-secondary">
+                            إلغاء
+                        </a>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

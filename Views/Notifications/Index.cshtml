@@ -1,0 +1,122 @@
+﻿@model List<RowadUmrahSystem.Web.Models.UserNotification>
+
+@{
+    ViewData["Title"] = "الإشعارات";
+}
+
+<div class="page-card">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="page-title mb-1">
+                مركز الإشعارات
+            </h2>
+
+            <div class="text-muted">
+                جميع الإشعارات الخاصة بحسابك
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <a asp-action="Index"
+               class="btn btn-outline-secondary">
+                الكل
+            </a>
+
+            <a asp-action="Index"
+               asp-route-filter="unread"
+               class="btn btn-outline-warning">
+                غير المقروءة
+            </a>
+
+            <form asp-action="DeleteAll"
+                  method="post"
+                  onsubmit="return confirm('هل تريد حذف جميع الإشعارات؟');">
+
+                @Html.AntiForgeryToken()
+
+                <button type="submit"
+                        class="btn btn-danger">
+                    حذف الكل
+                </button>
+            </form>
+
+        </div>
+
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-light text-center">
+            لا توجد إشعارات
+        </div>
+    }
+    else
+    {
+        <div class="notification-page-list">
+
+            @foreach (var item in Model)
+            {
+                <div class="notification-page-item @(item.IsRead ? "" : "notification-page-unread")">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <div class="notification-page-title">
+
+                                @if (!item.IsRead)
+                                {
+                                    <span class="badge bg-danger me-2">
+                                        جديد
+                                    </span>
+                                }
+
+                                @item.Notification.Title
+
+                            </div>
+
+                            <div class="notification-page-message">
+                                @item.Notification.Message
+                            </div>
+
+                            <div class="notification-page-date">
+                                @item.Notification.CreatedAt.ToLocalTime()
+                            </div>
+
+                        </div>
+
+                        <div class="d-flex flex-column gap-2">
+
+                            <a asp-action="Open"
+                               asp-route-id="@item.Id"
+                               class="btn btn-sm btn-outline-primary">
+                                فتح
+                            </a>
+
+                            <form asp-action="Delete"
+                                  asp-route-id="@item.Id"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger">
+                                    حذف
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>

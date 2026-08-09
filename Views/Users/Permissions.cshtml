@@ -1,0 +1,303 @@
+﻿@model RowadUmrahSystem.Web.Models.UserPermission
+
+@{
+    ViewData["Title"] = "صلاحيات المستخدم";
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+
+        <div>
+            <h1 class="page-title mb-1">صلاحيات المستخدم</h1>
+            <p class="rowad-text-muted mb-0">
+                إدارة دقيقة لصلاحيات الموظف حسب الشاشات والعمليات الحساسة داخل النظام.
+            </p>
+        </div>
+
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            رجوع
+        </a>
+
+    </div>
+
+    <div class="filter-panel mb-4">
+        <div class="row align-items-center">
+
+            <div class="col-md-6 mb-3 mb-md-0">
+                <small class="rowad-text-muted d-block mb-1">اسم الموظف</small>
+                <div class="permission-user-name">
+                    @ViewBag.UserFullName
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <small class="rowad-text-muted d-block mb-1">البريد الإلكتروني</small>
+                <div class="permission-user-email">
+                    @ViewBag.UserEmail
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="permission-guidance mb-4">
+        <div>
+            <strong>ملاحظة مهمة:</strong>
+            الصلاحيات هنا تحدد ما يستطيع الموظف مشاهدته أو تنفيذه. العمليات الحساسة مثل الحظر، الأرشفة، التصدير، وسجل العمليات يجب أن تعطى فقط للموظفين المصرح لهم.
+        </div>
+    </div>
+
+    <form asp-action="Permissions" method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="UserId" />
+
+        <div class="permission-section mb-4">
+
+            <div class="permission-section-header">
+                <div>
+                    <h4>المسافرون</h4>
+                    <p>التحكم في عرض، إضافة، تعديل، أرشفة واسترجاع بيانات المسافرين.</p>
+                </div>
+            </div>
+
+            <div class="permission-grid">
+                <label class="permission-card">
+                    <input asp-for="CanViewTravelers" />
+                    <span>
+                        <strong>مشاهدة المسافرين</strong>
+                        <small>السماح بالدخول إلى شاشة المسافرين وتفاصيلهم.</small>
+                    </span>
+                </label>
+
+                <label class="permission-card">
+                    <input asp-for="CanCreateTravelers" />
+                    <span>
+                        <strong>إضافة مسافر</strong>
+                        <small>تسجيل مسافر جديد وقراءة بيانات الجواز.</small>
+                    </span>
+                </label>
+
+                <label class="permission-card">
+                    <input asp-for="CanEditTravelers" />
+                    <span>
+                        <strong>تعديل مسافر</strong>
+                        <small>تعديل البيانات الشخصية وبيانات الجواز.</small>
+                    </span>
+                </label>
+
+                <label class="permission-card danger-zone">
+                    <input asp-for="CanArchiveTravelers" />
+                    <span>
+                        <strong>أرشفة مسافر</strong>
+                        <small>نقل المسافر إلى الأرشيف بدون حذف نهائي.</small>
+                    </span>
+                </label>
+
+                <label class="permission-card">
+                    <input asp-for="CanRestoreTravelers" />
+                    <span>
+                        <strong>استرجاع مسافر</strong>
+                        <small>إعادة المسافر من الأرشيف إلى السجلات النشطة.</small>
+                    </span>
+                </label>
+            </div>
+
+        </div>
+
+        <div class="permission-section mb-4">
+
+            <div class="permission-section-header">
+                <div>
+                    <h4>الرحلات</h4>
+                    <p>إدارة رحلات العمرة وربطها بملفات المسافرين.</p>
+                </div>
+            </div>
+
+            <div class="permission-grid">
+                <label class="permission-card">
+                    <input asp-for="CanViewTrips" />
+                    <span>
+                        <strong>مشاهدة الرحلات</strong>
+                        <small>عرض سجل الرحلات والبيانات المرتبطة بها.</small>
+                    </span>
+                </label>
+
+                <label class="permission-card">
+                    <input asp-for="CanCreateTrips" />
+                    <span>
+                        <strong>إضافة رحلة</strong>
+                        <small>إضافة رحلة عمرة جديدة لمسافر مسموح.</small>
+                    </span>
+                </label>
+            </div>
+
+        </div>
+
+        <div class="permission-section mb-4">
+
+            <div class="permission-section-header">
+                <div>
+                    <h4>الوثائق</h4>
+                    <p>صلاحيات التعامل مع المستندات والصور المرفوعة لملفات المسافرين.</p>
+                </div>
+            </div>
+
+            <div class="permission-grid">
+                <label class="permission-card">
+                    <input asp-for="CanViewDocuments" />
+                    <span>
+                        <strong>مشاهدة الوثائق</strong>
+                        <small>عرض الوثائق المرتبطة بالمسافر.</small>
+                    </span>
+                </label>
+
+                <label class="permission-card">
+                    <input asp-for="CanUploadDocuments" />
+                    <span>
+                        <strong>رفع وثائق</strong>
+                        <small>رفع صورة شخصية، تأشيرة، نسخة جواز أو ملف PDF.</small>
+                    </span>
+                </label>
+
+                <label class="permission-card danger-zone">
+                    <input asp-for="CanArchiveDocuments" />
+                    <span>
+                        <strong>أرشفة وثائق</strong>
+                        <small>نقل الوثائق إلى الأرشيف.</small>
+                    </span>
+                </label>
+
+                <label class="permission-card">
+                    <input asp-for="CanRestoreDocuments" />
+                    <span>
+                        <strong>استرجاع وثائق</strong>
+                        <small>إعادة الوثائق المؤرشفة إلى ملف المسافر.</small>
+                    </span>
+                </label>
+            </div>
+
+        </div>
+
+        <div class="permission-section mb-4">
+
+            <div class="permission-section-header">
+                <div>
+                    <h4>الحظر والشكاوى</h4>
+                    <p>صلاحيات حساسة مرتبطة بمنع المسافر أو رفع المنع عنه.</p>
+                </div>
+            </div>
+
+            <div class="permission-grid">
+                <label class="permission-card">
+                    <input asp-for="CanViewBlocks" />
+                    <span>
+                        <strong>مشاهدة المحظورين</strong>
+                        <small>عرض قائمة المسافرين المحظورين وأسباب الحظر.</small>
+                    </span>
+                </label>
+
+                <label class="permission-card danger-zone">
+                    <input asp-for="CanBlockTravelers" />
+                    <span>
+                        <strong>حظر مسافر</strong>
+                        <small>منع مسافر من المتابعة داخل النظام.</small>
+                    </span>
+                </label>
+
+                <label class="permission-card">
+                    <input asp-for="CanUnblockTravelers" />
+                    <span>
+                        <strong>رفع الحظر</strong>
+                        <small>إلغاء حالة الحظر عن مسافر.</small>
+                    </span>
+                </label>
+            </div>
+
+        </div>
+
+        <div class="permission-section mb-4">
+
+            <div class="permission-section-header">
+                <div>
+                    <h4>التقارير والرقابة</h4>
+                    <p>التحكم في التقارير الرسمية وسجل العمليات.</p>
+                </div>
+            </div>
+
+            <div class="permission-grid">
+                <label class="permission-card">
+                    <input asp-for="CanViewReports" />
+                    <span>
+                        <strong>مشاهدة التقارير</strong>
+                        <small>عرض تقارير النظام والإحصائيات.</small>
+                    </span>
+                </label>
+
+                <label class="permission-card danger-zone">
+                    <input asp-for="CanExportReports" />
+                    <span>
+                        <strong>تصدير التقارير</strong>
+                        <small>تصدير Excel و PDF للبيانات.</small>
+                    </span>
+                </label>
+
+                <label class="permission-card danger-zone">
+                    <input asp-for="CanViewAuditLogs" />
+                    <span>
+                        <strong>مشاهدة سجل العمليات</strong>
+                        <small>عرض جميع العمليات التي تمت داخل النظام.</small>
+                    </span>
+                </label>
+            </div>
+
+        </div>
+
+        <div class="permission-section mb-4">
+
+            <div class="permission-section-header">
+                <div>
+                    <h4>إدارة النظام</h4>
+                    <p>صلاحيات إدارية عالية يجب أن تمنح للمديرين فقط.</p>
+                </div>
+            </div>
+
+            <div class="permission-grid">
+                <label class="permission-card danger-zone">
+                    <input asp-for="CanManageUsers" />
+                    <span>
+                        <strong>إدارة المستخدمين</strong>
+                        <small>إنشاء المستخدمين، تعطيل الحسابات، وتعديل الصلاحيات.</small>
+                    </span>
+                </label>
+            </div>
+
+        </div>
+
+        <div class="permission-save-panel">
+
+            <div>
+                <h5 class="mb-1">حفظ الصلاحيات</h5>
+                <small class="rowad-text-muted">
+                    سيتم تطبيق الصلاحيات بعد حفظها، وقد يحتاج الموظف إلى تسجيل الدخول من جديد.
+                </small>
+            </div>
+
+            <div class="action-bar mb-0">
+                <button type="submit" class="btn btn-gold">
+                    حفظ الصلاحيات
+                </button>
+
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    إلغاء
+                </a>
+            </div>
+
+        </div>
+
+    </form>
+
+</div>

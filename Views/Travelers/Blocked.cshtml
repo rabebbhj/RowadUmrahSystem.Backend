@@ -1,0 +1,133 @@
+﻿@model IEnumerable<RowadUmrahSystem.Web.Models.Traveler>
+
+@{
+    ViewData["Title"] = "المسافرون المحظورون";
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-1">المسافرون المحظورون</h1>
+            <p class="text-muted mb-0">
+                عرض المسافرين الممنوعين من التسجيل أو إنشاء رحلات جديدة.
+            </p>
+        </div>
+
+        <div class="action-bar mb-0">
+            <div class="dropdown">
+                <button class="btn btn-outline-gold dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    التقارير
+                </button>
+
+                <ul class="dropdown-menu">
+                    <li>
+                        <a asp-action="ExportBlockedToExcel" class="dropdown-item">
+                            تصدير Excel
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-action="BlockedPdf" class="dropdown-item">
+                            تصدير PDF
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                رجوع للمسافرين
+            </a>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-success mb-0">
+            لا يوجد مسافرون محظورون حالياً.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>رقم الجواز</th>
+                        <th>الجنسية</th>
+                        <th>رقم الهاتف</th>
+                        <th>سبب الحظر</th>
+                        <th>تاريخ الحظر</th>
+                        <th class="text-center">الإجراءات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var traveler in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@traveler.FullName</strong>
+                            </td>
+
+                            <td>@traveler.PassportNumber</td>
+
+                            <td>@traveler.Nationality</td>
+
+                            <td>@traveler.PhoneNumber</td>
+
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(traveler.BlockReason))
+                                {
+                                    <span>@traveler.BlockReason</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">لا يوجد سبب مسجل</span>
+                                }
+                            </td>
+
+                            <td>@traveler.BlockedAt?.ToString("yyyy-MM-dd HH:mm")</td>
+
+                            <td class="text-center">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-gold dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        إجراءات
+                                    </button>
+
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a asp-action="Details"
+                                               asp-route-id="@traveler.Id"
+                                               class="dropdown-item">
+                                                عرض الملف
+                                            </a>
+                                        </li>
+
+                                        <li>
+                                            <form asp-action="Unblock"
+                                                  method="post"
+                                                  class="px-3 py-1"
+                                                  onsubmit="return confirm('هل تريد رفع الحظر عن هذا المسافر؟');">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <input type="hidden" name="id" value="@traveler.Id" />
+
+                                                <button type="submit" class="btn btn-sm btn-gold w-100">
+                                                    رفع الحظر
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    }
+
+</div>

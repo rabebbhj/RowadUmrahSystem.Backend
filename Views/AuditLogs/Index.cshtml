@@ -1,0 +1,217 @@
+﻿@model IEnumerable<RowadUmrahSystem.Web.Models.AuditLog>
+
+@{
+    ViewData["Title"] = "سجل العمليات";
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1 class="page-title mb-1">سجل العمليات</h1>
+            <p class="text-muted mb-0">
+                مراقبة جميع العمليات التي تمت داخل النظام من إضافة، تعديل، أرشفة، حظر ورفع حظر.
+            </p>
+        </div>
+
+        <div class="action-bar mb-0">
+
+            <div class="dropdown">
+                <button class="btn btn-outline-gold dropdown-toggle"
+                        type="button"
+                        data-bs-toggle="dropdown">
+                    التقارير
+                </button>
+
+                <ul class="dropdown-menu">
+                    <li>
+                        <a asp-action="ExportToExcel"
+                           asp-route-search="@ViewBag.Search"
+                           asp-route-actionType="@ViewBag.ActionType"
+                           asp-route-fromDate="@ViewBag.FromDate"
+                           asp-route-toDate="@ViewBag.ToDate"
+                           class="dropdown-item">
+                            تصدير Excel
+                        </a>
+                    </li>
+
+                    <li>
+                        <a asp-action="ExportToPdf"
+                           asp-route-search="@ViewBag.Search"
+                           asp-route-actionType="@ViewBag.ActionType"
+                           asp-route-fromDate="@ViewBag.FromDate"
+                           asp-route-toDate="@ViewBag.ToDate"
+                           class="dropdown-item">
+                            تصدير PDF
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+    </div>
+
+    <form method="get" class="page-card mb-4">
+
+        <h4 class="section-title">فلترة السجل</h4>
+
+        <div class="row g-3">
+
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">بحث</label>
+
+                <input type="text"
+                       name="search"
+                       value="@ViewBag.Search"
+                       class="form-control"
+                       placeholder="الموظف / المسافر / رقم الجواز" />
+            </div>
+
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label">نوع العملية</label>
+
+                <select name="actionType" class="form-select">
+                    <option value="">كل العمليات</option>
+                    <option value="Add" selected="@(ViewBag.ActionType == "Add")">إضافة</option>
+                    <option value="Edit" selected="@(ViewBag.ActionType == "Edit")">تعديل</option>
+                    <option value="Delete" selected="@(ViewBag.ActionType == "Delete")">أرشفة</option>
+                    <option value="Block" selected="@(ViewBag.ActionType == "Block")">حظر</option>
+                    <option value="Unblock" selected="@(ViewBag.ActionType == "Unblock")">رفع حظر</option>
+                </select>
+            </div>
+
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label">من تاريخ</label>
+
+                <input type="date"
+                       name="fromDate"
+                       value="@ViewBag.FromDate"
+                       class="form-control" />
+            </div>
+
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label">إلى تاريخ</label>
+
+                <input type="date"
+                       name="toDate"
+                       value="@ViewBag.ToDate"
+                       class="form-control" />
+            </div>
+
+            <div class="col-lg-3 col-md-12 d-flex align-items-end gap-2">
+                <button class="btn btn-gold w-100">
+                    بحث
+                </button>
+
+                <a asp-controller="AuditLogs"
+                   asp-action="Index"
+                   class="btn btn-outline-secondary w-100">
+                    إعادة ضبط
+                </a>
+            </div>
+
+        </div>
+
+    </form>
+
+    <div class="table-responsive">
+
+        <table class="table table-bordered table-striped align-middle">
+
+            <thead>
+                <tr>
+                    <th>التاريخ والوقت</th>
+                    <th>الموظف</th>
+                    <th>العملية</th>
+                    <th>المسافر</th>
+                    <th>رقم الجواز</th>
+                    <th>التفاصيل</th>
+                    <th>IP</th>
+                    <th>الجهاز</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (Model == null || !Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            لا توجد عمليات مطابقة للبحث.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model)
+                    {
+                        string badgeClass = item.Action switch
+                        {
+                            "Add" => "badge-soft-success",
+                            "Edit" => "badge-soft-warning",
+                            "Delete" => "badge-soft-danger",
+                            "Block" => "badge-soft-danger",
+                            "Unblock" => "badge-soft-success",
+                            _ => "bg-secondary"
+                        };
+
+                        string actionText = item.Action switch
+                        {
+                            "Add" => "إضافة",
+                            "Edit" => "تعديل",
+                            "Delete" => "أرشفة",
+                            "Block" => "حظر",
+                            "Unblock" => "رفع حظر",
+                            _ => item.Action
+                        };
+
+                        <tr>
+                            <td>
+                                @item.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")
+                            </td>
+
+                            <td>
+                                <strong>@item.EmployeeName</strong>
+                            </td>
+
+                            <td>
+                                <span class="badge @badgeClass">
+                                    @actionText
+                                </span>
+                            </td>
+
+                            <td>
+                                @item.TravelerName
+                            </td>
+
+                            <td>
+                                @item.PassportNumber
+                            </td>
+
+                            <td style="min-width: 260px;">
+                                @item.Details
+                            </td>
+
+                            <td>
+                                <small>@item.IpAddress</small>
+                            </td>
+
+                            <td style="max-width: 260px;">
+                                <small class="text-muted">
+                                    @item.UserAgent
+                                </small>
+                            </td>
+                        </tr>
+                    }
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+

@@ -1,0 +1,154 @@
+﻿@{
+    ViewData["Title"] = "إضافة موظف جديد";
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1 class="page-title mb-1">إضافة موظف جديد</h1>
+
+            <p class="text-muted mb-0">
+                إنشاء حساب جديد للموظف ومنحه الصلاحيات المناسبة لاحقاً.
+            </p>
+        </div>
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+            رجوع
+        </a>
+
+    </div>
+
+    <form asp-action="Create" method="post">
+
+        <div asp-validation-summary="All"
+             class="alert alert-danger"></div>
+
+        <div class="row">
+
+            <div class="col-lg-4 mb-4">
+
+                <div class="page-card h-100">
+
+                    <h4 class="section-title">
+                        معلومات الحساب
+                    </h4>
+
+                    <div class="alert alert-info mb-0">
+                        بعد إنشاء الموظف يمكنك الدخول إلى صفحة الصلاحيات وتحديد ما يمكنه الوصول إليه داخل النظام.
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-8 mb-4">
+
+                <div class="page-card h-100">
+
+                    <h4 class="section-title">
+                        بيانات الموظف
+                    </h4>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                اسم الموظف
+                            </label>
+
+                            <input name="fullName"
+                                   class="form-control"
+                                   placeholder="الاسم الكامل" />
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                البريد الإلكتروني / اسم المستخدم
+                            </label>
+
+                            <input name="email"
+                                   type="email"
+                                   class="form-control"
+                                   placeholder="employee@rowad.com" />
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                رقم الهاتف
+                            </label>
+
+                            <input name="phoneNumber"
+                                   class="form-control"
+                                   placeholder="+965 XXXXXXXX" />
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label">
+                                كلمة المرور
+                            </label>
+
+                            <input name="password"
+                                   type="password"
+                                   class="form-control"
+                                   placeholder="********" />
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="page-card">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+
+                <div>
+                    <h5 class="mb-1">
+                        إنشاء الحساب
+                    </h5>
+
+                    <small class="text-muted">
+                        سيتم إنشاء المستخدم وتفعيله مباشرة.
+                    </small>
+                </div>
+
+                <div class="action-bar mb-0">
+
+                    <button type="submit"
+                            class="btn btn-gold">
+                        إنشاء الموظف
+                    </button>
+
+                    <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+                        إلغاء
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,205 @@
+﻿@model IEnumerable<RowadUmrahSystem.Web.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "إدارة المستخدمين";
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1 class="page-title mb-1">إدارة المستخدمين</h1>
+            <p class="text-muted mb-0">
+                إدارة الموظفين، الصلاحيات، وتفعيل أو تعطيل الحسابات.
+            </p>
+        </div>
+
+        <div class="action-bar mb-0">
+
+            <a asp-action="Create"
+               class="btn btn-gold">
+                + إضافة موظف جديد
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="row mb-4">
+
+        <div class="col-lg-4 mb-3">
+            <div class="stat-card">
+                <div class="stat-title">
+                    إجمالي المستخدمين
+                </div>
+
+                <div class="stat-number">
+                    @Model.Count()
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-3">
+            <div class="stat-card">
+                <div class="stat-title">
+                    المستخدمون الفعالون
+                </div>
+
+                <div class="stat-number">
+                    @Model.Count(x => x.IsActive)
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-3">
+            <div class="stat-card">
+                <div class="stat-title">
+                    الحسابات المعطلة
+                </div>
+
+                <div class="stat-number">
+                    @Model.Count(x => !x.IsActive)
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="table-responsive">
+
+        <table class="table table-bordered table-striped align-middle">
+
+            <thead>
+                <tr>
+                    <th>الاسم الكامل</th>
+                    <th>اسم المستخدم</th>
+                    <th>الإيميل</th>
+                    <th>رقم الهاتف</th>
+                    <th>الحالة</th>
+                    <th>تاريخ الإنشاء</th>
+                    <th class="text-center">الإجراءات</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (Model.Any())
+                {
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+
+                            <td>
+                                <strong>@user.FullName</strong>
+                            </td>
+
+                            <td>@user.UserName</td>
+
+                            <td>@user.Email</td>
+
+                            <td>@user.PhoneNumber</td>
+
+                            <td>
+                                @if (user.IsActive)
+                                {
+                                    <span class="badge badge-soft-success">
+                                        فعال
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-soft-danger">
+                                        معطل
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                @user.CreatedAt.ToString("yyyy-MM-dd")
+                            </td>
+
+                            <td class="text-center">
+
+                                @if (user.Email == "admin@rowad.local")
+                                {
+                                    <span class="badge bg-primary">
+                                        المدير الرئيسي
+                                    </span>
+                                }
+                                else
+                                {
+                                    <div class="dropdown">
+
+                                        <button class="btn btn-sm btn-outline-gold dropdown-toggle"
+                                                type="button"
+                                                data-bs-toggle="dropdown">
+                                            إجراءات
+                                        </button>
+
+                                        <ul class="dropdown-menu">
+
+                                            <li>
+                                                <a asp-action="Permissions"
+                                                   asp-route-id="@user.Id"
+                                                   class="dropdown-item">
+                                                    إدارة الصلاحيات
+                                                </a>
+                                            </li>
+
+                                            <li>
+                                                <form asp-action="ToggleActive"
+                                                      method="post"
+                                                      class="px-3 py-1">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden"
+                                                           name="id"
+                                                           value="@user.Id" />
+
+                                                    @if (user.IsActive)
+                                                    {
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-danger w-100">
+                                                            تعطيل الحساب
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-success w-100">
+                                                            تفعيل الحساب
+                                                        </button>
+                                                    }
+
+                                                </form>
+                                            </li>
+
+                                        </ul>
+
+                                    </div>
+                                }
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7"
+                            class="text-center text-muted py-4">
+                            لا يوجد مستخدمون مسجلون.
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>

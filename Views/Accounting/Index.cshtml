@@ -1,0 +1,297 @@
+﻿@{
+    ViewData["Title"] = "المحاسبة";
+
+    decimal totalInvoices = ViewBag.TotalInvoices ?? 0;
+    decimal totalReceipts = ViewBag.TotalReceipts ?? 0;
+    decimal totalPayments = ViewBag.TotalPayments ?? 0;
+    decimal totalExpenses = ViewBag.TotalExpenses ?? 0;
+    decimal bankOpeningBalances = ViewBag.BankOpeningBalances ?? 0;
+    decimal netBalance = ViewBag.NetBalance ?? 0;
+    decimal outstandingInvoices = ViewBag.OutstandingInvoices ?? 0;
+
+    decimal totalOutflow = totalPayments + totalExpenses;
+
+    bool canManageChartOfAccounts = ViewBag.CanManageChartOfAccounts ?? false;
+    bool canManageJournalEntries = ViewBag.CanManageJournalEntries ?? false;
+    bool canManageInvoices = ViewBag.CanManageInvoices ?? false;
+    bool canManageReceiptVouchers = ViewBag.CanManageReceiptVouchers ?? false;
+    bool canManagePaymentVouchers = ViewBag.CanManagePaymentVouchers ?? false;
+    bool canManageExpenses = ViewBag.CanManageExpenses ?? false;
+    bool canManageBanks = ViewBag.CanManageBanks ?? false;
+    bool canViewFinancialReports = ViewBag.CanViewFinancialReports ?? false;
+}
+
+<div class="accounting-dashboard">
+
+    <div class="accounting-hero mb-4">
+        <div class="accounting-hero-content">
+            <div class="accounting-kicker">النظام المالي</div>
+
+            <h1>المحاسبة</h1>
+
+            <p>
+                مركز موحد لإدارة دليل الحسابات، القيود، الفواتير، سندات القبض والصرف،
+                المصاريف، البنوك، والتقارير المالية.
+            </p>
+
+            <div class="accounting-hero-actions">
+                @if (canManageInvoices)
+                {
+                    <a asp-action="Invoices" class="btn btn-gold">
+                        🧾 إنشاء فاتورة
+                    </a>
+                }
+
+                @if (canManageReceiptVouchers)
+                {
+                    <a asp-action="ReceiptVouchers" class="btn btn-outline-gold">
+                        💵 سند قبض
+                    </a>
+                }
+
+                @if (canManagePaymentVouchers)
+                {
+                    <a asp-action="PaymentVouchers" class="btn btn-light">
+                        💸 سند صرف
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="accounting-hero-panel">
+            <span>الرصيد الصافي</span>
+            <strong>@netBalance.ToString("N3") د.ك</strong>
+            <small>المقبوضات + الأرصدة الافتتاحية - المدفوعات والمصاريف</small>
+        </div>
+    </div>
+
+    <div class="accounting-stats-grid mb-4">
+
+        <div class="accounting-stat-card">
+            <div class="accounting-stat-icon">🧾</div>
+            <div>
+                <span>إجمالي الفواتير</span>
+                <strong>@totalInvoices.ToString("N3") د.ك</strong>
+                <small>قيمة الفواتير المسجلة</small>
+            </div>
+        </div>
+
+        <div class="accounting-stat-card">
+            <div class="accounting-stat-icon">💵</div>
+            <div>
+                <span>المقبوضات</span>
+                <strong>@totalReceipts.ToString("N3") د.ك</strong>
+                <small>إجمالي سندات القبض</small>
+            </div>
+        </div>
+
+        <div class="accounting-stat-card">
+            <div class="accounting-stat-icon">💸</div>
+            <div>
+                <span>المدفوعات والمصاريف</span>
+                <strong>@totalOutflow.ToString("N3") د.ك</strong>
+                <small>الصرف + المصروفات</small>
+            </div>
+        </div>
+
+        <div class="accounting-stat-card">
+            <div class="accounting-stat-icon">🏦</div>
+            <div>
+                <span>الأرصدة الافتتاحية</span>
+                <strong>@bankOpeningBalances.ToString("N3") د.ك</strong>
+                <small>أرصدة البنوك والصندوق</small>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-lg-5">
+            <div class="accounting-panel h-100">
+                <div class="accounting-panel-header">
+                    <div>
+                        <h3>ملخص مالي سريع</h3>
+                        <p>نظرة مختصرة على الوضع المالي الحالي.</p>
+                    </div>
+                    <span class="accounting-panel-badge">Live</span>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>فواتير غير محصلة تقريبًا</span>
+                    <strong>@outstandingInvoices.ToString("N3") د.ك</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>إجمالي المصاريف</span>
+                    <strong>@totalExpenses.ToString("N3") د.ك</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>إجمالي سندات الصرف</span>
+                    <strong>@totalPayments.ToString("N3") د.ك</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>صافي الحركة</span>
+                    <strong>@netBalance.ToString("N3") د.ك</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="accounting-panel h-100">
+                <div class="accounting-panel-header">
+                    <div>
+                        <h3>جاهزية النظام المحاسبي</h3>
+                        <p>الخطوات الأساسية قبل التشغيل الكامل.</p>
+                    </div>
+                    <span class="accounting-panel-badge">ERP</span>
+                </div>
+
+                <div class="accounting-progress-list">
+                    <div class="accounting-progress-item">
+                        <div class="progress-dot done"></div>
+                        <div>
+                            <strong>دليل الحسابات</strong>
+                            <span>الأساس الذي تُبنى عليه القيود والتقارير.</span>
+                        </div>
+                    </div>
+
+                    <div class="accounting-progress-item">
+                        <div class="progress-dot pending"></div>
+                        <div>
+                            <strong>القيود اليومية</strong>
+                            <span>كل فاتورة أو سند سيتم ربطه بقيد محاسبي تلقائي.</span>
+                        </div>
+                    </div>
+
+                    <div class="accounting-progress-item">
+                        <div class="progress-dot pending"></div>
+                        <div>
+                            <strong>الفواتير والسندات</strong>
+                            <span>إدارة التحصيل والصرف وربطها بالحسابات.</span>
+                        </div>
+                    </div>
+
+                    <div class="accounting-progress-item">
+                        <div class="progress-dot pending"></div>
+                        <div>
+                            <strong>التقارير المالية</strong>
+                            <span>ميزان المراجعة، الأرباح والخسائر، وكشوف الحساب.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="accounting-section-title mb-3">
+        <div>
+            <h3>أقسام المحاسبة</h3>
+            <p>اختر القسم الذي تريد إدارته.</p>
+        </div>
+    </div>
+
+    <div class="accounting-modules-grid">
+
+        @if (canManageChartOfAccounts)
+        {
+            <a class="accounting-module-card" asp-action="ChartOfAccounts">
+                <div class="module-icon">📒</div>
+                <div>
+                    <h4>دليل الحسابات</h4>
+                    <p>إدارة الحسابات الرئيسية والفرعية مثل الصندوق، البنك، الإيرادات، والمصاريف.</p>
+                </div>
+                <span>فتح</span>
+            </a>
+        }
+
+        @if (canManageJournalEntries)
+        {
+            <a class="accounting-module-card" asp-action="JournalEntries">
+                <div class="module-icon">🧮</div>
+                <div>
+                    <h4>القيود اليومية</h4>
+                    <p>عرض وتدقيق القيود المحاسبية الناتجة عن العمليات المالية.</p>
+                </div>
+                <span>فتح</span>
+            </a>
+        }
+
+        @if (canManageInvoices)
+        {
+            <a class="accounting-module-card" asp-action="Invoices">
+                <div class="module-icon">🧾</div>
+                <div>
+                    <h4>الفواتير</h4>
+                    <p>إنشاء وإدارة فواتير العملاء والرحلات ومتابعة التحصيل.</p>
+                </div>
+                <span>فتح</span>
+            </a>
+        }
+
+        @if (canManageReceiptVouchers)
+        {
+            <a class="accounting-module-card" asp-action="ReceiptVouchers">
+                <div class="module-icon">💵</div>
+                <div>
+                    <h4>سندات القبض</h4>
+                    <p>تسجيل المبالغ المستلمة نقدًا أو عبر البنك من العملاء.</p>
+                </div>
+                <span>فتح</span>
+            </a>
+        }
+
+        @if (canManagePaymentVouchers)
+        {
+            <a class="accounting-module-card" asp-action="PaymentVouchers">
+                <div class="module-icon">💸</div>
+                <div>
+                    <h4>سندات الصرف</h4>
+                    <p>تسجيل المدفوعات الخارجة من الصندوق أو البنك.</p>
+                </div>
+                <span>فتح</span>
+            </a>
+        }
+
+        @if (canManageExpenses)
+        {
+            <a class="accounting-module-card" asp-action="Expenses">
+                <div class="module-icon">📉</div>
+                <div>
+                    <h4>المصاريف</h4>
+                    <p>إدارة مصاريف الشركة والرحلات مثل الفنادق، النقل، والتشغيل.</p>
+                </div>
+                <span>فتح</span>
+            </a>
+        }
+
+        @if (canManageBanks)
+        {
+            <a class="accounting-module-card" asp-action="Banks">
+                <div class="module-icon">🏦</div>
+                <div>
+                    <h4>البنوك والصندوق</h4>
+                    <p>إدارة الحسابات البنكية وأرصدة البداية والصندوق النقدي.</p>
+                </div>
+                <span>فتح</span>
+            </a>
+        }
+
+        @if (canViewFinancialReports)
+        {
+            <a class="accounting-module-card" asp-action="Reports">
+                <div class="module-icon">📊</div>
+                <div>
+                    <h4>التقارير المالية</h4>
+                    <p>عرض الأرباح والخسائر، ميزان المراجعة، وكشوف الحساب.</p>
+                </div>
+                <span>فتح</span>
+            </a>
+        }
+
+    </div>
+
+</div>

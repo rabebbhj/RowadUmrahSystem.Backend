@@ -1,0 +1,124 @@
+﻿@model RowadUmrahSystem.Web.Models.Accounting.JournalEntry
+
+@{
+    ViewData["Title"] = "تفاصيل القيد";
+
+    decimal totalDebit = ViewBag.TotalDebit ?? 0;
+    decimal totalCredit = ViewBag.TotalCredit ?? 0;
+    decimal difference = totalDebit - totalCredit;
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-1">تفاصيل القيد</h1>
+            <p class="text-muted mb-0">
+                عرض تفاصيل القيد المحاسبي وأطرافه المدينة والدائنة.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <form asp-action="TogglePosted" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
+
+                <button type="submit" class="btn btn-outline-gold">
+                    @(Model.IsPosted ? "إلغاء الترحيل" : "ترحيل القيد")
+                </button>
+            </form>
+
+            <a asp-action="Index" class="btn btn-light">
+                رجوع
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span>رقم القيد</span>
+                <strong>@Model.EntryNumber</strong>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span>إجمالي المدين</span>
+                <strong>@totalDebit.ToString("N3")</strong>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span>إجمالي الدائن</span>
+                <strong>@totalCredit.ToString("N3")</strong>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span>الفرق</span>
+                <strong>@difference.ToString("N3")</strong>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="accounting-panel mb-4">
+        <div class="accounting-summary-row">
+            <span>تاريخ القيد</span>
+            <strong>@Model.EntryDate.ToString("yyyy-MM-dd")</strong>
+        </div>
+
+        <div class="accounting-summary-row">
+            <span>البيان</span>
+            <strong>@Model.Description</strong>
+        </div>
+
+        <div class="accounting-summary-row">
+            <span>المصدر</span>
+            <strong>@Model.SourceType</strong>
+        </div>
+
+        <div class="accounting-summary-row">
+            <span>الحالة</span>
+            <strong>@(Model.IsPosted ? "مرحّل" : "غير مرحّل")</strong>
+        </div>
+    </div>
+
+    <div class="section-title-row mb-3">
+        <h3>أطراف القيد</h3>
+        <span>الحسابات المدينة والدائنة</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table rowad-table align-middle">
+            <thead>
+                <tr>
+                    <th>الحساب</th>
+                    <th>مدين</th>
+                    <th>دائن</th>
+                    <th>ملاحظات</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var line in Model.Lines)
+                {
+                    <tr>
+                        <td>
+                            <strong>@line.Account.Code</strong>
+                            <br />
+                            <small class="text-muted">@line.Account.Name</small>
+                        </td>
+                        <td>@line.Debit.ToString("N3")</td>
+                        <td>@line.Credit.ToString("N3")</td>
+                        <td>@line.Notes</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>

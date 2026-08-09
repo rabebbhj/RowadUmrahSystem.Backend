@@ -1,0 +1,330 @@
+﻿@model RowadUmrahSystem.Web.Models.Traveler
+
+@{
+    ViewData["Title"] = "ملف المسافر";
+}
+
+<div class="page-card">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="d-flex flex-wrap justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="page-title mb-1">@Model.FullName</h1>
+            <p class="text-muted mb-2">
+                رقم الجواز: <strong>@Model.PassportNumber</strong>
+            </p>
+
+            @if (Model.IsBlocked)
+            {
+                <span class="badge badge-soft-danger">محظور</span>
+            }
+            else
+            {
+                <span class="badge badge-soft-success">مسموح</span>
+            }
+
+            <span class="badge badge-soft-warning">
+                عدد العمرات: @Model.Trips.Count
+            </span>
+        </div>
+
+        <div class="action-bar mb-0">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-gold">
+                تعديل
+            </a>
+
+            <a asp-controller="Trips"
+               asp-action="Create"
+               asp-route-travelerId="@Model.Id"
+               class="btn btn-gold">
+                + إضافة عمرة
+            </a>
+
+            <a asp-action="TravelerPdf"
+               asp-route-id="@Model.Id"
+               class="btn btn-outline-secondary">
+                PDF
+            </a>
+
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                رجوع
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <div class="col-lg-4 mb-4">
+            <div class="page-card h-100">
+                <h4 class="section-title">صورة الجواز</h4>
+
+                @if (!string.IsNullOrEmpty(Model.PassportImagePath))
+                {
+                    <img src="@Model.PassportImagePath"
+                         alt="صورة الجواز"
+                         class="img-fluid rounded border" />
+                }
+                else
+                {
+                    <div class="alert alert-info mb-0">
+                        لا توجد صورة جواز محفوظة.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-8 mb-4">
+            <div class="page-card h-100">
+                <h4 class="section-title">البيانات الأساسية</h4>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">الرقم</small>
+                        <div><strong>@Model.Id</strong></div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">الاسم الكامل</small>
+                        <div><strong>@Model.FullName</strong></div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">الجنسية</small>
+                        <div>@Model.Nationality</div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">الجنس</small>
+                        <div>@Model.Gender</div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">تاريخ الميلاد</small>
+                        <div>@Model.DateOfBirth.ToShortDateString()</div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">رقم الهاتف</small>
+                        <div>@Model.PhoneNumber</div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">الإيميل</small>
+                        <div>@Model.Email</div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">تاريخ انتهاء الجواز</small>
+                        <div>
+                            @if (Model.PassportExpiryDate.HasValue)
+                            {
+                                @Model.PassportExpiryDate.Value.ToShortDateString()
+                            }
+                            else
+                            {
+                                <span class="text-muted">غير مسجل</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    @if (Model.IsBlocked)
+    {
+        <div class="page-card mb-4 border-danger">
+            <h4 class="section-title text-danger">بيانات الحظر</h4>
+
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <small class="text-muted">سبب الحظر</small>
+                    <div>@Model.BlockReason</div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <small class="text-muted">تاريخ الحظر</small>
+                    <div>@Model.BlockedAt?.ToShortDateString()</div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="page-card mb-4">
+        <h4 class="section-title">الملاحظات</h4>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <p class="mb-0">@Model.Notes</p>
+        }
+        else
+        {
+            <div class="alert alert-info mb-0">
+                لا توجد ملاحظات لهذا المسافر.
+            </div>
+        }
+    </div>
+
+    <div class="page-card mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <h4 class="section-title mb-0">مركز الوثائق</h4>
+
+            <a asp-controller="TravelerDocuments"
+               asp-action="ExportToExcel"
+               class="btn btn-sm btn-outline-gold">
+                Excel جميع الوثائق
+            </a>
+        </div>
+
+        <form asp-controller="TravelerDocuments"
+              asp-action="Upload"
+              method="post"
+              enctype="multipart/form-data"
+              class="mb-4">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" name="travelerId" value="@Model.Id" />
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="form-label">نوع المستند</label>
+                    <select name="documentType" class="form-select" required>
+                        <option value="">اختر النوع</option>
+                        <option value="PersonalPhoto">صورة شخصية</option>
+                        <option value="Visa">تأشيرة</option>
+                        <option value="PassportCopy">نسخة جواز</option>
+                        <option value="PDF">ملف PDF</option>
+                        <option value="Other">أخرى</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">الملف</label>
+                    <input type="file" name="file" class="form-control" required />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">ملاحظات</label>
+                    <input type="text" name="notes" class="form-control" placeholder="اختياري" />
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-gold w-100">
+                        رفع
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+        @if (Model.Documents != null && Model.Documents.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>النوع</th>
+                            <th>اسم الملف</th>
+                            <th>الملاحظات</th>
+                            <th>تاريخ الرفع</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var doc in Model.Documents.OrderByDescending(d => d.UploadedAt))
+                        {
+                            <tr>
+                                <td>@doc.DocumentType</td>
+                                <td>@doc.FileName</td>
+                                <td>@doc.Notes</td>
+                                <td>@doc.UploadedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    <a asp-controller="TravelerDocuments"
+                                       asp-action="Download"
+                                       asp-route-id="@doc.Id"
+                                       target="_blank"
+                                       class="btn btn-sm btn-outline-gold">
+                                        فتح
+                                    </a>
+
+                                    <form asp-controller="TravelerDocuments"
+                                          asp-action="Delete"
+                                          method="post"
+                                          class="d-inline"
+                                          onsubmit="return confirm('هل أنت متأكد من أرشفة هذا المستند؟');">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden" name="id" value="@doc.Id" />
+
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            أرشفة
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning mb-0">
+                لا توجد مستندات إضافية لهذا المسافر.
+            </div>
+        }
+    </div>
+
+    <div class="page-card">
+        <h4 class="section-title">سجل الرحلات</h4>
+
+        @if (Model.Trips != null && Model.Trips.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped align-middle">
+                    <thead>
+                        <tr>
+                            <th>رقم الرحلة</th>
+                            <th>نوع الرحلة</th>
+                            <th>تاريخ الرحلة</th>
+                            <th>ملاحظات</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var trip in Model.Trips.OrderByDescending(t => t.TripDate))
+                        {
+                            <tr>
+                                <td>@trip.Id</td>
+                                <td>@trip.TripType</td>
+                                <td>@trip.TripDate.ToShortDateString()</td>
+                                <td>@trip.Notes</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning mb-0">
+                لا يوجد رحلات مسجلة لهذا المسافر.
+            </div>
+        }
+    </div>
+
+</div>

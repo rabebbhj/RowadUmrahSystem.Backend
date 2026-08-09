@@ -1,0 +1,160 @@
+﻿@model RowadUmrahSystem.Web.Models.Accounting.Account
+@using RowadUmrahSystem.Web.Models.Accounting
+
+@{
+    ViewData["Title"] = "تفاصيل الحساب";
+
+    decimal totalDebit = ViewBag.TotalDebit ?? 0;
+    decimal totalCredit = ViewBag.TotalCredit ?? 0;
+    decimal balance = ViewBag.Balance ?? 0;
+
+    var lines = ViewBag.Lines as List<JournalEntryLine> ?? new List<JournalEntryLine>();
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-1">تفاصيل الحساب</h1>
+            <p class="text-muted mb-0">
+                عرض بيانات الحساب وآخر الحركات المسجلة عليه.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-gold">
+                تعديل
+            </a>
+
+            <a asp-action="Index" class="btn btn-light">
+                رجوع
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span>رقم الحساب</span>
+                <strong>@Model.Code</strong>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span>إجمالي المدين</span>
+                <strong>@totalDebit.ToString("N3")</strong>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span>إجمالي الدائن</span>
+                <strong>@totalCredit.ToString("N3")</strong>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span>الرصيد</span>
+                <strong>@balance.ToString("N3")</strong>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="accounting-summary-box mb-4">
+        <h4>بيانات الحساب</h4>
+
+        <div class="accounting-summary-row">
+            <span>اسم الحساب</span>
+            <strong>@Model.Name</strong>
+        </div>
+
+        <div class="accounting-summary-row">
+            <span>نوع الحساب</span>
+            <strong>
+                @switch (Model.Type)
+                {
+                    case AccountType.Asset:
+                        <span>أصول</span>
+                        break;
+                    case AccountType.Liability:
+                        <span>التزامات</span>
+                        break;
+                    case AccountType.Equity:
+                        <span>حقوق ملكية</span>
+                        break;
+                    case AccountType.Revenue:
+                        <span>إيرادات</span>
+                        break;
+                    case AccountType.Expense:
+                        <span>مصروفات</span>
+                        break;
+                }
+            </strong>
+        </div>
+
+        <div class="accounting-summary-row">
+            <span>الحساب الرئيسي</span>
+            <strong>@(Model.ParentAccount?.Name ?? "-")</strong>
+        </div>
+
+        <div class="accounting-summary-row">
+            <span>الحالة</span>
+            <strong>@(Model.IsActive ? "فعال" : "معطل")</strong>
+        </div>
+
+        <div class="accounting-summary-row">
+            <span>حساب نظامي</span>
+            <strong>@(Model.IsSystemAccount ? "نعم" : "لا")</strong>
+        </div>
+    </div>
+
+    <div class="section-title-row mb-3">
+        <h3>آخر الحركات</h3>
+        <span>آخر 100 حركة على هذا الحساب</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table rowad-table align-middle">
+            <thead>
+                <tr>
+                    <th>التاريخ</th>
+                    <th>رقم القيد</th>
+                    <th>البيان</th>
+                    <th>مدين</th>
+                    <th>دائن</th>
+                    <th>ملاحظات</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (!lines.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            لا توجد حركات على هذا الحساب.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var line in lines)
+                    {
+                        <tr>
+                            <td>@line.JournalEntry.EntryDate.ToString("yyyy-MM-dd")</td>
+                            <td>@line.JournalEntry.EntryNumber</td>
+                            <td>@line.JournalEntry.Description</td>
+                            <td>@line.Debit.ToString("N3")</td>
+                            <td>@line.Credit.ToString("N3")</td>
+                            <td>@line.Notes</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>

@@ -1,0 +1,227 @@
+﻿@model RowadUmrahSystem.Web.Models.Accounting.JournalEntry
+
+@{
+    ViewData["Title"] = "إضافة قيد يومي";
+}
+
+<div class="page-card">
+
+    <div class="mb-4">
+        <h1 class="page-title mb-1">إضافة قيد يومي</h1>
+        <p class="text-muted mb-0">
+            إنشاء قيد محاسبي مزدوج، ويجب أن يكون إجمالي المدين مساويًا لإجمالي الدائن.
+        </p>
+    </div>
+
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="row g-4 mb-4">
+
+            <div class="col-md-3">
+                <label asp-for="EntryNumber" class="form-label">رقم القيد</label>
+                <input asp-for="EntryNumber" class="form-control" readonly />
+                <span asp-validation-for="EntryNumber" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="EntryDate" class="form-label">التاريخ</label>
+                <input asp-for="EntryDate" type="date" class="form-control" />
+                <span asp-validation-for="EntryDate" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Description" class="form-label">البيان</label>
+                <input asp-for="Description" class="form-control" placeholder="مثال: قيد افتتاحي للصندوق" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+        </div>
+
+        <div class="section-title-row mb-3">
+            <h3>أطراف القيد</h3>
+            <span>أدخل الحسابات والمبالغ المدينة والدائنة</span>
+        </div>
+
+        <div class="table-responsive mb-3">
+            <table class="table rowad-table align-middle" id="journalLinesTable">
+                <thead>
+                    <tr>
+                        <th style="width: 32%">الحساب</th>
+                        <th>مدين</th>
+                        <th>دائن</th>
+                        <th>ملاحظات</th>
+                        <th style="width: 80px">حذف</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @for (int i = 0; i < Model.Lines.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                <select name="Lines[@i].AccountId" class="form-select account-select">
+                                    <option value="">اختر الحساب</option>
+                                    @foreach (var account in (SelectList)ViewBag.Accounts)
+                                    {
+                                        <option value="@account.Value">@account.Text</option>
+                                    }
+                                </select>
+                            </td>
+
+                            <td>
+                                <input name="Lines[@i].Debit"
+                                       class="form-control debit-input"
+                                       type="number"
+                                       step="0.001"
+                                       min="0"
+                                       value="0" />
+                            </td>
+
+                            <td>
+                                <input name="Lines[@i].Credit"
+                                       class="form-control credit-input"
+                                       type="number"
+                                       step="0.001"
+                                       min="0"
+                                       value="0" />
+                            </td>
+
+                            <td>
+                                <input name="Lines[@i].Notes"
+                                       class="form-control"
+                                       placeholder="ملاحظات اختيارية" />
+                            </td>
+
+                            <td>
+                                <button type="button" class="btn btn-sm btn-light remove-line">
+                                    حذف
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="accounting-panel mb-4">
+            <div class="accounting-summary-row">
+                <span>إجمالي المدين</span>
+                <strong id="totalDebit">0.000</strong>
+            </div>
+
+            <div class="accounting-summary-row">
+                <span>إجمالي الدائن</span>
+                <strong id="totalCredit">0.000</strong>
+            </div>
+
+            <div class="accounting-summary-row">
+                <span>الفرق</span>
+                <strong id="difference">0.000</strong>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="button" id="addLineBtn" class="btn btn-outline-gold">
+                إضافة سطر
+            </button>
+
+            <button type="submit" class="btn btn-gold">
+                حفظ القيد
+            </button>
+
+            <a asp-action="Index" class="btn btn-light">
+                إلغاء
+            </a>
+        </div>
+
+    </form>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        let lineIndex = @Model.Lines.Count;
+
+        function recalculateTotals() {
+            let totalDebit = 0;
+            let totalCredit = 0;
+
+            document.querySelectorAll(".debit-input").forEach(function (input) {
+                totalDebit += parseFloat(input.value || 0);
+            });
+
+            document.querySelectorAll(".credit-input").forEach(function (input) {
+                totalCredit += parseFloat(input.value || 0);
+            });
+
+            const diff = totalDebit - totalCredit;
+
+            document.getElementById("totalDebit").innerText = totalDebit.toFixed(3);
+            document.getElementById("totalCredit").innerText = totalCredit.toFixed(3);
+            document.getElementById("difference").innerText = diff.toFixed(3);
+        }
+
+        function bindEvents() {
+            document.querySelectorAll(".debit-input, .credit-input").forEach(function (input) {
+                input.removeEventListener("input", recalculateTotals);
+                input.addEventListener("input", recalculateTotals);
+            });
+
+            document.querySelectorAll(".remove-line").forEach(function (button) {
+                button.onclick = function () {
+                    const rows = document.querySelectorAll("#journalLinesTable tbody tr");
+
+                    if (rows.length <= 2) {
+                        alert("يجب أن يحتوي القيد على سطرين على الأقل.");
+                        return;
+                    }
+
+                    this.closest("tr").remove();
+                    recalculateTotals();
+                };
+            });
+        }
+
+        document.getElementById("addLineBtn").addEventListener("click", function () {
+            const tbody = document.querySelector("#journalLinesTable tbody");
+
+            const options = `@Html.Raw(string.Join("", ((SelectList)ViewBag.Accounts).Cast<SelectListItem>().Select(x => $"<option value='{x.Value}'>{x.Text}</option>")))`;
+
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>
+                    <select name="Lines[${lineIndex}].AccountId" class="form-select account-select">
+                        <option value="">اختر الحساب</option>
+                        ${options}
+                    </select>
+                </td>
+                <td>
+                    <input name="Lines[${lineIndex}].Debit" class="form-control debit-input" type="number" step="0.001" min="0" value="0" />
+                </td>
+                <td>
+                    <input name="Lines[${lineIndex}].Credit" class="form-control credit-input" type="number" step="0.001" min="0" value="0" />
+                </td>
+                <td>
+                    <input name="Lines[${lineIndex}].Notes" class="form-control" placeholder="ملاحظات اختيارية" />
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-light remove-line">حذف</button>
+                </td>
+            `;
+
+            tbody.appendChild(row);
+            lineIndex++;
+            bindEvents();
+            recalculateTotals();
+        });
+
+        bindEvents();
+        recalculateTotals();
+    </script>
+}

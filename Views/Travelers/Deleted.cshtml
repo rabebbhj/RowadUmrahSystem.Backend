@@ -1,0 +1,117 @@
+﻿@model IEnumerable<RowadUmrahSystem.Web.Models.Traveler>
+
+@{
+    ViewData["Title"] = "أرشيف المسافرين";
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-1">أرشيف المسافرين</h1>
+            <p class="text-muted mb-0">
+                عرض المسافرين المؤرشفين مع إمكانية الاسترجاع عند الحاجة.
+            </p>
+        </div>
+
+        <div class="action-bar mb-0">
+            <div class="dropdown">
+                <button class="btn btn-outline-gold dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    التقارير
+                </button>
+
+                <ul class="dropdown-menu">
+                    <li>
+                        <a asp-action="ExportDeletedToExcel" class="dropdown-item">
+                            تصدير Excel
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-action="ExportDeletedToPdf" class="dropdown-item">
+                            تصدير PDF
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                رجوع إلى المسافرين
+            </a>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info mb-0">
+            لا يوجد مسافرين مؤرشفين.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-striped align-middle">
+
+                <thead>
+                    <tr>
+                        <th>رقم الجواز</th>
+                        <th>الاسم</th>
+                        <th>الجنسية</th>
+                        <th>رقم الهاتف</th>
+                        <th>تاريخ الأرشفة</th>
+                        <th>تمت بواسطة</th>
+                        <th class="text-center">الإجراءات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var traveler in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@traveler.PassportNumber</strong>
+                            </td>
+
+                            <td>@traveler.FullName</td>
+
+                            <td>@traveler.Nationality</td>
+
+                            <td>@traveler.PhoneNumber</td>
+
+                            <td>
+                                @(traveler.DeletedAt?.ToString("yyyy-MM-dd HH:mm"))
+                            </td>
+
+                            <td>
+                                @traveler.DeletedBy
+                            </td>
+
+                            <td class="text-center">
+                                <form asp-action="Restore"
+                                      method="post"
+                                      class="d-inline"
+                                      onsubmit="return confirm('هل تريد استرجاع هذا المسافر من الأرشيف؟');">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@traveler.Id" />
+
+                                    <button type="submit"
+                                            class="btn btn-sm btn-gold">
+                                        استرجاع
+                                    </button>
+
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+
+        </div>
+    }
+
+</div>

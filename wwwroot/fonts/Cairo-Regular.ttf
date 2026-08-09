@@ -1,0 +1,6 @@
+﻿namespace RowadUmrahSystem.Web.wwwroot.fonts
+{
+    public class Cairo_Regular
+    {
+    }
+}

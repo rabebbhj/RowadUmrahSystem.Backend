@@ -1,0 +1,238 @@
+﻿@model IEnumerable<RowadUmrahSystem.Web.Models.Trip>
+
+@{
+    ViewData["Title"] = "سجل الرحلات";
+
+    bool canArchiveTrips = ViewBag.CanArchiveTrips == true;
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1 class="page-title mb-1">سجل الرحلات</h1>
+
+            <p class="text-muted mb-0">
+                عرض جميع رحلات العمرة النشطة داخل النظام.
+            </p>
+        </div>
+
+        <div class="action-bar mb-0">
+
+            <div class="dropdown">
+                <button class="btn btn-outline-gold dropdown-toggle"
+                        type="button"
+                        data-bs-toggle="dropdown">
+                    التقارير
+                </button>
+
+                <ul class="dropdown-menu">
+                    <li>
+                        <a asp-action="ExportToExcel" class="dropdown-item">
+                            تصدير Excel
+                        </a>
+                    </li>
+
+                    <li>
+                        <a asp-action="ExportToPdf" class="dropdown-item">
+                            تصدير PDF
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <a asp-action="Deleted"
+               class="btn btn-outline-secondary">
+                أرشيف الرحلات
+            </a>
+
+            <a asp-controller="Travelers"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+                المسافرون
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="row mb-4">
+
+        <div class="col-lg-4 mb-3">
+            <div class="stat-card">
+                <div class="stat-title">إجمالي الرحلات النشطة</div>
+                <div class="stat-number">@Model.Count()</div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-3">
+            <div class="stat-card">
+                <div class="stat-title">عدد المسافرين المشاركين</div>
+                <div class="stat-number">@Model.Select(x => x.TravelerId).Distinct().Count()</div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-3">
+            <div class="stat-card">
+                <div class="stat-title">آخر رحلة</div>
+
+                <div class="stat-number" style="font-size:20px;">
+                    @(Model.Any()
+                                        ? Model.OrderByDescending(x => x.TripDate)
+                                        .First()
+                                        .TripDate
+                                        .ToString("yyyy-MM-dd")
+                                        : "-")
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="table-responsive travelers-table-wrapper">
+
+        <table class="table table-bordered table-striped align-middle travelers-table">
+
+            <thead>
+                <tr>
+                    <th>رقم الرحلة</th>
+                    <th>المسافر</th>
+                    <th>رقم الجواز</th>
+                    <th>تاريخ الرحلة</th>
+                    <th>الملاحظات</th>
+                    <th class="text-center">الإجراءات</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (Model.Any())
+                {
+                    @foreach (var trip in Model.OrderByDescending(x => x.TripDate))
+                    {
+                        <tr>
+
+                            <td>
+                                <strong>#@trip.Id</strong>
+                            </td>
+
+                            <td>
+                                @trip.Traveler.FullName
+                            </td>
+
+                            <td>
+                                @trip.Traveler.PassportNumber
+                            </td>
+
+                            <td>
+                                @trip.TripDate.ToString("yyyy-MM-dd")
+                            </td>
+
+                            <td>
+                                @trip.Notes
+                            </td>
+
+                            <td class="text-center">
+
+                                <div class="dropdown rowad-actions-dropdown">
+                                    <button class="btn btn-sm btn-outline-gold dropdown-toggle"
+                                            type="button"
+                                            data-bs-toggle="dropdown"
+                                            data-bs-boundary="viewport"
+                                            data-bs-display="static">
+                                        إجراءات
+                                    </button>
+
+                                    <ul class="dropdown-menu rowad-actions-menu">
+
+                                        <li>
+                                            <a asp-controller="Travelers"
+                                               asp-action="Details"
+                                               asp-route-id="@trip.TravelerId"
+                                               class="dropdown-item">
+                                                ملف المسافر
+                                            </a>
+                                        </li>
+
+                                        @if (canArchiveTrips)
+                                        {
+                                            <li><hr class="dropdown-divider" /></li>
+
+                                            <li>
+                                                <form asp-action="Delete"
+                                                      asp-route-id="@trip.Id"
+                                                      method="post"
+                                                      class="px-3 py-1"
+                                                      onsubmit="return confirm('هل أنت متأكد من أرشفة هذه الرحلة؟');">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                                        أرشفة الرحلة
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        }
+
+                                    </ul>
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6"
+                            class="text-center text-muted py-4">
+                            لا توجد رحلات نشطة حالياً.
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    <script>
+        document.addEventListener("shown.bs.dropdown", function (event) {
+            const dropdown = event.target;
+
+            if (!dropdown.classList.contains("rowad-actions-dropdown")) {
+                return;
+            }
+
+            dropdown.classList.remove("dropup");
+
+            const menu = dropdown.querySelector(".dropdown-menu");
+
+            if (!menu) {
+                return;
+            }
+
+            const menuRect = menu.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+
+            if (menuRect.bottom > viewportHeight - 20) {
+                dropdown.classList.add("dropup");
+            }
+        });
+
+        document.addEventListener("hide.bs.dropdown", function (event) {
+            const dropdown = event.target;
+
+            if (dropdown.classList.contains("rowad-actions-dropdown")) {
+                dropdown.classList.remove("dropup");
+            }
+        });
+    </script>
+}

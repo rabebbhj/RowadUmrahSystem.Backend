@@ -1,0 +1,430 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using RowadUmrahSystem.Web.Models
+@using RowadUmrahSystem.Web.Services
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject PermissionService PermissionService
+
+@{
+    var isSignedIn = SignInManager.IsSignedIn(User);
+    var currentUser = isSignedIn ? await UserManager.GetUserAsync(User) : null;
+    var userName = currentUser?.FullName ?? User.Identity?.Name ?? "مستخدم";
+
+    var canViewTravelers = isSignedIn && await PermissionService.HasPermissionAsync(User, "Travelers.View");
+    var canViewTrips = isSignedIn && await PermissionService.HasPermissionAsync(User, "Trips.View");
+    var canViewDocuments = isSignedIn && await PermissionService.HasPermissionAsync(User, "Documents.View");
+    var canViewBlocks = isSignedIn && await PermissionService.HasPermissionAsync(User, "Blocks.View");
+    var canViewAuditLogs = isSignedIn && await PermissionService.HasPermissionAsync(User, "AuditLogs.View");
+    var canManageUsers = isSignedIn && await PermissionService.HasPermissionAsync(User, "Users.Manage");
+    var canViewReports = isSignedIn && await PermissionService.HasPermissionAsync(User, "Reports.View");
+    var canViewAccounting = isSignedIn && await PermissionService.HasPermissionAsync(User, "Accounting.View");
+
+    var canAccessDashboard =
+    canViewTravelers ||
+    canViewTrips ||
+    canViewDocuments ||
+    canViewBlocks ||
+    canViewAuditLogs ||
+    canManageUsers ||
+    canViewReports ||
+    canViewAccounting;
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - رواد العمرة</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/rowad-theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/RowadUmrahSystem.Web.styles.css" asp-append-version="true" />
+</head>
+
+<body class="rowad-app-body">
+
+    @if (isSignedIn)
+    {
+        <div class="rowad-shell">
+
+            <aside class="rowad-sidebar">
+                <div class="rowad-brand">
+                    <div class="rowad-brand-mark">ر</div>
+                    <div>
+                        <div class="rowad-brand-title">رواد العمرة</div>
+                        <div class="rowad-brand-subtitle">نظام الإدارة الذكي</div>
+                    </div>
+                </div>
+
+                <nav class="rowad-nav">
+
+                    @if (canAccessDashboard)
+                    {
+                        <a class="rowad-nav-link" asp-controller="Admin" asp-action="Index">
+                            <span>🏛️</span>
+                            <strong>لوحة التحكم</strong>
+                        </a>
+                    }
+
+                    @if (canViewTravelers)
+                    {
+                        <a class="rowad-nav-link" asp-controller="Travelers" asp-action="Index">
+                            <span>🧳</span>
+                            <strong>المسافرون</strong>
+                        </a>
+                    }
+
+                    @if (canViewTrips)
+                    {
+                        <a class="rowad-nav-link" asp-controller="Trips" asp-action="Index">
+                            <span>🚌</span>
+                            <strong>الرحلات</strong>
+                        </a>
+                    }
+
+                    @if (canViewAccounting)
+                    {
+                        <a class="rowad-nav-link" asp-controller="Accounting" asp-action="Index">
+                            <span>💰</span>
+                            <strong>المحاسبة</strong>
+                        </a>
+                    }
+
+                    @if (canViewDocuments)
+                    {
+                        <a class="rowad-nav-link" asp-controller="TravelerDocuments" asp-action="Deleted">
+                            <span>📄</span>
+                            <strong>الوثائق</strong>
+                        </a>
+                    }
+
+                    @if (canViewBlocks)
+                    {
+                        <a class="rowad-nav-link" asp-controller="Travelers" asp-action="Blocked">
+                            <span>⛔</span>
+                            <strong>الشكاوى والحظر</strong>
+                        </a>
+                    }
+
+                    @if (canViewAuditLogs)
+                    {
+                        <a class="rowad-nav-link" asp-controller="AuditLogs" asp-action="Index">
+                            <span>🕘</span>
+                            <strong>سجل العمليات</strong>
+                        </a>
+                    }
+
+                    @if (canManageUsers)
+                    {
+                        <a class="rowad-nav-link" asp-controller="Users" asp-action="Index">
+                            <span>👥</span>
+                            <strong>المستخدمون</strong>
+                        </a>
+                    }
+
+                    <a class="rowad-nav-link" asp-controller="Notifications" asp-action="Index">
+                        <span>🔔</span>
+                        <strong>الإشعارات</strong>
+                    </a>
+
+                </nav>
+
+                <div class="rowad-sidebar-footer">
+                    <div class="rowad-user-mini">
+                        <div class="rowad-user-avatar">
+                            @userName.Substring(0, 1)
+                        </div>
+                        <div>
+                            <strong>@userName</strong>
+                            <small>مستخدم نشط</small>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="rowad-main-area">
+
+                <header class="rowad-topbar">
+                    <div>
+                        <h5 class="mb-0">@ViewData["Title"]</h5>
+                        <small class="text-muted">مرحباً بك في نظام رواد العمرة</small>
+                    </div>
+
+                    <div class="rowad-topbar-actions">
+
+                        <div class="rowad-search-box d-none d-lg-flex">
+                            <span>🔎</span>
+                            <input type="text" placeholder="بحث سريع..." disabled />
+                        </div>
+
+                        <div class="dropdown" id="notificationDropdown">
+                            <button class="btn btn-outline-gold position-relative"
+                                    id="notificationButton"
+                                    type="button"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                🔔
+                                <span id="notificationBadge"
+                                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+                                    0
+                                </span>
+                            </button>
+
+                            <div class="dropdown-menu dropdown-menu-end notification-menu p-0">
+                                <div class="notification-menu-header d-flex justify-content-between align-items-center">
+                                    <span>الإشعارات</span>
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-light"
+                                            id="markNotificationsReadBtn">
+                                        تعيين كمقروء
+                                    </button>
+                                </div>
+
+                                <div id="notificationList" class="notification-list">
+                                    <div class="notification-empty">لا توجد إشعارات جديدة</div>
+                                </div>
+
+                                <div class="text-center p-2 border-top">
+                                    <a asp-controller="Notifications"
+                                       asp-action="Index"
+                                       class="btn btn-sm btn-outline-gold">
+                                        عرض جميع الإشعارات
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <partial name="_LoginPartial" />
+                    </div>
+                </header>
+
+                <main class="rowad-content">
+                    @RenderBody()
+                </main>
+
+                <footer class="rowad-footer">
+                    <small>© 2026 رواد العمرة - جميع الحقوق محفوظة</small>
+                </footer>
+
+            </div>
+        </div>
+    }
+    else
+    {
+        <main class="main-wrapper">
+            @RenderBody()
+        </main>
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @if (isSignedIn)
+    {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+
+        <script>
+            function updateNotificationBadge(count) {
+                const badge = document.getElementById("notificationBadge");
+                if (!badge) return;
+
+                if (count && count > 0) {
+                    badge.innerText = count;
+                    badge.classList.remove("d-none");
+                } else {
+                    badge.innerText = "0";
+                    badge.classList.add("d-none");
+                }
+            }
+
+            function formatNotificationTime(createdAt) {
+                if (!createdAt) return "الآن";
+                const date = new Date(createdAt);
+                return date.toLocaleString("ar-KW");
+            }
+
+            function renderNotificationItem(title, message, type, isRead, createdAt) {
+                const item = document.createElement("div");
+                item.className = isRead ? "notification-item" : "notification-item notification-item-unread";
+
+                item.innerHTML =
+                    '<div class="notification-item-title">' + title + '</div>' +
+                    '<div class="notification-item-message">' + message + '</div>' +
+                    '<div class="notification-item-time">' + formatNotificationTime(createdAt) + '</div>';
+
+                return item;
+            }
+
+            function renderNotifications(items) {
+                const list = document.getElementById("notificationList");
+                if (!list) return;
+
+                list.innerHTML = "";
+
+                if (!items || items.length === 0) {
+                    list.innerHTML = '<div class="notification-empty">لا توجد إشعارات جديدة</div>';
+                    return;
+                }
+
+                items.forEach(function (item) {
+                    list.appendChild(
+                        renderNotificationItem(
+                            item.title,
+                            item.message,
+                            item.type,
+                            item.isRead,
+                            item.createdAt
+                        )
+                    );
+                });
+            }
+
+            async function loadMyNotifications() {
+                try {
+                    const response = await fetch("/Notifications/MyNotifications", {
+                        method: "GET",
+                        headers: { "Accept": "application/json" }
+                    });
+
+                    if (!response.ok) return;
+
+                    const data = await response.json();
+
+                    updateNotificationBadge(data.unreadCount);
+                    renderNotifications(data.items);
+
+                } catch (error) {
+                    console.error("Failed to load notifications", error);
+                }
+            }
+
+            async function markNotificationsAsRead() {
+                try {
+                    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                    const headers = {};
+
+                    if (tokenInput) {
+                        headers["RequestVerificationToken"] = tokenInput.value;
+                    }
+
+                    const response = await fetch("/Notifications/MarkAllAsRead", {
+                        method: "POST",
+                        headers: headers
+                    });
+
+                    if (!response.ok) return;
+
+                    updateNotificationBadge(0);
+                    await loadMyNotifications();
+
+                } catch (error) {
+                    console.error("Failed to mark notifications as read", error);
+                }
+            }
+
+            function addLiveNotification(title, message, type) {
+                if (typeof showRowadToast === "function") {
+                    showRowadToast(title, message, type);
+                }
+
+                loadMyNotifications();
+            }
+
+            document.addEventListener("DOMContentLoaded", function () {
+                loadMyNotifications();
+
+                const notificationButton = document.getElementById("notificationButton");
+                if (notificationButton) {
+                    notificationButton.addEventListener("click", function () {
+                        setTimeout(function () {
+                            markNotificationsAsRead();
+                        }, 500);
+                    });
+                }
+
+                const markBtn = document.getElementById("markNotificationsReadBtn");
+                if (markBtn) {
+                    markBtn.addEventListener("click", function (event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        markNotificationsAsRead();
+                    });
+                }
+            });
+
+            const rowadConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/dashboardHub")
+                .withAutomaticReconnect()
+                .build();
+
+            rowadConnection.on("ReceiveNotification", function (data) {
+                const title = data.title || "إشعار";
+                const message = data.message || "";
+                const type = data.type || "info";
+
+                addLiveNotification(title, message, type);
+            });
+
+            rowadConnection.start()
+                .then(function () {
+                    console.log("Rowad Notifications Connected");
+                })
+                .catch(function (err) {
+                    console.error("Rowad Notifications Error", err);
+                });
+        </script>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                if (typeof showRowadToast === "function") {
+                    showRowadToast("نجاح", '@TempData["Success"]', "success");
+                }
+            });
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                if (typeof showRowadToast === "function") {
+                    showRowadToast("خطأ", '@TempData["Error"]', "danger");
+                }
+            });
+        </script>
+    }
+
+    @if (TempData["Warning"] != null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                if (typeof showRowadToast === "function") {
+                    showRowadToast("تنبيه", '@TempData["Warning"]', "warning");
+                }
+            });
+        </script>
+    }
+
+    @if (TempData["Info"] != null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                if (typeof showRowadToast === "function") {
+                    showRowadToast("معلومة", '@TempData["Info"]', "info");
+                }
+            });
+        </script>
+    }
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

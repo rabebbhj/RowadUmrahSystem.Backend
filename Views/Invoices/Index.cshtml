@@ -1,0 +1,149 @@
+﻿@model IEnumerable<RowadUmrahSystem.Web.Models.Accounting.Invoice>
+@using RowadUmrahSystem.Web.Models.Accounting
+
+@{
+    ViewData["Title"] = "الفواتير";
+
+    string? search = ViewBag.Search as string;
+    InvoiceStatus? selectedStatus = ViewBag.Status as InvoiceStatus?;
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-1">الفواتير</h1>
+            <p class="text-muted mb-0">
+                إدارة فواتير العملاء وربطها تلقائيًا بالقيود المحاسبية.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <a asp-action="Create" class="btn btn-gold">
+                إنشاء فاتورة
+            </a>
+
+            <a asp-controller="Accounting" asp-action="Index" class="btn btn-light">
+                رجوع
+            </a>
+        </div>
+    </div>
+
+    <form method="get" class="row g-3 mb-4">
+
+        <div class="col-md-6">
+            <input name="search"
+                   value="@search"
+                   class="form-control"
+                   placeholder="بحث برقم الفاتورة، اسم العميل، أو رقم الجواز..." />
+        </div>
+
+        <div class="col-md-4">
+            <select name="status" class="form-select">
+                <option value="">كل الحالات</option>
+                <option value="Unpaid" selected="@(selectedStatus == InvoiceStatus.Unpaid)">غير مدفوعة</option>
+                <option value="PartiallyPaid" selected="@(selectedStatus == InvoiceStatus.PartiallyPaid)">مدفوعة جزئيًا</option>
+                <option value="Paid" selected="@(selectedStatus == InvoiceStatus.Paid)">مدفوعة</option>
+                <option value="Cancelled" selected="@(selectedStatus == InvoiceStatus.Cancelled)">ملغاة</option>
+            </select>
+        </div>
+
+        <div class="col-md-2 d-grid">
+            <button class="btn btn-outline-gold" type="submit">
+                بحث
+            </button>
+        </div>
+
+    </form>
+
+    <div class="table-responsive">
+        <table class="table rowad-table align-middle">
+            <thead>
+                <tr>
+                    <th>رقم الفاتورة</th>
+                    <th>التاريخ</th>
+                    <th>العميل</th>
+                    <th>المسافر</th>
+                    <th>الإجمالي</th>
+                    <th>المدفوع</th>
+                    <th>المتبقي</th>
+                    <th>الحالة</th>
+                    <th class="text-center">إجراءات</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            لا توجد فواتير.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@item.InvoiceNumber</strong>
+                                @if (item.Currency != null)
+                                {
+                                    <br />
+                                    <small class="text-muted">@item.Currency.Code</small>
+                                }
+                            </td>
+
+                            <td>@item.InvoiceDate.ToString("yyyy-MM-dd")</td>
+
+                            <td>
+                                @item.CustomerName
+                                @if (!string.IsNullOrWhiteSpace(item.PassportNumber))
+                                {
+                                    <br />
+                                    <small class="text-muted">@item.PassportNumber</small>
+                                }
+                            </td>
+
+                            <td>@(item.Traveler?.FullName ?? "-")</td>
+
+                            <td>@item.TotalAmount.ToString("N3")</td>
+
+                            <td>@item.PaidAmount.ToString("N3")</td>
+
+                            <td>@item.RemainingAmount.ToString("N3")</td>
+
+                            <td>
+                                @switch (item.Status)
+                                {
+                                    case InvoiceStatus.Unpaid:
+                                        <span class="badge bg-warning text-dark">غير مدفوعة</span>
+                                        break;
+                                    case InvoiceStatus.PartiallyPaid:
+                                        <span class="badge bg-info text-dark">مدفوعة جزئيًا</span>
+                                        break;
+                                    case InvoiceStatus.Paid:
+                                        <span class="badge bg-success">مدفوعة</span>
+                                        break;
+                                    case InvoiceStatus.Cancelled:
+                                        <span class="badge bg-danger">ملغاة</span>
+                                        break;
+                                }
+                            </td>
+
+                            <td class="text-center">
+                                <a asp-action="Details"
+                                   asp-route-id="@item.Id"
+                                   class="btn btn-sm btn-outline-gold">
+                                    عرض
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>

@@ -1,0 +1,147 @@
+﻿@model IEnumerable<RowadUmrahSystem.Web.Models.TravelerDocument>
+
+@{
+    ViewData["Title"] = "أرشيف الوثائق";
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-1">أرشيف الوثائق</h1>
+            <p class="text-muted mb-0">
+                عرض الوثائق المؤرشفة مع إمكانية فتحها أو استرجاعها عند الحاجة.
+            </p>
+        </div>
+
+        <div class="action-bar mb-0">
+            <div class="dropdown">
+                <button class="btn btn-outline-gold dropdown-toggle"
+                        type="button"
+                        data-bs-toggle="dropdown">
+                    التقارير
+                </button>
+
+                <ul class="dropdown-menu">
+                    <li>
+                        <a asp-action="ExportDeletedToExcel"
+                           class="dropdown-item">
+                            تصدير Excel
+                        </a>
+                    </li>
+
+                    <li>
+                        <a asp-action="ExportDeletedToPdf"
+                           class="dropdown-item">
+                            تصدير PDF
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <a asp-controller="Admin"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+                رجوع للوحة التحكم
+            </a>
+        </div>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info mb-0">
+            لا توجد وثائق مؤرشفة.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-striped align-middle">
+
+                <thead>
+                    <tr>
+                        <th>المسافر</th>
+                        <th>رقم الجواز</th>
+                        <th>نوع المستند</th>
+                        <th>اسم الملف</th>
+                        <th>تاريخ الأرشفة</th>
+                        <th>تمت بواسطة</th>
+                        <th class="text-center">الإجراءات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var doc in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@doc.Traveler?.FullName</strong>
+                            </td>
+
+                            <td>@doc.Traveler?.PassportNumber</td>
+
+                            <td>
+                                <span class="badge badge-soft-warning">
+                                    @doc.DocumentType
+                                </span>
+                            </td>
+
+                            <td>@doc.FileName</td>
+
+                            <td>
+                                @(doc.DeletedAt?.ToString("yyyy-MM-dd HH:mm"))
+                            </td>
+
+                            <td>@doc.DeletedBy</td>
+
+                            <td class="text-center">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-gold dropdown-toggle"
+                                            type="button"
+                                            data-bs-toggle="dropdown">
+                                        إجراءات
+                                    </button>
+
+                                    <ul class="dropdown-menu">
+
+                                        <li>
+                                            <a href="@doc.FilePath"
+                                               target="_blank"
+                                               class="dropdown-item">
+                                                فتح الوثيقة
+                                            </a>
+                                        </li>
+
+                                        <li>
+                                            <form asp-action="Restore"
+                                                  method="post"
+                                                  class="px-3 py-1"
+                                                  onsubmit="return confirm('هل تريد استرجاع هذه الوثيقة من الأرشيف؟');">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <input type="hidden"
+                                                       name="id"
+                                                       value="@doc.Id" />
+
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-gold w-100">
+                                                    استرجاع
+                                                </button>
+                                            </form>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+
+        </div>
+    }
+
+</div>

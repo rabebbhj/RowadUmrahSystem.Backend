@@ -1,0 +1,121 @@
+﻿@model IEnumerable<RowadUmrahSystem.Web.Models.Accounting.JournalEntry>
+
+@{
+    ViewData["Title"] = "القيود اليومية";
+
+    string? search = ViewBag.Search as string;
+    string? fromDate = ViewBag.FromDate as string;
+    string? toDate = ViewBag.ToDate as string;
+    bool? isPosted = ViewBag.IsPosted as bool?;
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-1">القيود اليومية</h1>
+            <p class="text-muted mb-0">
+                إدارة القيود المحاسبية اليدوية والتلقائية.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <a asp-action="Create" class="btn btn-gold">إضافة قيد</a>
+            <a asp-controller="Accounting" asp-action="Index" class="btn btn-light">رجوع</a>
+        </div>
+    </div>
+
+    <form method="get" class="row g-3 mb-4">
+
+        <div class="col-md-3">
+            <input name="search"
+                   value="@search"
+                   class="form-control"
+                   placeholder="بحث برقم القيد أو البيان..." />
+        </div>
+
+        <div class="col-md-2">
+            <input type="date" name="fromDate" value="@fromDate" class="form-control" />
+        </div>
+
+        <div class="col-md-2">
+            <input type="date" name="toDate" value="@toDate" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <select name="isPosted" class="form-select">
+                <option value="">كل الحالات</option>
+                <option value="true" selected="@(isPosted == true)">مرحّل</option>
+                <option value="false" selected="@(isPosted == false)">غير مرحّل</option>
+            </select>
+        </div>
+
+        <div class="col-md-2 d-grid">
+            <button class="btn btn-outline-gold" type="submit">بحث</button>
+        </div>
+
+    </form>
+
+    <div class="table-responsive">
+        <table class="table rowad-table align-middle">
+            <thead>
+                <tr>
+                    <th>رقم القيد</th>
+                    <th>التاريخ</th>
+                    <th>البيان</th>
+                    <th>المصدر</th>
+                    <th>إجمالي مدين</th>
+                    <th>إجمالي دائن</th>
+                    <th>الحالة</th>
+                    <th class="text-center">إجراءات</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            لا توجد قيود يومية.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in Model)
+                    {
+                        var totalDebit = item.Lines.Sum(x => x.Debit);
+                        var totalCredit = item.Lines.Sum(x => x.Credit);
+
+                        <tr>
+                            <td><strong>@item.EntryNumber</strong></td>
+                            <td>@item.EntryDate.ToString("yyyy-MM-dd")</td>
+                            <td>@item.Description</td>
+                            <td>@item.SourceType</td>
+                            <td>@totalDebit.ToString("N3")</td>
+                            <td>@totalCredit.ToString("N3")</td>
+                            <td>
+                                @if (item.IsPosted)
+                                {
+                                    <span class="badge bg-success">مرحّل</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">غير مرحّل</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <a asp-action="Details"
+                                   asp-route-id="@item.Id"
+                                   class="btn btn-sm btn-outline-gold">
+                                    عرض
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>

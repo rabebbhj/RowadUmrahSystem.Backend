@@ -1,0 +1,9 @@
+﻿bin/
+obj/
+.vs/
+*.user
+*.suo
+rowad.db-shm
+rowad.db-wal
+rowad.db
+wwwroot/uploads/

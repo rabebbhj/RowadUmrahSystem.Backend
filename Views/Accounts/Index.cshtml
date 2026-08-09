@@ -1,0 +1,189 @@
+﻿@model IEnumerable<RowadUmrahSystem.Web.Models.Accounting.Account>
+@using RowadUmrahSystem.Web.Models.Accounting
+
+@{
+    ViewData["Title"] = "دليل الحسابات";
+
+    string? search = ViewBag.Search as string;
+    AccountType? selectedType = ViewBag.Type as AccountType?;
+    bool? selectedStatus = ViewBag.IsActive as bool?;
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-1">دليل الحسابات</h1>
+            <p class="text-muted mb-0">
+                إدارة الحسابات الرئيسية والفرعية المستخدمة في النظام المحاسبي.
+            </p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+            <a asp-action="Create" class="btn btn-gold">
+                إضافة حساب
+            </a>
+
+            <a asp-action="ExportToExcel" class="btn btn-outline-gold">
+                تصدير Excel
+            </a>
+
+            <a asp-controller="Accounting" asp-action="Index" class="btn btn-light">
+                رجوع
+            </a>
+        </div>
+    </div>
+
+    <form method="get" class="row g-3 mb-4">
+
+        <div class="col-md-4">
+            <input name="search"
+                   value="@search"
+                   class="form-control"
+                   placeholder="بحث برقم الحساب أو الاسم..." />
+        </div>
+
+        <div class="col-md-3">
+            <select name="type" class="form-select">
+                <option value="">كل الأنواع</option>
+                <option value="Asset" selected="@(selectedType == AccountType.Asset)">أصول</option>
+                <option value="Liability" selected="@(selectedType == AccountType.Liability)">التزامات</option>
+                <option value="Equity" selected="@(selectedType == AccountType.Equity)">حقوق ملكية</option>
+                <option value="Revenue" selected="@(selectedType == AccountType.Revenue)">إيرادات</option>
+                <option value="Expense" selected="@(selectedType == AccountType.Expense)">مصروفات</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <select name="isActive" class="form-select">
+                <option value="">كل الحالات</option>
+                <option value="true" selected="@(selectedStatus == true)">فعال</option>
+                <option value="false" selected="@(selectedStatus == false)">معطل</option>
+            </select>
+        </div>
+
+        <div class="col-md-2 d-grid">
+            <button class="btn btn-outline-gold" type="submit">
+                بحث
+            </button>
+        </div>
+
+    </form>
+
+    <div class="table-responsive">
+        <table class="table rowad-table align-middle">
+            <thead>
+                <tr>
+                    <th>رقم الحساب</th>
+                    <th>اسم الحساب</th>
+                    <th>النوع</th>
+                    <th>الحساب الرئيسي</th>
+                    <th>الحالة</th>
+                    <th>نظامي</th>
+                    <th class="text-center">إجراءات</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            لا توجد حسابات مطابقة.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@item.Code</strong>
+                            </td>
+
+                            <td>@item.Name</td>
+
+                            <td>
+                                @switch (item.Type)
+                                {
+                                    case AccountType.Asset:
+                                        <span>أصول</span>
+                                        break;
+                                    case AccountType.Liability:
+                                        <span>التزامات</span>
+                                        break;
+                                    case AccountType.Equity:
+                                        <span>حقوق ملكية</span>
+                                        break;
+                                    case AccountType.Revenue:
+                                        <span>إيرادات</span>
+                                        break;
+                                    case AccountType.Expense:
+                                        <span>مصروفات</span>
+                                        break;
+                                }
+                            </td>
+
+                            <td>@(item.ParentAccount?.Name ?? "-")</td>
+
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">فعال</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">معطل</span>
+                                }
+                            </td>
+
+                            <td>
+                                @if (item.IsSystemAccount)
+                                {
+                                    <span class="badge bg-warning text-dark">نعم</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">لا</span>
+                                }
+                            </td>
+
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+
+                                    <a asp-action="Details"
+                                       asp-route-id="@item.Id"
+                                       class="btn btn-light">
+                                        عرض
+                                    </a>
+
+                                    <a asp-action="Edit"
+                                       asp-route-id="@item.Id"
+                                       class="btn btn-outline-gold">
+                                        تعديل
+                                    </a>
+
+                                    <form asp-action="ToggleStatus"
+                                          asp-route-id="@item.Id"
+                                          method="post"
+                                          class="d-inline">
+                                        @Html.AntiForgeryToken()
+
+                                        <button type="submit"
+                                                class="btn btn-light"
+                                                onclick="return confirm('هل أنت متأكد من تغيير حالة الحساب؟');">
+                                            @(item.IsActive ? "تعطيل" : "تفعيل")
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>

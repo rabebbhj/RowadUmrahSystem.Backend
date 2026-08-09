@@ -1,0 +1,296 @@
+﻿@model RowadUmrahSystem.Web.Models.Accounting.Invoice
+@using RowadUmrahSystem.Web.Models.Accounting
+
+@{
+    ViewData["Title"] = "تفاصيل الفاتورة";
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-1">تفاصيل الفاتورة</h1>
+            <p class="text-muted mb-0">
+                عرض الفاتورة والبنود والقيد المحاسبي المرتبط بها.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+
+            @if (Model.Status != InvoiceStatus.Cancelled && Model.Status != InvoiceStatus.Paid)
+            {
+                <form asp-action="Cancel" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <button type="submit"
+                            class="btn btn-outline-danger"
+                            onclick="return confirm('هل أنت متأكد من إلغاء هذه الفاتورة؟');">
+                        إلغاء الفاتورة
+                    </button>
+                </form>
+            }
+
+            <a asp-action="Index" class="btn btn-light">
+                رجوع
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span>رقم الفاتورة</span>
+                <strong>@Model.InvoiceNumber</strong>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span>الإجمالي النهائي</span>
+                <strong>@Model.TotalAmount.ToString("N3")</strong>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span>المدفوع</span>
+                <strong>@Model.PaidAmount.ToString("N3")</strong>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span>المتبقي</span>
+                <strong>@Model.RemainingAmount.ToString("N3")</strong>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-lg-6">
+            <div class="accounting-panel h-100">
+                <div class="accounting-panel-header">
+                    <div>
+                        <h3>بيانات الفاتورة</h3>
+                        <p>معلومات العميل والرحلة.</p>
+                    </div>
+
+                    @switch (Model.Status)
+                    {
+                        case InvoiceStatus.Unpaid:
+                            <span class="badge bg-warning text-dark">غير مدفوعة</span>
+                            break;
+                        case InvoiceStatus.PartiallyPaid:
+                            <span class="badge bg-info text-dark">مدفوعة جزئيًا</span>
+                            break;
+                        case InvoiceStatus.Paid:
+                            <span class="badge bg-success">مدفوعة</span>
+                            break;
+                        case InvoiceStatus.Cancelled:
+                            <span class="badge bg-danger">ملغاة</span>
+                            break;
+                    }
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>العميل</span>
+                    <strong>@Model.CustomerName</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>رقم الجواز</span>
+                    <strong>@(Model.PassportNumber ?? "-")</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>المسافر</span>
+                    <strong>@(Model.Traveler?.FullName ?? "-")</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>الرحلة</span>
+                    <strong>
+                        @(Model.Trip != null
+                                                ? $"{Model.Trip.TripType} - {Model.Trip.TripDate:yyyy-MM-dd}"
+                                                : "-")
+                    </strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>تاريخ الفاتورة</span>
+                    <strong>@Model.InvoiceDate.ToString("yyyy-MM-dd")</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>تاريخ الاستحقاق</span>
+                    <strong>@(Model.DueDate?.ToString("yyyy-MM-dd") ?? "-")</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="accounting-panel h-100">
+                <div class="accounting-panel-header">
+                    <div>
+                        <h3>معلومات مالية</h3>
+                        <p>العملة، طريقة الدفع، ومركز التكلفة.</p>
+                    </div>
+                    <span class="accounting-panel-badge">Finance</span>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>العملة</span>
+                    <strong>@(Model.Currency != null ? $"{Model.Currency.Code} - {Model.Currency.Name}" : "-")</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>مركز التكلفة</span>
+                    <strong>@(Model.CostCenter != null ? $"{Model.CostCenter.Code} - {Model.CostCenter.Name}" : "-")</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>شروط الدفع</span>
+                    <strong>@(Model.PaymentTerm?.Name ?? "-")</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>طريقة الدفع</span>
+                    <strong>@Model.PaymentMethod</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>رقم المرجع</span>
+                    <strong>@(string.IsNullOrWhiteSpace(Model.ReferenceNumber) ? "-" : Model.ReferenceNumber)</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>القيد المحاسبي</span>
+                    <strong>@(Model.JournalEntry?.EntryNumber ?? "-")</strong>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="accounting-panel mb-4">
+        <div class="accounting-panel-header">
+            <div>
+                <h3>بنود الفاتورة</h3>
+                <p>الخدمات والأسعار والخصومات والضرائب.</p>
+            </div>
+            <span class="accounting-panel-badge">Items</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table rowad-table align-middle">
+                <thead>
+                    <tr>
+                        <th>الوصف</th>
+                        <th>الكمية</th>
+                        <th>السعر</th>
+                        <th>الخصم</th>
+                        <th>الضريبة %</th>
+                        <th>الإجمالي</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var item in Model.Items.OrderBy(x => x.SortOrder))
+                    {
+                        <tr>
+                            <td>@item.Description</td>
+                            <td>@item.Quantity.ToString("N3")</td>
+                            <td>@item.UnitPrice.ToString("N3")</td>
+                            <td>@item.DiscountAmount.ToString("N3")</td>
+                            <td>@item.TaxRate.ToString("N2")</td>
+                            <td><strong>@item.LineTotal.ToString("N3")</strong></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-lg-7">
+            <div class="accounting-panel h-100">
+                <h3 class="mb-3">ملاحظات</h3>
+                <p class="text-muted mb-0">
+                    @(string.IsNullOrWhiteSpace(Model.Notes) ? "لا توجد ملاحظات." : Model.Notes)
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="accounting-panel h-100">
+                <div class="accounting-summary-row">
+                    <span>الإجمالي قبل الخصم</span>
+                    <strong>@Model.SubTotal.ToString("N3")</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>إجمالي الخصم</span>
+                    <strong>@Model.DiscountAmount.ToString("N3")</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>إجمالي الضريبة</span>
+                    <strong>@Model.TaxAmount.ToString("N3")</strong>
+                </div>
+
+                <div class="accounting-summary-row">
+                    <span>الإجمالي النهائي</span>
+                    <strong>@Model.TotalAmount.ToString("N3")</strong>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    @if (Model.JournalEntry != null)
+    {
+        <div class="accounting-panel">
+            <div class="accounting-panel-header">
+                <div>
+                    <h3>القيد المحاسبي المرتبط</h3>
+                    <p>القيد الذي تم إنشاؤه تلقائيًا عند إصدار الفاتورة.</p>
+                </div>
+                <span class="accounting-panel-badge">@Model.JournalEntry.EntryNumber</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table rowad-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>الحساب</th>
+                            <th>مدين</th>
+                            <th>دائن</th>
+                            <th>ملاحظات</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var line in Model.JournalEntry.Lines)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@line.Account.Code</strong>
+                                    <br />
+                                    <small class="text-muted">@line.Account.Name</small>
+                                </td>
+                                <td>@line.Debit.ToString("N3")</td>
+                                <td>@line.Credit.ToString("N3")</td>
+                                <td>@line.Notes</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+</div>

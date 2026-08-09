@@ -1,0 +1,105 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "تسجيل الدخول";
+    Layout = "/Views/Shared/_AuthLayout.cshtml";
+}
+
+<div class="auth-shell">
+
+    <div class="auth-card">
+
+        <div class="text-center mb-4">
+            <div class="auth-logo">
+                ر
+            </div>
+
+            <h1 class="auth-title mb-2">
+                رواد العمرة
+            </h1>
+
+            <p class="auth-subtitle mb-0">
+                نظام إدارة المسافرين والرحلات والوثائق
+            </p>
+        </div>
+
+        <form id="account" method="post">
+
+            <div asp-validation-summary="ModelOnly"
+                 class="alert alert-danger"
+                 role="alert">
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.Email" class="form-label">
+                    البريد الإلكتروني
+                </label>
+
+                <input asp-for="Input.Email"
+                       class="form-control"
+                       autocomplete="username"
+                       aria-required="true"
+                       placeholder="employee@rowad.com" />
+
+                <span asp-validation-for="Input.Email"
+                      class="text-danger">
+                </span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.Password" class="form-label">
+                    كلمة المرور
+                </label>
+
+                <input asp-for="Input.Password"
+                       class="form-control"
+                       autocomplete="current-password"
+                       aria-required="true"
+                       placeholder="********" />
+
+                <span asp-validation-for="Input.Password"
+                      class="text-danger">
+                </span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                    <input class="form-check-input"
+                           asp-for="Input.RememberMe" />
+
+                    <label class="form-check-label"
+                           asp-for="Input.RememberMe">
+                        تذكرني
+                    </label>
+                </div>
+
+                <a id="forgot-password"
+                   asp-page="./ForgotPassword"
+                   class="text-decoration-none">
+                    نسيت كلمة المرور؟
+                </a>
+            </div>
+
+            <button id="login-submit"
+                    type="submit"
+                    class="btn btn-gold w-100 py-2">
+                دخول إلى النظام
+            </button>
+
+        </form>
+
+        <div class="text-center mt-4">
+            <small class="auth-footer-text">
+                دخول الموظفين المصرح لهم فقط
+            </small>
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

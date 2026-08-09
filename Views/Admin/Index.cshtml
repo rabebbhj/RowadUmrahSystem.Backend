@@ -1,0 +1,440 @@
+﻿@{
+    ViewData["Title"] = "لوحة التحكم";
+
+    bool canViewTravelers = ViewBag.CanViewTravelers == true;
+    bool canViewTrips = ViewBag.CanViewTrips == true;
+    bool canViewDocuments = ViewBag.CanViewDocuments == true;
+    bool canViewBlocks = ViewBag.CanViewBlocks == true;
+    bool canViewReports = ViewBag.CanViewReports == true;
+    bool canViewAuditLogs = ViewBag.CanViewAuditLogs == true;
+
+    var todayText = DateTime.Now.ToString("yyyy/MM/dd - hh:mm tt");
+}
+
+<div class="dashboard-clean">
+
+    <section class="dash-header">
+        <div>
+            <span class="dash-label">لوحة الإدارة</span>
+            <h1>لوحة تحكم رواد العمرة</h1>
+            <p>نظرة منظمة على أهم مؤشرات النظام والتنبيهات التشغيلية.</p>
+        </div>
+
+        <div class="dash-header-actions">
+            <span class="dash-date">@todayText</span>
+
+            @if (canViewTravelers)
+            {
+                <a asp-controller="Travelers" asp-action="Create" class="btn btn-gold">
+                    تسجيل مسافر
+                </a>
+            }
+
+            @if (canViewReports)
+            {
+                <div class="dropdown">
+                    <button class="btn btn-outline-gold dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        التقارير
+                    </button>
+
+                    <ul class="dropdown-menu">
+                        @if (canViewTravelers)
+                        {
+                            <li><a class="dropdown-item" asp-controller="Travelers" asp-action="ExportExpiredPassports">Excel الجوازات المنتهية</a></li>
+                            <li><a class="dropdown-item" asp-controller="Travelers" asp-action="ExportExpiringPassports">Excel الجوازات القريبة للانتهاء</a></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li><a class="dropdown-item" asp-controller="Travelers" asp-action="ExportExpiredPassportsPdf">PDF الجوازات المنتهية</a></li>
+                            <li><a class="dropdown-item" asp-controller="Travelers" asp-action="ExportExpiringPassportsPdf">PDF الجوازات القريبة للانتهاء</a></li>
+                        }
+
+                        @if (canViewDocuments)
+                        {
+                            <li><a class="dropdown-item" asp-controller="TravelerDocuments" asp-action="ExportToPdf">PDF جميع الوثائق</a></li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="dash-kpi-grid">
+
+        @if (canViewTravelers)
+        {
+            <a asp-controller="Travelers" asp-action="Index" class="dash-kpi-card">
+                <div class="dash-kpi-icon">M</div>
+                <div>
+                    <span>إجمالي المسافرين</span>
+                    <strong id="travelersCount">@ViewBag.TravelersCount</strong>
+                    <small>@ViewBag.RecentTravelersCount مسافر جديد هذا الشهر</small>
+                </div>
+            </a>
+        }
+
+        @if (canViewTrips)
+        {
+            <a asp-controller="Trips" asp-action="Index" class="dash-kpi-card">
+                <div class="dash-kpi-icon">T</div>
+                <div>
+                    <span>إجمالي الرحلات</span>
+                    <strong id="tripsCount">@ViewBag.TripsCount</strong>
+                    <small>سجل رحلات العمرة</small>
+                </div>
+            </a>
+        }
+
+        @if (canViewDocuments)
+        {
+            <div class="dash-kpi-card">
+                <div class="dash-kpi-icon">D</div>
+                <div>
+                    <span>الوثائق النشطة</span>
+                    <strong>@ViewBag.DocumentsCount</strong>
+                    <small>@ViewBag.UploadedDocumentsThisMonth وثيقة هذا الشهر</small>
+                </div>
+            </div>
+        }
+
+        @if (canViewBlocks)
+        {
+            <a asp-controller="Travelers" asp-action="Blocked" class="dash-kpi-card">
+                <div class="dash-kpi-icon danger">B</div>
+                <div>
+                    <span>المحظورون</span>
+                    <strong id="blockedCount">@ViewBag.BlockedCount</strong>
+                    <small>قائمة الحظر والمتابعة</small>
+                </div>
+            </a>
+        }
+
+        @if (canViewTravelers)
+        {
+            <a href="#passport-section" class="dash-kpi-card">
+                <div class="dash-kpi-icon warning">P</div>
+                <div>
+                    <span>جوازات قريبة الانتهاء</span>
+                    <strong id="expiringPassportsCount">@ViewBag.ExpiringPassportsCount</strong>
+                    <small>خلال 6 أشهر</small>
+                </div>
+            </a>
+        }
+
+        @if (canViewAuditLogs)
+        {
+            <a asp-controller="AuditLogs" asp-action="Index" class="dash-kpi-card">
+                <div class="dash-kpi-icon info">A</div>
+                <div>
+                    <span>عمليات اليوم</span>
+                    <strong>@ViewBag.TodayAuditCount</strong>
+                    <small>@ViewBag.MonthAuditCount عملية هذا الشهر</small>
+                </div>
+            </a>
+        }
+
+    </section>
+
+    <section class="dash-layout">
+
+        <div class="dash-panel dash-panel-main">
+            <div class="dash-panel-header">
+                <div>
+                    <h3>الإجراءات السريعة</h3>
+                    <p>اختصارات لأهم العمليات اليومية</p>
+                </div>
+            </div>
+
+            <div class="dash-actions-grid">
+
+                @if (canViewTravelers)
+                {
+                    <a asp-controller="Travelers" asp-action="Create" class="dash-action primary">
+                        <strong>تسجيل مسافر</strong>
+                        <small>إنشاء ملف جديد</small>
+                    </a>
+
+                    <a asp-controller="Travelers" asp-action="Index" class="dash-action">
+                        <strong>المسافرون</strong>
+                        <small>عرض وإدارة الملفات</small>
+                    </a>
+
+                    <a asp-controller="Travelers" asp-action="Deleted" class="dash-action">
+                        <strong>أرشيف المسافرين</strong>
+                        <small>استرجاع الملفات</small>
+                    </a>
+                }
+
+                @if (canViewTrips)
+                {
+                    <a asp-controller="Trips" asp-action="Index" class="dash-action">
+                        <strong>الرحلات</strong>
+                        <small>سجل رحلات العمرة</small>
+                    </a>
+                }
+
+                @if (canViewDocuments)
+                {
+                    <a asp-controller="TravelerDocuments" asp-action="Deleted" class="dash-action">
+                        <strong>أرشيف الوثائق</strong>
+                        <small>إدارة الوثائق المؤرشفة</small>
+                    </a>
+                }
+
+                @if (canViewBlocks)
+                {
+                    <a asp-controller="Travelers" asp-action="Blocked" class="dash-action">
+                        <strong>الحظر والشكاوى</strong>
+                        <small>متابعة الحالات الحساسة</small>
+                    </a>
+                }
+
+                @if (canViewAuditLogs)
+                {
+                    <a asp-controller="AuditLogs" asp-action="Index" class="dash-action">
+                        <strong>سجل العمليات</strong>
+                        <small>تدقيق ومراقبة النظام</small>
+                    </a>
+                }
+
+                <a asp-controller="Notifications" asp-action="Index" class="dash-action">
+                    <strong>الإشعارات</strong>
+                    <small>مركز التنبيهات</small>
+                </a>
+
+            </div>
+        </div>
+
+        @if (canViewAuditLogs)
+        {
+            <div class="dash-panel">
+                <div class="dash-panel-header">
+                    <div>
+                        <h3>نشاط النظام</h3>
+                        <p>ملخص سريع</p>
+                    </div>
+                </div>
+
+                <div class="dash-mini-stats">
+                    <div>
+                        <span>اليوم</span>
+                        <strong>@ViewBag.TodayAuditCount</strong>
+                    </div>
+
+                    <div>
+                        <span>الأسبوع</span>
+                        <strong>@ViewBag.WeekAuditCount</strong>
+                    </div>
+
+                    <div>
+                        <span>الشهر</span>
+                        <strong>@ViewBag.MonthAuditCount</strong>
+                    </div>
+                </div>
+
+                <div class="dash-highlight">
+                    <span>أكثر موظف نشاطاً</span>
+
+                    @if (ViewBag.TopEmployee != null)
+                    {
+                        <strong>@ViewBag.TopEmployee.EmployeeName</strong>
+                        <small>@ViewBag.TopEmployee.Count عملية</small>
+                    }
+                    else
+                    {
+                        <strong>لا يوجد بيانات</strong>
+                        <small>لم يتم تسجيل نشاط بعد</small>
+                    }
+                </div>
+            </div>
+        }
+
+    </section>
+
+    @if (canViewTravelers || canViewBlocks)
+    {
+        <section class="dash-layout" id="passport-section">
+
+            @if (canViewTravelers)
+            {
+                <div class="dash-panel dash-panel-main">
+                    <div class="dash-panel-header">
+                        <div>
+                            <h3>أقرب الجوازات انتهاءً</h3>
+                            <p>أول 10 جوازات تحتاج متابعة</p>
+                        </div>
+
+                        @if (canViewReports)
+                        {
+                            <a asp-controller="Travelers"
+                               asp-action="ExportExpiringPassportsPdf"
+                               class="btn btn-sm btn-outline-gold">
+                                PDF
+                            </a>
+                        }
+                    </div>
+
+                    @if (ViewBag.ExpiringPassports != null && ViewBag.ExpiringPassports.Count > 0)
+                    {
+                        <div class="table-responsive clean-table-wrap">
+                            <table class="table clean-table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>الاسم</th>
+                                        <th>رقم الجواز</th>
+                                        <th>الجنسية</th>
+                                        <th>تاريخ الانتهاء</th>
+                                        <th>الإجراء</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var traveler in ViewBag.ExpiringPassports)
+                                    {
+                                        <tr>
+                                            <td>@traveler.FullName</td>
+                                            <td>@traveler.PassportNumber</td>
+                                            <td>@traveler.Nationality</td>
+                                            <td>@traveler.PassportExpiryDate?.ToString("yyyy-MM-dd")</td>
+                                            <td>
+                                                <a asp-controller="Travelers"
+                                                   asp-action="Details"
+                                                   asp-route-id="@traveler.Id"
+                                                   class="btn btn-sm btn-outline-gold">
+                                                    عرض الملف
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="dash-empty">
+                            <strong>لا يوجد جوازات قريبة الانتهاء</strong>
+                            <small>الوضع الحالي آمن</small>
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="dash-panel">
+                <div class="dash-panel-header">
+                    <div>
+                        <h3>التنبيهات المهمة</h3>
+                        <p>ملخص الحالات التي تحتاج متابعة</p>
+                    </div>
+                </div>
+
+                <div class="dash-alert-list">
+
+                    @if (canViewTravelers)
+                    {
+                        <div class="dash-alert danger">
+                            <strong>@ViewBag.ExpiredPassportsCount جواز منتهي</strong>
+                            <small>يحتاج متابعة فورية</small>
+                        </div>
+
+                        <div class="dash-alert warning">
+                            <strong>@ViewBag.ExpiringPassportsCount جواز قريب الانتهاء</strong>
+                            <small>خلال 6 أشهر القادمة</small>
+                        </div>
+                    }
+
+                    @if (canViewBlocks)
+                    {
+                        <div class="dash-alert">
+                            <strong>@ViewBag.BlockedCount مسافر محظور</strong>
+                            <small>ضمن قائمة الحظر والمتابعة</small>
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+        </section>
+    }
+
+    @if (canViewAuditLogs)
+    {
+        <section class="dash-panel">
+            <div class="dash-panel-header">
+                <div>
+                    <h3>آخر العمليات</h3>
+                    <p>آخر 10 عمليات تمت داخل النظام</p>
+                </div>
+
+                <a asp-controller="AuditLogs" asp-action="Index" class="btn btn-sm btn-outline-gold">
+                    عرض الكل
+                </a>
+            </div>
+
+            @if (ViewBag.LatestAuditLogs != null && ViewBag.LatestAuditLogs.Count > 0)
+            {
+                <div class="dash-timeline">
+                    @foreach (var log in ViewBag.LatestAuditLogs)
+                    {
+                        <div class="dash-timeline-item">
+                            <div class="dash-timeline-mark"></div>
+
+                            <div class="dash-timeline-body">
+                                <div class="d-flex justify-content-between gap-3">
+                                    <strong>@log.Action</strong>
+                                    <small>@log.CreatedAt.ToString("yyyy-MM-dd HH:mm")</small>
+                                </div>
+
+                                <p>
+                                    @log.EmployeeName
+                                    @if (!string.IsNullOrWhiteSpace(log.TravelerName))
+                                    {
+                                        <span> - @log.TravelerName</span>
+                                    }
+                                </p>
+
+                                <small>@log.Details</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="dash-empty">
+                    <strong>لا يوجد عمليات مسجلة</strong>
+                    <small>سيظهر النشاط هنا عند استخدام النظام</small>
+                </div>
+            }
+        </section>
+    }
+
+</div>
+
+@section Scripts
+{
+    <script>
+        console.log("Dashboard V3 Loaded");
+
+        function updateCleanNumber(element, value) {
+            if (!element) return;
+            element.innerText = value;
+        }
+
+        if (typeof signalR !== "undefined") {
+            const dashboardConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/dashboardHub")
+                .withAutomaticReconnect()
+                .build();
+
+            dashboardConnection.on("DashboardUpdated", function (data) {
+                updateCleanNumber(document.getElementById("travelersCount"), data.travelersCount);
+                updateCleanNumber(document.getElementById("tripsCount"), data.tripsCount);
+                updateCleanNumber(document.getElementById("blockedCount"), data.blockedCount);
+                updateCleanNumber(document.getElementById("expiringPassportsCount"), data.expiringPassportsCount);
+            });
+
+            dashboardConnection.start()
+                .then(() => console.log("Dashboard Hub Connected"))
+                .catch(err => console.error("Dashboard Hub Error", err));
+        }
+    </script>
+}

@@ -1,0 +1,76 @@
+﻿@model RowadUmrahSystem.Web.Models.Accounting.Account
+
+@{
+    ViewData["Title"] = "إضافة حساب";
+}
+
+<div class="page-card">
+
+    <div class="mb-4">
+        <h1 class="page-title mb-1">إضافة حساب</h1>
+        <p class="text-muted mb-0">
+            إنشاء حساب جديد داخل دليل الحسابات.
+        </p>
+    </div>
+
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="row g-4">
+
+            <div class="col-md-4">
+                <label asp-for="Code" class="form-label">رقم الحساب</label>
+                <input asp-for="Code" class="form-control" placeholder="مثال: 1110" />
+                <span asp-validation-for="Code" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-8">
+                <label asp-for="Name" class="form-label">اسم الحساب</label>
+                <input asp-for="Name" class="form-control" placeholder="مثال: الصندوق الرئيسي" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Type" class="form-label">نوع الحساب</label>
+                <select asp-for="Type" asp-items="ViewBag.AccountTypes" class="form-select"></select>
+                <span asp-validation-for="Type" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="ParentAccountId" class="form-label">الحساب الرئيسي</label>
+                <select asp-for="ParentAccountId" asp-items="ViewBag.ParentAccounts" class="form-select">
+                    <option value="">بدون حساب رئيسي</option>
+                </select>
+                <span asp-validation-for="ParentAccountId" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-12">
+                <div class="form-check">
+                    <input asp-for="IsActive" class="form-check-input" checked />
+                    <label asp-for="IsActive" class="form-check-label">
+                        الحساب فعال
+                    </label>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-gold">
+                حفظ الحساب
+            </button>
+
+            <a asp-action="Index" class="btn btn-light">
+                إلغاء
+            </a>
+        </div>
+
+    </form>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,223 @@
+﻿@model IEnumerable<RowadUmrahSystem.Web.Models.Traveler>
+
+@{
+    ViewData["Title"] = "قاعدة بيانات المسافرين";
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-1">قاعدة بيانات المسافرين</h1>
+            <p class="text-muted mb-0">إدارة المسافرين، البحث، الرحلات، الحظر، والتقارير.</p>
+        </div>
+
+        <div class="action-bar mb-0">
+            <a asp-action="Create" class="btn btn-gold">
+                + تسجيل مسافر جديد
+            </a>
+
+            <div class="dropdown">
+                <button class="btn btn-outline-gold dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    التقارير
+                </button>
+
+                <ul class="dropdown-menu">
+                    <li><a asp-action="ExportToExcel" class="dropdown-item">تصدير Excel</a></li>
+                    <li><a asp-action="ExportToPdf" class="dropdown-item">تصدير PDF</a></li>
+                </ul>
+            </div>
+
+            <a asp-controller="Trips" asp-action="Index" class="btn btn-outline-secondary">
+                سجل الرحلات
+            </a>
+        </div>
+    </div>
+
+    <form asp-action="Index" method="get" class="mb-4">
+        <div class="row g-2">
+            <div class="col-md-9">
+                <input type="text"
+                       name="search"
+                       value="@ViewBag.Search"
+                       class="form-control"
+                       placeholder="ابحث بالاسم، رقم الجواز، أو رقم الهاتف..." />
+            </div>
+
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-gold w-100">بحث</button>
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">إلغاء</a>
+            </div>
+        </div>
+    </form>
+
+    <div class="table-responsive travelers-table-wrapper">
+        <table class="table table-bordered table-striped align-middle travelers-table">
+            <thead>
+                <tr>
+                    <th>الرقم</th>
+                    <th>رقم الجواز</th>
+                    <th>الاسم</th>
+                    <th>الجنسية</th>
+                    <th>الهاتف</th>
+                    <th>عدد العمرات</th>
+                    <th>الحالة</th>
+                    <th class="text-center">الإجراءات</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var traveler in Model)
+                    {
+                        <tr>
+                            <td>@traveler.Id</td>
+                            <td><strong>@traveler.PassportNumber</strong></td>
+                            <td>@traveler.FullName</td>
+                            <td>@traveler.Nationality</td>
+                            <td>@traveler.PhoneNumber</td>
+                            <td>
+                                <span class="badge badge-soft-warning">
+                                    @traveler.Trips.Count
+                                </span>
+                            </td>
+
+                            <td>
+                                @if (traveler.IsBlocked)
+                                {
+                                    <span class="badge badge-soft-danger">محظور</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-soft-success">مسموح</span>
+                                }
+                            </td>
+
+                            <td class="text-center">
+                                <div class="dropdown rowad-actions-dropdown">
+                                    <button class="btn btn-sm btn-outline-gold dropdown-toggle"
+                                            type="button"
+                                            data-bs-toggle="dropdown"
+                                            data-bs-boundary="viewport"
+                                            data-bs-display="static"
+                                            aria-expanded="false">
+                                        إجراءات
+                                    </button>
+
+                                    <ul class="dropdown-menu rowad-actions-menu">
+                                        <li>
+                                            <a asp-action="Details"
+                                               asp-route-id="@traveler.Id"
+                                               class="dropdown-item">
+                                                عرض التفاصيل
+                                            </a>
+                                        </li>
+
+                                        <li>
+                                            <a asp-action="Edit"
+                                               asp-route-id="@traveler.Id"
+                                               class="dropdown-item">
+                                                تعديل البيانات
+                                            </a>
+                                        </li>
+
+                                        <li>
+                                            <a asp-controller="Trips"
+                                               asp-action="Create"
+                                               asp-route-travelerId="@traveler.Id"
+                                               class="dropdown-item">
+                                                إضافة عمرة
+                                            </a>
+                                        </li>
+
+                                        <li><hr class="dropdown-divider" /></li>
+
+                                        @if (traveler.IsBlocked)
+                                        {
+                                            <li>
+                                                <form asp-action="Unblock"
+                                                      asp-route-id="@traveler.Id"
+                                                      method="post"
+                                                      class="px-3 py-1">
+                                                    @Html.AntiForgeryToken()
+
+                                                    <button type="submit" class="btn btn-sm btn-success w-100">
+                                                        رفع الحظر
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li>
+                                                <a asp-action="Block"
+                                                   asp-route-id="@traveler.Id"
+                                                   class="dropdown-item text-warning">
+                                                    حظر المسافر
+                                                </a>
+                                            </li>
+                                        }
+
+                                        <li>
+                                            <a asp-action="Delete"
+                                               asp-route-id="@traveler.Id"
+                                               class="dropdown-item text-danger">
+                                                حذف / أرشفة
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            لا يوجد مسافرين مطابقين للبحث.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+@section Scripts
+{
+    <script>
+        document.addEventListener("shown.bs.dropdown", function (event) {
+            const dropdown = event.target;
+
+            if (!dropdown.classList.contains("rowad-actions-dropdown")) {
+                return;
+            }
+
+            dropdown.classList.remove("dropup");
+
+            const menu = dropdown.querySelector(".dropdown-menu");
+
+            if (!menu) {
+                return;
+            }
+
+            const menuRect = menu.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+
+            if (menuRect.bottom > viewportHeight - 20) {
+                dropdown.classList.add("dropup");
+            }
+        });
+
+        document.addEventListener("hide.bs.dropdown", function (event) {
+            const dropdown = event.target;
+
+            if (dropdown.classList.contains("rowad-actions-dropdown")) {
+                dropdown.classList.remove("dropup");
+            }
+        });
+    </script>
+}

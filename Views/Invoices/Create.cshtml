@@ -1,0 +1,395 @@
+﻿@model RowadUmrahSystem.Web.ViewModels.Accounting.InvoiceFormViewModel
+@using RowadUmrahSystem.Web.Models.Accounting
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "إنشاء فاتورة";
+}
+
+<div class="page-card">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-1">إنشاء فاتورة</h1>
+            <p class="text-muted mb-0">
+                إنشاء فاتورة عميل مع توليد قيد محاسبي تلقائي.
+            </p>
+        </div>
+
+        <a asp-action="Index" class="btn btn-light mt-3 mt-md-0">
+            رجوع
+        </a>
+    </div>
+
+    <form asp-action="Create" method="post" id="invoiceForm">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="accounting-panel mb-4">
+            <div class="accounting-panel-header">
+                <div>
+                    <h3>بيانات الفاتورة</h3>
+                    <p>البيانات الرئيسية الخاصة بالعميل والرحلة.</p>
+                </div>
+                <span class="accounting-panel-badge">Invoice</span>
+            </div>
+
+            <div class="row g-4">
+
+                <div class="col-md-4">
+                    <label asp-for="CustomerName" class="form-label">اسم العميل</label>
+                    <input asp-for="CustomerName" class="form-control" />
+                    <span asp-validation-for="CustomerName" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="PassportNumber" class="form-label">رقم الجواز</label>
+                    <input asp-for="PassportNumber" class="form-control" />
+                    <span asp-validation-for="PassportNumber" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="ReferenceNumber" class="form-label">رقم المرجع</label>
+                    <input asp-for="ReferenceNumber" class="form-control" />
+                    <span asp-validation-for="ReferenceNumber" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="InvoiceDate" class="form-label">تاريخ الفاتورة</label>
+                    <input asp-for="InvoiceDate" type="date" class="form-control" />
+                    <span asp-validation-for="InvoiceDate" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="DueDate" class="form-label">تاريخ الاستحقاق</label>
+                    <input asp-for="DueDate" type="date" class="form-control" />
+                    <span asp-validation-for="DueDate" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="TravelerId" class="form-label">المسافر</label>
+                    <select asp-for="TravelerId" asp-items="ViewBag.Travelers" class="form-select">
+                        <option value="">بدون مسافر</option>
+                    </select>
+                    <span asp-validation-for="TravelerId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="TripId" class="form-label">الرحلة</label>
+                    <select asp-for="TripId" asp-items="ViewBag.Trips" class="form-select">
+                        <option value="">بدون رحلة</option>
+                    </select>
+                    <span asp-validation-for="TripId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="CurrencyId" class="form-label">العملة</label>
+                    <select asp-for="CurrencyId" asp-items="ViewBag.Currencies" class="form-select">
+                        <option value="">بدون عملة</option>
+                    </select>
+                    <span asp-validation-for="CurrencyId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="CostCenterId" class="form-label">مركز التكلفة</label>
+                    <select asp-for="CostCenterId" asp-items="ViewBag.CostCenters" class="form-select">
+                        <option value="">بدون مركز تكلفة</option>
+                    </select>
+                    <span asp-validation-for="CostCenterId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="PaymentTermId" class="form-label">شروط الدفع</label>
+                    <select asp-for="PaymentTermId" asp-items="ViewBag.PaymentTerms" class="form-select">
+                        <option value="">بدون شروط دفع</option>
+                    </select>
+                    <span asp-validation-for="PaymentTermId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="PaymentMethod" class="form-label">طريقة الدفع</label>
+                    <select asp-for="PaymentMethod" class="form-select">
+                        <option value="@PaymentMethod.Cash">نقدي</option>
+                        <option value="@PaymentMethod.BankTransfer">تحويل بنكي</option>
+                        <option value="@PaymentMethod.KNet">KNet</option>
+                        <option value="@PaymentMethod.Visa">Visa</option>
+                        <option value="@PaymentMethod.Cheque">شيك</option>
+                        <option value="@PaymentMethod.Other">أخرى</option>
+                    </select>
+                    <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="accounting-panel mb-4">
+            <div class="accounting-panel-header">
+                <div>
+                    <h3>الحسابات المحاسبية</h3>
+                    <p>الحسابات التي سيتم استخدامها لإنشاء القيد التلقائي.</p>
+                </div>
+                <span class="accounting-panel-badge">Journal</span>
+            </div>
+
+            <div class="row g-4">
+
+                <div class="col-md-6">
+                    <label asp-for="ReceivableAccountId" class="form-label">حساب العملاء / الذمم المدينة</label>
+                    <select asp-for="ReceivableAccountId" asp-items="ViewBag.ReceivableAccounts" class="form-select">
+                        <option value="">اختر حساب الذمم</option>
+                    </select>
+                    <span asp-validation-for="ReceivableAccountId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="RevenueAccountId" class="form-label">حساب الإيرادات</label>
+                    <select asp-for="RevenueAccountId" asp-items="ViewBag.RevenueAccounts" class="form-select">
+                        <option value="">اختر حساب الإيرادات</option>
+                    </select>
+                    <span asp-validation-for="RevenueAccountId" class="text-danger"></span>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="accounting-panel mb-4">
+            <div class="accounting-panel-header">
+                <div>
+                    <h3>الخدمات</h3>
+                    <p>أدخل الخدمات أو البنود الخاصة بالفاتورة.</p>
+                </div>
+                <span class="accounting-panel-badge">Items</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table rowad-table align-middle" id="invoiceItemsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%">الوصف</th>
+                            <th>الكمية</th>
+                            <th>السعر</th>
+                            <th>الخصم</th>
+                            <th>الضريبة %</th>
+                            <th>الإجمالي</th>
+                            <th style="width: 80px">حذف</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @for (int i = 0; i < Model.Items.Count; i++)
+                        {
+                            <tr>
+                                <td>
+                                    <input name="Items[@i].Description"
+                                           class="form-control"
+                                           placeholder="مثال: رسوم رحلة عمرة" />
+                                </td>
+
+                                <td>
+                                    <input name="Items[@i].Quantity"
+                                           class="form-control item-qty"
+                                           type="number"
+                                           min="0"
+                                           step="0.001"
+                                           value="1" />
+                                </td>
+
+                                <td>
+                                    <input name="Items[@i].UnitPrice"
+                                           class="form-control item-price"
+                                           type="number"
+                                           min="0"
+                                           step="0.001"
+                                           value="0" />
+                                </td>
+
+                                <td>
+                                    <input name="Items[@i].DiscountAmount"
+                                           class="form-control item-discount"
+                                           type="number"
+                                           min="0"
+                                           step="0.001"
+                                           value="0" />
+                                </td>
+
+                                <td>
+                                    <input name="Items[@i].TaxRate"
+                                           class="form-control item-tax"
+                                           type="number"
+                                           min="0"
+                                           step="0.01"
+                                           value="0" />
+                                </td>
+
+                                <td>
+                                    <strong class="line-total">0.000</strong>
+                                </td>
+
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-light remove-item">
+                                        حذف
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <button type="button" id="addItemBtn" class="btn btn-outline-gold mt-3">
+                إضافة بند
+            </button>
+        </div>
+
+        <div class="row g-4 mb-4">
+
+            <div class="col-lg-7">
+                <div class="accounting-panel h-100">
+                    <label asp-for="Notes" class="form-label">ملاحظات</label>
+                    <textarea asp-for="Notes" class="form-control" rows="6"></textarea>
+                    <span asp-validation-for="Notes" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="accounting-panel h-100">
+                    <div class="accounting-summary-row">
+                        <span>الإجمالي قبل الخصم</span>
+                        <strong id="subTotal">0.000</strong>
+                    </div>
+
+                    <div class="accounting-summary-row">
+                        <span>إجمالي الخصم</span>
+                        <strong id="discountTotal">0.000</strong>
+                    </div>
+
+                    <div class="accounting-summary-row">
+                        <span>إجمالي الضريبة</span>
+                        <strong id="taxTotal">0.000</strong>
+                    </div>
+
+                    <div class="accounting-summary-row">
+                        <span>الإجمالي النهائي</span>
+                        <strong id="grandTotal">0.000</strong>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-gold">
+                حفظ الفاتورة
+            </button>
+
+            <a asp-action="Index" class="btn btn-light">
+                إلغاء
+            </a>
+        </div>
+
+    </form>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        let itemIndex = @Model.Items.Count;
+
+        function recalculateInvoice() {
+            let subTotal = 0;
+            let discountTotal = 0;
+            let taxTotal = 0;
+            let grandTotal = 0;
+
+            document.querySelectorAll("#invoiceItemsTable tbody tr").forEach(function (row) {
+                const qty = parseFloat(row.querySelector(".item-qty")?.value || 0);
+                const price = parseFloat(row.querySelector(".item-price")?.value || 0);
+                const discount = parseFloat(row.querySelector(".item-discount")?.value || 0);
+                const taxRate = parseFloat(row.querySelector(".item-tax")?.value || 0);
+
+                const lineSubTotal = qty * price;
+                let taxable = lineSubTotal - discount;
+
+                if (taxable < 0) taxable = 0;
+
+                const tax = taxable * (taxRate / 100);
+                const lineTotal = taxable + tax;
+
+                subTotal += lineSubTotal;
+                discountTotal += discount;
+                taxTotal += tax;
+                grandTotal += lineTotal;
+
+                row.querySelector(".line-total").innerText = lineTotal.toFixed(3);
+            });
+
+            document.getElementById("subTotal").innerText = subTotal.toFixed(3);
+            document.getElementById("discountTotal").innerText = discountTotal.toFixed(3);
+            document.getElementById("taxTotal").innerText = taxTotal.toFixed(3);
+            document.getElementById("grandTotal").innerText = grandTotal.toFixed(3);
+        }
+
+        function bindInvoiceEvents() {
+            document.querySelectorAll(".item-qty, .item-price, .item-discount, .item-tax").forEach(function (input) {
+                input.removeEventListener("input", recalculateInvoice);
+                input.addEventListener("input", recalculateInvoice);
+            });
+
+            document.querySelectorAll(".remove-item").forEach(function (button) {
+                button.onclick = function () {
+                    const rows = document.querySelectorAll("#invoiceItemsTable tbody tr");
+
+                    if (rows.length <= 1) {
+                        alert("يجب أن تحتوي الفاتورة على بند واحد على الأقل.");
+                        return;
+                    }
+
+                    this.closest("tr").remove();
+                    recalculateInvoice();
+                };
+            });
+        }
+
+        document.getElementById("addItemBtn").addEventListener("click", function () {
+            const tbody = document.querySelector("#invoiceItemsTable tbody");
+
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>
+                    <input name="Items[${itemIndex}].Description" class="form-control" placeholder="مثال: رسوم رحلة عمرة" />
+                </td>
+                <td>
+                    <input name="Items[${itemIndex}].Quantity" class="form-control item-qty" type="number" min="0" step="0.001" value="1" />
+                </td>
+                <td>
+                    <input name="Items[${itemIndex}].UnitPrice" class="form-control item-price" type="number" min="0" step="0.001" value="0" />
+                </td>
+                <td>
+                    <input name="Items[${itemIndex}].DiscountAmount" class="form-control item-discount" type="number" min="0" step="0.001" value="0" />
+                </td>
+                <td>
+                    <input name="Items[${itemIndex}].TaxRate" class="form-control item-tax" type="number" min="0" step="0.01" value="0" />
+                </td>
+                <td>
+                    <strong class="line-total">0.000</strong>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-light remove-item">حذف</button>
+                </td>
+            `;
+
+            tbody.appendChild(row);
+            itemIndex++;
+
+            bindInvoiceEvents();
+            recalculateInvoice();
+        });
+
+        bindInvoiceEvents();
+        recalculateInvoice();
+    </script>
+}
