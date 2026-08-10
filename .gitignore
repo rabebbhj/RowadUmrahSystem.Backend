@@ -1,4 +1,4 @@
-﻿bin/
+bin/
 obj/
 .vs/
 *.user
@@ -7,3 +7,4 @@ rowad.db-shm
 rowad.db-wal
 rowad.db
 wwwroot/uploads/
+backend-run.log
