@@ -8,7 +8,7 @@ namespace RowadUmrahSystem.Web.Controllers
     {
         public IActionResult Index()
         {
-            return RedirectToAction("Index", "Admin");
+            return Redirect("http://127.0.0.1:5173/");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

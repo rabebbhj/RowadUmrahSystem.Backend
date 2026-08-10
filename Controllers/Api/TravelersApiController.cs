@@ -4,6 +4,7 @@ using RowadUmrahSystem.Web.Data;
 using RowadUmrahSystem.Web.ViewModels.Api;
 using Microsoft.AspNetCore.Authorization;
 using RowadUmrahSystem.Web.Models;
+using RowadUmrahSystem.Web.Services;
 
 namespace RowadUmrahSystem.Web.Controllers.Api
 {
@@ -14,12 +15,27 @@ namespace RowadUmrahSystem.Web.Controllers.Api
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly PassportOcrService _passportOcrService;
 
-        public TravelersApiController(ApplicationDbContext context, IWebHostEnvironment environment)
+        public TravelersApiController(
+            ApplicationDbContext context,
+            IWebHostEnvironment environment,
+            PassportOcrService passportOcrService)
         {
             _context = context;
             _environment = environment;
+            _passportOcrService = passportOcrService;
         }
+
+        public sealed record PassportOcrResponseDto(
+            string PassportNumber,
+            string FullName,
+            string Nationality,
+            string Gender,
+            DateTime? DateOfBirth,
+            DateTime? PassportExpiryDate,
+            string Mode,
+            string Message);
 
         [HttpGet]
         public async Task<ActionResult<IReadOnlyList<TravelerListItemDto>>> GetAll(
@@ -149,6 +165,43 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetById), new { id = traveler.Id }, await MapDetailAsync(traveler.Id));
+        }
+
+        [AllowAnonymous]
+        [HttpPost("read-passport")]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<PassportOcrResponseDto>> ReadPassport([FromForm] IFormFile? passportImage)
+        {
+            if (passportImage == null)
+            {
+                return BadRequest("Ø§Ù„Ø±Ø¬Ø§Ø¡ ØªØ­Ù…ÙŠÙ„ ØµÙˆØ±Ø© Ø§Ù„Ø¬ÙˆØ§Ø².");
+            }
+
+            var validation = _passportOcrService.ValidateImage(passportImage);
+            if (!validation.IsValid)
+            {
+                return BadRequest(validation.Message);
+            }
+
+            try
+            {
+                var savedPath = await SavePassportImageAsync(passportImage, null);
+                if (string.IsNullOrWhiteSpace(savedPath))
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, "ÙØ´Ù„ Ø§Ø®ØªØ²Ø§Ù† ØµÙˆØ±Ø© Ø§Ù„Ø¬ÙˆØ§Ø².");
+                }
+
+                var result = await _passportOcrService.ReadPassportAsync(savedPath);
+                return Ok(MapPassportOcrResponse(result, "ready", "ØªÙ… Ø§Ø³ØªØ®Ø±Ø§Ø¬ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¬ÙˆØ§Ø² Ø¨Ù†Ø¬Ø§Ø­."));
+            }
+            catch (InvalidOperationException)
+            {
+                return Ok(CreateDemoPassportResponse("demo", "ØªÙ… ØªÙˆÙ„ÙŠØ¯ Ø¨ÙŠØ§Ù†Ø§Øª ØªØ¬Ø±ÙŠØ¨ÙŠØ© Ù„ØªØµÙ„ Ø§Ù„Ø³ÙŠØ±Ù Ø¯ÙˆÙ† Ù…Ù†ØµØ© Ø®Ø§Ø±Ø¬ÙŠØ©."));
+            }
+            catch
+            {
+                return Ok(CreateDemoPassportResponse("demo", "Ø¹Ù„Ù‰ Ù…Ø§ Û¿Ù… Ø§ÙØ¥ØªØ§Ø­Ø©ØŒ ØªÙ… Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø¨ÙŠØ§Ù†Ø§Øª ØªØ¬Ø±ÙŠØ¨ÙŠØ©."));
+            }
         }
 
         [HttpPut("{id:int}")]
@@ -332,6 +385,32 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     .Select(document => new TravelerDocumentDto(document.Id, document.DocumentType, document.FileName, document.FilePath, document.Notes, document.UploadedAt))
                     .ToList()
             );
+        }
+
+        private static PassportOcrResponseDto MapPassportOcrResponse(PassportOcrResult result, string mode, string message)
+        {
+            return new PassportOcrResponseDto(
+                result.PassportNumber ?? string.Empty,
+                result.FullName ?? string.Empty,
+                result.Nationality ?? string.Empty,
+                result.Gender ?? string.Empty,
+                result.DateOfBirth,
+                result.PassportExpiryDate,
+                mode,
+                message);
+        }
+
+        private static PassportOcrResponseDto CreateDemoPassportResponse(string mode, string message)
+        {
+            return new PassportOcrResponseDto(
+                "A12345678",
+                "محمد أحمد عبدالله",
+                "كويتي",
+                "ذكر",
+                new DateTime(1990, 5, 12),
+                new DateTime(2030, 5, 12),
+                mode,
+                message);
         }
     }
 }
