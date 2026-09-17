@@ -233,7 +233,7 @@ namespace RowadUmrahSystem.Web.Services
             string mrzText = Regex.Replace(normalizedText, @"\s+", "");
 
             string civilId = ExtractCivilId(compact);
-            string passportNumber = ExtractKuwaitCivilIdPassportNumber(compact);
+            string passportNumber = ExtractKuwaitCivilIdPassportNumber(normalizedText, compact);
             string fullName = ExtractCivilIdName(mrzText);
             string nationality = compact.Contains("EGY") ? "EGY" : string.Empty;
             string gender = ExtractCivilIdGender(compact);
@@ -256,8 +256,19 @@ namespace RowadUmrahSystem.Web.Services
             return civilIdMatch.Success ? civilIdMatch.Value : string.Empty;
         }
 
-        private static string ExtractKuwaitCivilIdPassportNumber(string compact)
+        private static string ExtractKuwaitCivilIdPassportNumber(string text, string compact)
         {
+            var passportAreaMatch = Regex.Match(text, @"PAS(?:SPORT)?[^A-Z0-9]{0,20}(?:NO)?[^A-Z0-9]{0,20}(A?\s*[0-9]{8})", RegexOptions.IgnoreCase);
+            if (passportAreaMatch.Success)
+            {
+                string digits = Regex.Replace(passportAreaMatch.Groups[1].Value.ToUpperInvariant(), @"[^A-Z0-9]", "");
+                if (Regex.IsMatch(digits, @"^A[0-9]{8}$"))
+                    return digits;
+
+                if (Regex.IsMatch(digits, @"^[0-9]{8}$"))
+                    return "A" + digits;
+            }
+
             var exactMatch = Regex.Match(compact, @"A[0-9]{8}");
             if (exactMatch.Success)
                 return exactMatch.Value;
