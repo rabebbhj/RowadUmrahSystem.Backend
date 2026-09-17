@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RowadUmrahSystem.Web.Data;
 using RowadUmrahSystem.Web.ViewModels.Api;
@@ -28,6 +28,17 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         }
 
         public sealed record PassportOcrResponseDto(
+            string PassportNumber,
+            string FullName,
+            string Nationality,
+            string Gender,
+            DateTime? DateOfBirth,
+            DateTime? PassportExpiryDate,
+            string Mode,
+            string Message);
+
+        public sealed record CivilIdOcrResponseDto(
+            string CivilId,
             string PassportNumber,
             string FullName,
             string Nationality,
@@ -123,12 +134,12 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 string.IsNullOrWhiteSpace(request.Gender) ||
                 string.IsNullOrWhiteSpace(request.PhoneNumber))
             {
-                return BadRequest("الرجاء تعبئة جميع الحقول الأساسية.");
+                return BadRequest("Ø§Ù„Ø±Ø¬Ø§Ø¡ ØªØ¹Ø¨Ø¦Ø© Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø­Ù‚ÙˆÙ„ Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ©.");
             }
 
             if (string.IsNullOrWhiteSpace(request.PassportImagePath) && passportImage == null)
             {
-                return BadRequest("الرجاء رفع صورة الجواز أو توفير مسارها.");
+                return BadRequest("Ø§Ù„Ø±Ø¬Ø§Ø¡ Ø±ÙØ¹ ØµÙˆØ±Ø© Ø§Ù„Ø¬ÙˆØ§Ø² Ø£Ùˆ ØªÙˆÙÙŠØ± Ù…Ø³Ø§Ø±Ù‡Ø§.");
             }
 
             var existingTraveler = await _context.Travelers
@@ -137,8 +148,8 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             if (existingTraveler != null)
             {
                 return Conflict(existingTraveler.IsBlocked
-                    ? $"هذا المسافر محظور. سبب الحظر: {existingTraveler.BlockReason}"
-                    : "هذا المسافر مسجل مسبقاً بنفس رقم الجواز.");
+                    ? $"Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³Ø§ÙØ± Ù…Ø­Ø¸ÙˆØ±. Ø³Ø¨Ø¨ Ø§Ù„Ø­Ø¸Ø±: {existingTraveler.BlockReason}"
+                    : "Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³Ø§ÙØ± Ù…Ø³Ø¬Ù„ Ù…Ø³Ø¨Ù‚Ø§Ù‹ Ø¨Ù†ÙØ³ Ø±Ù‚Ù… Ø§Ù„Ø¬ÙˆØ§Ø².");
             }
 
             var traveler = new Traveler
@@ -174,7 +185,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         {
             if (passportImage == null)
             {
-                return BadRequest("Ø§Ù„Ø±Ø¬Ø§Ø¡ ØªØ­Ù…ÙŠÙ„ ØµÙˆØ±Ø© Ø§Ù„Ø¬ÙˆØ§Ø².");
+                return BadRequest("الرجاء تحميل صورة الجواز.");
             }
 
             var validation = _passportOcrService.ValidateImage(passportImage);
@@ -188,19 +199,56 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 var savedPath = await SavePassportImageAsync(passportImage, null);
                 if (string.IsNullOrWhiteSpace(savedPath))
                 {
-                    return StatusCode(StatusCodes.Status500InternalServerError, "ÙØ´Ù„ Ø§Ø®ØªØ²Ø§Ù† ØµÙˆØ±Ø© Ø§Ù„Ø¬ÙˆØ§Ø².");
+                    return StatusCode(StatusCodes.Status500InternalServerError, "فشل حفظ صورة الجواز.");
                 }
 
                 var result = await _passportOcrService.ReadPassportAsync(savedPath);
-                return Ok(MapPassportOcrResponse(result, "ready", "ØªÙ… Ø§Ø³ØªØ®Ø±Ø§Ø¬ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¬ÙˆØ§Ø² Ø¨Ù†Ø¬Ø§Ø­."));
+                return Ok(MapPassportOcrResponse(result, "ready", "تم استخراج بيانات الجواز بنجاح."));
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException ex)
             {
-                return Ok(CreateDemoPassportResponse("demo", "ØªÙ… ØªÙˆÙ„ÙŠØ¯ Ø¨ÙŠØ§Ù†Ø§Øª ØªØ¬Ø±ÙŠØ¨ÙŠØ© Ù„ØªØµÙ„ Ø§Ù„Ø³ÙŠØ±Ù Ø¯ÙˆÙ† Ù…Ù†ØµØ© Ø®Ø§Ø±Ø¬ÙŠØ©."));
+                return Ok(CreateManualPassportResponse($"تعذرت قراءة الجواز محليا. {ex.Message}"));
             }
             catch
             {
-                return Ok(CreateDemoPassportResponse("demo", "Ø¹Ù„Ù‰ Ù…Ø§ Û¿Ù… Ø§ÙØ¥ØªØ§Ø­Ø©ØŒ ØªÙ… Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø¨ÙŠØ§Ù†Ø§Øª ØªØ¬Ø±ÙŠØ¨ÙŠØ©."));
+                return Ok(CreateManualPassportResponse("تعذرت قراءة الجواز حاليا. تم حفظ صورة الجواز، الرجاء إدخال البيانات يدويا."));
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("read-civil-id")]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<CivilIdOcrResponseDto>> ReadCivilId([FromForm] IFormFile? civilIdImage)
+        {
+            if (civilIdImage == null)
+            {
+                return BadRequest("الرجاء تحميل صورة البطاقة المدنية.");
+            }
+
+            var validation = _passportOcrService.ValidateImage(civilIdImage);
+            if (!validation.IsValid)
+            {
+                return BadRequest(validation.Message);
+            }
+
+            try
+            {
+                var savedPath = await SavePassportImageAsync(civilIdImage, null);
+                if (string.IsNullOrWhiteSpace(savedPath))
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, "فشل حفظ صورة البطاقة المدنية.");
+                }
+
+                var result = await _passportOcrService.ReadCivilIdAsync(savedPath);
+                return Ok(MapCivilIdOcrResponse(result, "ready", "تم استخراج بيانات البطاقة المدنية بنجاح."));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Ok(CreateManualCivilIdResponse($"تعذرت قراءة البطاقة المدنية محليا. {ex.Message}"));
+            }
+            catch
+            {
+                return Ok(CreateManualCivilIdResponse("تعذرت قراءة البطاقة المدنية حاليا. الرجاء إدخال البيانات يدويا."));
             }
         }
 
@@ -224,7 +272,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
 
             if (duplicate != null)
             {
-                return Conflict("هذا المسافر مسجل مسبقاً بنفس رقم الجواز.");
+                return Conflict("Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³Ø§ÙØ± Ù…Ø³Ø¬Ù„ Ù…Ø³Ø¨Ù‚Ø§Ù‹ Ø¨Ù†ÙØ³ Ø±Ù‚Ù… Ø§Ù„Ø¬ÙˆØ§Ø².");
             }
 
             traveler.PassportNumber = request.PassportNumber.Trim();
@@ -400,16 +448,44 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 message);
         }
 
-        private static PassportOcrResponseDto CreateDemoPassportResponse(string mode, string message)
+        private static PassportOcrResponseDto CreateManualPassportResponse(string message)
         {
             return new PassportOcrResponseDto(
-                "A12345678",
-                "محمد أحمد عبدالله",
-                "كويتي",
-                "ذكر",
-                new DateTime(1990, 5, 12),
-                new DateTime(2030, 5, 12),
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                null,
+                null,
+                "demo",
+                message);
+        }
+
+        private static CivilIdOcrResponseDto MapCivilIdOcrResponse(CivilIdOcrResult result, string mode, string message)
+        {
+            return new CivilIdOcrResponseDto(
+                result.CivilId ?? string.Empty,
+                result.PassportNumber ?? string.Empty,
+                result.FullName ?? string.Empty,
+                result.Nationality ?? string.Empty,
+                result.Gender ?? string.Empty,
+                result.DateOfBirth,
+                result.PassportExpiryDate,
                 mode,
+                message);
+        }
+
+        private static CivilIdOcrResponseDto CreateManualCivilIdResponse(string message)
+        {
+            return new CivilIdOcrResponseDto(
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                null,
+                null,
+                "demo",
                 message);
         }
     }

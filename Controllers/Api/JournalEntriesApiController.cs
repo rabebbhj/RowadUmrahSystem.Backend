@@ -65,21 +65,30 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             var entries = await query
                 .OrderByDescending(x => x.EntryDate)
                 .ThenByDescending(x => x.Id)
-                .Select(x => new JournalEntryListItemDto(
-                    x.Id,
-                    x.EntryNumber,
-                    x.EntryDate,
-                    x.Description,
-                    x.SourceType,
-                    x.IsPosted,
-                    x.Lines.Sum(line => line.Debit),
-                    x.Lines.Sum(line => line.Credit),
-                    x.Lines.Sum(line => line.Debit) - x.Lines.Sum(line => line.Credit),
-                    x.Lines.Count,
-                    x.CreatedAt))
                 .ToListAsync();
 
-            return Ok(entries);
+            var result = entries
+                .Select(x =>
+                {
+                    var totalDebit = x.Lines.Sum(line => line.Debit);
+                    var totalCredit = x.Lines.Sum(line => line.Credit);
+
+                    return new JournalEntryListItemDto(
+                        x.Id,
+                        x.EntryNumber,
+                        x.EntryDate,
+                        x.Description,
+                        x.SourceType,
+                        x.IsPosted,
+                        totalDebit,
+                        totalCredit,
+                        totalDebit - totalCredit,
+                        x.Lines.Count,
+                        x.CreatedAt);
+                })
+                .ToList();
+
+            return Ok(result);
         }
 
         [HttpGet("{id:int}")]

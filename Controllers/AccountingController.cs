@@ -8,7 +8,7 @@ namespace RowadUmrahSystem.Web.Controllers
 {
     [Authorize]
     public class AccountingController : Controller
-    {
+    {  
         private readonly ApplicationDbContext _context;
         private readonly PermissionService _permissionService;
 
@@ -56,7 +56,7 @@ namespace RowadUmrahSystem.Web.Controllers
                 .ToListAsync();
 
             decimal totalInvoices = invoiceAmounts.Sum();
-            decimal totalReceipts = receiptAmounts.Sum();
+            decimal totalReceipts = receiptAmounts.Sum();   
             decimal totalPayments = paymentAmounts.Sum();
             decimal totalExpenses = expenseAmounts.Sum();
             decimal bankOpeningBalances = bankOpeningAmounts.Sum();
