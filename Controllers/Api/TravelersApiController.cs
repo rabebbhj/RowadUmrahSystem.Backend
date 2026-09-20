@@ -122,11 +122,13 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             return Ok(MapDetail(traveler));
         }
 
+        [AllowAnonymous]
         [HttpPost]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<TravelerDetailDto>> Create(
             [FromForm] TravelerUpsertRequestDto request,
-            [FromForm] IFormFile? passportImage)
+            [FromForm] IFormFile? passportImage,
+            [FromForm] IFormFile? civilIdImage)
         {
             if (string.IsNullOrWhiteSpace(request.PassportNumber) ||
                 string.IsNullOrWhiteSpace(request.FullName) ||
@@ -134,12 +136,12 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 string.IsNullOrWhiteSpace(request.Gender) ||
                 string.IsNullOrWhiteSpace(request.PhoneNumber))
             {
-                return BadRequest("Ø§Ù„Ø±Ø¬Ø§Ø¡ ØªØ¹Ø¨Ø¦Ø© Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø­Ù‚ÙˆÙ„ Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ©.");
+                return BadRequest("الرجاء تعبئة جميع الحقول الأساسية.");
             }
 
             if (string.IsNullOrWhiteSpace(request.PassportImagePath) && passportImage == null)
             {
-                return BadRequest("Ø§Ù„Ø±Ø¬Ø§Ø¡ Ø±ÙØ¹ ØµÙˆØ±Ø© Ø§Ù„Ø¬ÙˆØ§Ø² Ø£Ùˆ ØªÙˆÙÙŠØ± Ù…Ø³Ø§Ø±Ù‡Ø§.");
+                return BadRequest("الرجاء رفع صورة الجواز أو توفير مسارها.");
             }
 
             var existingTraveler = await _context.Travelers
@@ -148,8 +150,8 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             if (existingTraveler != null)
             {
                 return Conflict(existingTraveler.IsBlocked
-                    ? $"Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³Ø§ÙØ± Ù…Ø­Ø¸ÙˆØ±. Ø³Ø¨Ø¨ Ø§Ù„Ø­Ø¸Ø±: {existingTraveler.BlockReason}"
-                    : "Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³Ø§ÙØ± Ù…Ø³Ø¬Ù„ Ù…Ø³Ø¨Ù‚Ø§Ù‹ Ø¨Ù†ÙØ³ Ø±Ù‚Ù… Ø§Ù„Ø¬ÙˆØ§Ø².");
+                    ? $"هذا المسافر محظور. سبب الحظر: {existingTraveler.BlockReason}"
+                    : "هذا المسافر مسجل مسبقاً بنفس رقم الجواز.");
             }
 
             var traveler = new Traveler
@@ -165,7 +167,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 PassportExpiryDate = request.PassportExpiryDate,
                 PhoneNumber = request.PhoneNumber.Trim(),
                 Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim(),
-                UmrahCount = 1,
+                UmrahCount = 0,
                 IsBlocked = request.IsBlocked,
                 BlockReason = string.IsNullOrWhiteSpace(request.BlockReason) ? null : request.BlockReason.Trim(),
                 BlockedAt = request.IsBlocked ? DateTime.UtcNow : null,
@@ -174,6 +176,23 @@ namespace RowadUmrahSystem.Web.Controllers.Api
 
             _context.Travelers.Add(traveler);
             await _context.SaveChangesAsync();
+
+            if (civilIdImage is { Length: > 0 })
+            {
+                var documentPath = await SaveTravelerDocumentAsync(traveler.Id, civilIdImage);
+                _context.TravelerDocuments.Add(new TravelerDocument
+                {
+                    TravelerId = traveler.Id,
+                    DocumentType = "CivilId",
+                    FileName = Path.GetFileName(civilIdImage.FileName),
+                    FilePath = documentPath,
+                    Notes = "بطاقة الهوية من طلب الحجز العام",
+                    UploadedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                });
+
+                await _context.SaveChangesAsync();
+            }
 
             return CreatedAtAction(nameof(GetById), new { id = traveler.Id }, await MapDetailAsync(traveler.Id));
         }
@@ -272,7 +291,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
 
             if (duplicate != null)
             {
-                return Conflict("Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³Ø§ÙØ± Ù…Ø³Ø¬Ù„ Ù…Ø³Ø¨Ù‚Ø§Ù‹ Ø¨Ù†ÙØ³ Ø±Ù‚Ù… Ø§Ù„Ø¬ÙˆØ§Ø².");
+                return Conflict("هذا المسافر مسجل مسبقاً بنفس رقم الجواز.");
             }
 
             traveler.PassportNumber = request.PassportNumber.Trim();
@@ -388,6 +407,21 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             await passportImage.CopyToAsync(stream);
 
             return $"/uploads/passports/{fileName}";
+        }
+
+        private async Task<string> SaveTravelerDocumentAsync(int travelerId, IFormFile document)
+        {
+            var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "documents", travelerId.ToString());
+            Directory.CreateDirectory(uploadsFolder);
+
+            var extension = Path.GetExtension(document.FileName);
+            var fileName = $"{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            await using var stream = new FileStream(filePath, FileMode.Create);
+            await document.CopyToAsync(stream);
+
+            return $"/uploads/documents/{travelerId}/{fileName}";
         }
 
         private async Task<TravelerDetailDto> MapDetailAsync(int id)
