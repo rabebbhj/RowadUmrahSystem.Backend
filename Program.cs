@@ -111,6 +111,90 @@ app.UseCors("FrontendDev");
 app.UseAuthentication();
 app.UseAuthorization();
 
+string[] adminSpaRoutes =
+{
+    "/login",
+    "/admin",
+    "/travelers",
+    "/trips",
+    "/users",
+    "/accounting",
+    "/documents",
+    "/audit-logs",
+    "/auditlogs",
+    "/notifications",
+    "/financial-reports",
+    "/accounts",
+    "/bank-accounts",
+    "/customers",
+    "/invoices",
+    "/expenses",
+    "/journal-entries",
+    "/receipt-vouchers",
+    "/payment-vouchers"
+};
+
+string[] backendActionPrefixes =
+{
+    "/api",
+    "/identity",
+    "/notifications/mynotifications",
+    "/notifications/open",
+    "/notifications/markallasread",
+    "/notifications/markasread",
+    "/notifications/delete",
+    "/notifications/deleteall",
+    "/travelerdocuments",
+    "/travelers/export",
+    "/travelers/blockedpdf",
+    "/travelers/deletedpdf",
+    "/travelers/exportdeleted",
+    "/travelers/exportblocked",
+    "/travelers/print",
+    "/trips/export",
+    "/invoices/export",
+    "/accounts/export",
+    "/journalentries/export"
+};
+
+static bool IsAdminSpaPageRequest(HttpRequest request, string[] spaRoutes, string[] backendPrefixes)
+{
+    if (!HttpMethods.IsGet(request.Method))
+    {
+        return false;
+    }
+
+    var path = request.Path.Value?.TrimEnd('/').ToLowerInvariant();
+    if (string.IsNullOrWhiteSpace(path))
+    {
+        return false;
+    }
+
+    if (Path.HasExtension(path))
+    {
+        return false;
+    }
+
+    if (backendPrefixes.Any(prefix => path == prefix || path.StartsWith($"{prefix}/")))
+    {
+        return false;
+    }
+
+    return spaRoutes.Any(route => path == route || path.StartsWith($"{route}/"));
+}
+
+app.Use(async (context, next) =>
+{
+    if (!IsAdminSpaPageRequest(context.Request, adminSpaRoutes, backendActionPrefixes))
+    {
+        await next();
+        return;
+    }
+
+    context.Response.ContentType = "text/html; charset=utf-8";
+    await context.Response.SendFileAsync(Path.Combine(app.Environment.WebRootPath, "app", "index.html"));
+});
+
 app.MapControllers();
 
 app.MapControllerRoute(
@@ -120,6 +204,12 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.MapHub<DashboardHub>("/dashboardHub");
+
+foreach (var route in adminSpaRoutes)
+{
+    app.MapFallbackToFile(route, "app/index.html");
+    app.MapFallbackToFile($"{route}/{{*path:nonfile}}", "app/index.html");
+}
 
 using (var scope = app.Services.CreateScope())
 {
@@ -176,6 +266,49 @@ using (var scope = app.Services.CreateScope())
         {
             await userManager.AddToRoleAsync(adminUser, "Admin");
         }
+    }
+
+    var travelerEmail = "traveler@rowad.local";
+    var travelerPassword = "Traveler@12345";
+
+    var travelerUser = await userManager.FindByEmailAsync(travelerEmail);
+
+    if (travelerUser == null)
+    {
+        travelerUser = new ApplicationUser
+        {
+            UserName = travelerEmail,
+            Email = travelerEmail,
+            EmailConfirmed = true,
+            FullName = "Test Traveler",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = await userManager.CreateAsync(travelerUser, travelerPassword);
+
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException(
+                $"Failed to create test traveler {travelerEmail}: " +
+                string.Join(", ", result.Errors.Select(error => error.Description)));
+        }
+    }
+    else
+    {
+        var resetToken = await userManager.GeneratePasswordResetTokenAsync(travelerUser);
+        var resetResult = await userManager.ResetPasswordAsync(travelerUser, resetToken, travelerPassword);
+
+        if (!resetResult.Succeeded)
+        {
+            throw new InvalidOperationException(
+                $"Failed to reset password for {travelerEmail}: " +
+                string.Join(", ", resetResult.Errors.Select(error => error.Description)));
+        }
+
+        travelerUser.EmailConfirmed = true;
+        travelerUser.IsActive = true;
+        await userManager.UpdateAsync(travelerUser);
     }
 }
 

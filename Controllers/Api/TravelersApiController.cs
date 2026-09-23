@@ -16,15 +16,18 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
         private readonly PassportOcrService _passportOcrService;
+        private readonly PermissionService _permissionService;
 
         public TravelersApiController(
             ApplicationDbContext context,
             IWebHostEnvironment environment,
-            PassportOcrService passportOcrService)
+            PassportOcrService passportOcrService,
+            PermissionService permissionService)
         {
             _context = context;
             _environment = environment;
             _passportOcrService = passportOcrService;
+            _permissionService = permissionService;
         }
 
         public sealed record PassportOcrResponseDto(
@@ -54,6 +57,9 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             [FromQuery] bool includeDeleted = false,
             [FromQuery] bool onlyActive = false)
         {
+            if (!await CanViewTravelers())
+                return Forbid();
+
             var query = _context.Travelers
                 .AsNoTracking()
                 .AsQueryable();
@@ -108,6 +114,9 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         [HttpGet("{id:int}")]
         public async Task<ActionResult<TravelerDetailDto>> GetById(int id)
         {
+            if (!await CanViewTravelers())
+                return Forbid();
+
             var traveler = await _context.Travelers
                 .AsNoTracking()
                 .Include(t => t.Trips)
@@ -278,6 +287,9 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             [FromForm] TravelerUpsertRequestDto request,
             [FromForm] IFormFile? passportImage)
         {
+            if (!await CanEditTravelers())
+                return Forbid();
+
             var traveler = await _context.Travelers
                 .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
 
@@ -317,6 +329,9 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         [HttpPost("{id:int}/block")]
         public async Task<ActionResult<TravelerDetailDto>> Block(int id, [FromBody] TravelerBlockRequestDto request)
         {
+            if (!await CanBlockTravelers())
+                return Forbid();
+
             var traveler = await _context.Travelers
                 .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
 
@@ -337,6 +352,9 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         [HttpPost("{id:int}/unblock")]
         public async Task<ActionResult<TravelerDetailDto>> Unblock(int id)
         {
+            if (!await CanUnblockTravelers())
+                return Forbid();
+
             var traveler = await _context.Travelers
                 .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
 
@@ -357,6 +375,9 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         [HttpPost("{id:int}/delete")]
         public async Task<IActionResult> Delete(int id)
         {
+            if (!await CanArchiveTravelers())
+                return Forbid();
+
             var traveler = await _context.Travelers.FirstOrDefaultAsync(t => t.Id == id);
             if (traveler == null)
             {
@@ -375,6 +396,9 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         [HttpPost("{id:int}/restore")]
         public async Task<IActionResult> Restore(int id)
         {
+            if (!await CanRestoreTravelers())
+                return Forbid();
+
             var traveler = await _context.Travelers.FirstOrDefaultAsync(t => t.Id == id);
             if (traveler == null)
             {
@@ -388,6 +412,36 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        private async Task<bool> CanViewTravelers()
+        {
+            return await _permissionService.HasPermissionAsync(User, "Travelers.View");
+        }
+
+        private async Task<bool> CanEditTravelers()
+        {
+            return await _permissionService.HasPermissionAsync(User, "Travelers.Edit");
+        }
+
+        private async Task<bool> CanArchiveTravelers()
+        {
+            return await _permissionService.HasPermissionAsync(User, "Travelers.Archive");
+        }
+
+        private async Task<bool> CanRestoreTravelers()
+        {
+            return await _permissionService.HasPermissionAsync(User, "Travelers.Restore");
+        }
+
+        private async Task<bool> CanBlockTravelers()
+        {
+            return await _permissionService.HasPermissionAsync(User, "Blocks.Block");
+        }
+
+        private async Task<bool> CanUnblockTravelers()
+        {
+            return await _permissionService.HasPermissionAsync(User, "Blocks.Unblock");
         }
 
         private async Task<string?> SavePassportImageAsync(IFormFile? passportImage, string? existingPath)

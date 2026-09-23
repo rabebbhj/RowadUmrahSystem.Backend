@@ -38,6 +38,10 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
+                if (!IsCompanyUser(roles))
+                {
+                    continue;
+                }
 
                 items.Add(new UserListItemDto(
                     user.Id,
@@ -110,6 +114,11 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 return NotFound();
             }
 
+            if (!await IsCompanyUserAsync(user))
+            {
+                return NotFound();
+            }
+
             if (IsMainAdmin(user))
             {
                 return BadRequest("The main admin account cannot be disabled.");
@@ -130,6 +139,11 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 return NotFound();
             }
 
+            if (!await IsCompanyUserAsync(user))
+            {
+                return NotFound();
+            }
+
             var permissions = await EnsurePermissionsAsync(id);
             return Ok(MapPermissions(user, permissions));
         }
@@ -139,6 +153,11 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (!await IsCompanyUserAsync(user))
             {
                 return NotFound();
             }
@@ -321,6 +340,18 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         private static bool IsMainAdmin(ApplicationUser user)
         {
             return string.Equals(user.Email, MainAdminEmail, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsCompanyUser(IEnumerable<string> roles)
+        {
+            return roles.Any(role =>
+                string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(role, "Employee", StringComparison.OrdinalIgnoreCase));
+        }
+
+        private async Task<bool> IsCompanyUserAsync(ApplicationUser user)
+        {
+            return IsCompanyUser(await _userManager.GetRolesAsync(user));
         }
     }
 }
