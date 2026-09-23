@@ -123,6 +123,7 @@ string[] adminSpaRoutes =
     "/audit-logs",
     "/auditlogs",
     "/notifications",
+    "/settings",
     "/financial-reports",
     "/accounts",
     "/bank-accounts",

@@ -56,6 +56,12 @@ namespace RowadUmrahSystem.Web.ViewModels.Api
         public string? Notes { get; set; }
         public bool IsBlocked { get; set; }
         public string? BlockReason { get; set; }
+        public string? PackageId { get; set; }
+        public string? PackageName { get; set; }
+        public DateTime? BookingDate { get; set; }
+        public string? RoomType { get; set; }
+        public string? TransportType { get; set; }
+        public decimal? ReservationTotal { get; set; }
     }
 
     public sealed class TravelerBlockRequestDto

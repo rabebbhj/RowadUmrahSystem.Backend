@@ -158,9 +158,18 @@ namespace RowadUmrahSystem.Web.Controllers.Api
 
             if (existingTraveler != null)
             {
-                return Conflict(existingTraveler.IsBlocked
-                    ? $"هذا المسافر محظور. سبب الحظر: {existingTraveler.BlockReason}"
-                    : "هذا المسافر مسجل مسبقاً بنفس رقم الجواز.");
+                if (existingTraveler.IsBlocked)
+                {
+                    return Conflict($"هذا المسافر محظور. سبب الحظر: {existingTraveler.BlockReason}");
+                }
+
+                if (HasReservationPackageData(request))
+                {
+                    await AddReservationTripAsync(existingTraveler, request);
+                    return Ok(await MapDetailAsync(existingTraveler.Id));
+                }
+
+                return Conflict("هذا المسافر مسجل مسبقاً بنفس رقم الجواز.");
             }
 
             var traveler = new Traveler
@@ -201,6 +210,11 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 });
 
                 await _context.SaveChangesAsync();
+            }
+
+            if (HasReservationPackageData(request))
+            {
+                await AddReservationTripAsync(traveler, request);
             }
 
             return CreatedAtAction(nameof(GetById), new { id = traveler.Id }, await MapDetailAsync(traveler.Id));
@@ -521,6 +535,62 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     .Select(document => new TravelerDocumentDto(document.Id, document.DocumentType, document.FileName, document.FilePath, document.Notes, document.UploadedAt))
                     .ToList()
             );
+        }
+
+        private static bool HasReservationPackageData(TravelerUpsertRequestDto request)
+        {
+            return !string.IsNullOrWhiteSpace(request.PackageId) ||
+                !string.IsNullOrWhiteSpace(request.PackageName) ||
+                request.BookingDate.HasValue ||
+                !string.IsNullOrWhiteSpace(request.RoomType) ||
+                !string.IsNullOrWhiteSpace(request.TransportType) ||
+                request.ReservationTotal.HasValue;
+        }
+
+        private static string BuildReservationTripNotes(TravelerUpsertRequestDto request)
+        {
+            var parts = new List<string>
+            {
+                "طلب حجز من الموقع العام",
+                string.IsNullOrWhiteSpace(request.PackageId) ? "" : $"PackageId: {request.PackageId.Trim()}",
+                string.IsNullOrWhiteSpace(request.PackageName) ? "" : $"الباقة: {request.PackageName.Trim()}",
+                request.BookingDate.HasValue ? $"تاريخ الحجز: {request.BookingDate.Value:yyyy-MM-dd}" : "",
+                string.IsNullOrWhiteSpace(request.RoomType) ? "" : $"نوع الغرفة: {request.RoomType.Trim()}",
+                string.IsNullOrWhiteSpace(request.TransportType) ? "" : $"وسيلة النقل: {request.TransportType.Trim()}",
+                request.ReservationTotal.HasValue ? $"المبلغ المحسوب: {request.ReservationTotal.Value:0.##} د.ك" : ""
+            };
+
+            return string.Join(" | ", parts.Where(part => !string.IsNullOrWhiteSpace(part)));
+        }
+
+        private async Task AddReservationTripAsync(Traveler traveler, TravelerUpsertRequestDto request)
+        {
+            var tripDate = request.BookingDate?.Date ?? DateTime.UtcNow.Date;
+            var duplicateTrip = await _context.Trips.AnyAsync(x =>
+                !x.IsDeleted &&
+                x.TravelerId == traveler.Id &&
+                x.TripType == "Umrah" &&
+                x.TripDate.Date == tripDate);
+
+            if (!duplicateTrip)
+            {
+                _context.Trips.Add(new Trip
+                {
+                    TravelerId = traveler.Id,
+                    TripType = "Umrah",
+                    TripDate = tripDate,
+                    Notes = BuildReservationTripNotes(request),
+                    CreatedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                });
+
+                await _context.SaveChangesAsync();
+            }
+
+            traveler.UmrahCount = await _context.Trips
+                .CountAsync(x => x.TravelerId == traveler.Id && !x.IsDeleted);
+
+            await _context.SaveChangesAsync();
         }
 
         private static PassportOcrResponseDto MapPassportOcrResponse(PassportOcrResult result, string mode, string message)
