@@ -211,6 +211,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     .OrderBy(date => date)
                     .ToList(),
                 PricingRules = NormalizeRules(package.PricingRules),
+                PricingProfile = package.PricingProfile,
                 CreatedAt = package.CreatedAt == default ? DateTime.UtcNow : package.CreatedAt,
                 UpdatedAt = package.UpdatedAt == default ? DateTime.UtcNow : package.UpdatedAt
             };
@@ -297,6 +298,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                             new("transport", "equals", "باص")
                         }, 95m, "perPerson", 80, true)
                     },
+                    null,
                     now,
                     now)),
                 NormalizePackage(new TravelPackageDto(
@@ -334,6 +336,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                             new("transport", "equals", "باص")
                         }, 75m, "perPerson", 80, true)
                     },
+                    null,
                     now,
                     now))
             };
@@ -358,8 +361,16 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         IReadOnlyList<PackageOptionDto> RoomTypes,
         IReadOnlyList<string> DepartureDates,
         IReadOnlyList<PricingRuleDto> PricingRules,
+        RowadPricingProfileDto? PricingProfile,
         DateTime CreatedAt,
         DateTime UpdatedAt);
+
+    public sealed record RowadPricingProfileDto(
+        bool Enabled,
+        decimal VisaPrice,
+        IReadOnlyDictionary<string, decimal> BusPrices,
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, decimal>> MakkahRoomPrices,
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, decimal>> MadinahRoomPrices);
 
     public sealed record PackageOptionDto(
         string Id,
