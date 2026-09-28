@@ -24,6 +24,7 @@ namespace RowadUmrahSystem.Web.Controllers
         private async Task<bool> CanAccessDashboard()
         {
             return
+                await _permissionService.HasPermissionAsync(User, "Dashboard.View") ||
                 await _permissionService.HasPermissionAsync(User, "Travelers.View") ||
                 await _permissionService.HasPermissionAsync(User, "Trips.View") ||
                 await _permissionService.HasPermissionAsync(User, "Documents.View") ||

@@ -10,6 +10,10 @@ namespace RowadUmrahSystem.Web.ViewModels.Api
 
         public string UserEmail { get; set; } = string.Empty;
 
+        public bool CanAccessDashboard { get; set; }
+
+        public bool CanViewNotifications { get; set; }
+
         public bool CanManageUsers { get; set; }
 
         public bool CanViewTravelers { get; set; }

@@ -12,6 +12,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
+        private const string MainAdminEmail = "admin@rowad.local";
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
@@ -91,7 +92,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
 
         private async Task<AuthPermissionsDto> GetAuthPermissionsAsync(ApplicationUser user, IReadOnlyCollection<string> roles)
         {
-            if (roles.Contains("Admin"))
+            if (IsMainAdmin(user))
             {
                 return CreateFullPermissions();
             }
@@ -117,40 +118,28 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 permissions.CanManageBanks ||
                 permissions.CanViewFinancialReports;
 
-            var canAccessDashboard =
-                permissions.CanViewTravelers ||
-                permissions.CanManageTravelers ||
-                permissions.CanViewTrips ||
-                permissions.CanManageTrips ||
-                permissions.CanViewDocuments ||
-                permissions.CanViewBlocks ||
-                permissions.CanManageBlocks ||
-                permissions.CanViewAuditLogs ||
-                permissions.CanManageUsers ||
-                permissions.CanViewReports ||
-                canViewAccounting;
-
             return new AuthPermissionsDto(
-                canAccessDashboard,
+                permissions.CanAccessDashboard,
+                permissions.CanViewNotifications,
                 permissions.CanManageUsers,
-                permissions.CanViewTravelers || permissions.CanManageTravelers,
-                permissions.CanCreateTravelers || permissions.CanManageTravelers,
-                permissions.CanEditTravelers || permissions.CanManageTravelers,
-                permissions.CanArchiveTravelers || permissions.CanManageTravelers,
-                permissions.CanRestoreTravelers || permissions.CanManageTravelers,
-                permissions.CanViewTrips || permissions.CanManageTrips,
-                permissions.CanCreateTrips || permissions.CanManageTrips,
-                permissions.CanArchiveTrips || permissions.CanManageTrips,
-                permissions.CanRestoreTrips || permissions.CanManageTrips,
-                permissions.CanViewDocuments || permissions.CanManageTravelers,
-                permissions.CanUploadDocuments || permissions.CanManageTravelers,
-                permissions.CanArchiveDocuments || permissions.CanManageTravelers,
-                permissions.CanRestoreDocuments || permissions.CanManageTravelers,
-                permissions.CanViewBlocks || permissions.CanManageBlocks,
-                permissions.CanBlockTravelers || permissions.CanManageBlocks,
-                permissions.CanUnblockTravelers || permissions.CanManageBlocks,
+                permissions.CanViewTravelers,
+                permissions.CanCreateTravelers,
+                permissions.CanEditTravelers,
+                permissions.CanArchiveTravelers,
+                permissions.CanRestoreTravelers,
+                permissions.CanViewTrips,
+                permissions.CanCreateTrips,
+                permissions.CanArchiveTrips,
+                permissions.CanRestoreTrips,
+                permissions.CanViewDocuments,
+                permissions.CanUploadDocuments,
+                permissions.CanArchiveDocuments,
+                permissions.CanRestoreDocuments,
+                permissions.CanViewBlocks,
+                permissions.CanBlockTravelers,
+                permissions.CanUnblockTravelers,
                 permissions.CanViewReports,
-                permissions.CanExportReports || permissions.CanViewReports,
+                permissions.CanExportReports,
                 permissions.CanViewAuditLogs,
                 canViewAccounting,
                 permissions.CanManageAccounting,
@@ -167,19 +156,24 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         private static AuthPermissionsDto CreateFullPermissions()
         {
             return new AuthPermissionsDto(
-                true, true, true, true, true, true, true, true, true, true,
-                true, true, true, true, true, true, true, true, true, true,
-                true, true, true, true, true, true, true, true, true, true,
-                true);
+                true, true, true, true, true, true, true, true,
+                true, true, true, true, true, true, true, true,
+                true, true, true, true, true, true, true, true,
+                true, true, true, true, true, true, true, true);
         }
 
         private static AuthPermissionsDto CreateEmptyPermissions()
         {
             return new AuthPermissionsDto(
-                false, false, false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, false, false,
-                false, false, false, false, false, false, false, false, false, false,
-                false);
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false);
+        }
+
+        private static bool IsMainAdmin(ApplicationUser user)
+        {
+            return string.Equals(user.Email, MainAdminEmail, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

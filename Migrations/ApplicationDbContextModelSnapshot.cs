@@ -1221,6 +1221,12 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.Property<DateTime?>("BlockedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("BirthCity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BirthCountry")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
@@ -1233,7 +1239,31 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.Property<string>("DeletedBy")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("DocumentsReviewed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("DocumentsReviewedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Email")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FamilyNameArabic")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FamilyNameEnglish")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FatherNameArabic")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FatherNameEnglish")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FirstNameArabic")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FirstNameEnglish")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("FullName")
@@ -1244,11 +1274,20 @@ namespace RowadUmrahSystem.Web.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("GrandFatherNameArabic")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GrandFatherNameEnglish")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("IsBlocked")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("MaritalStatus")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Nationality")
                         .IsRequired()
@@ -1269,6 +1308,12 @@ namespace RowadUmrahSystem.Web.Migrations
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Profession")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ResidenceExpiryDate")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ResidenceNumber")
@@ -1401,6 +1446,9 @@ namespace RowadUmrahSystem.Web.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("CanAccessDashboard")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("CanArchiveDocuments")
                         .HasColumnType("INTEGER");
 
@@ -1480,6 +1528,9 @@ namespace RowadUmrahSystem.Web.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("CanViewAuditLogs")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("CanViewNotifications")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("CanViewBlocks")

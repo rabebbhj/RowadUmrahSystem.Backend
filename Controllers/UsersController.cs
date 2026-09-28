@@ -248,18 +248,17 @@ namespace RowadUmrahSystem.Web.Controllers
                 return NotFound();
 
             existingPermissions.CanManageTravelers =
-                permissions.CanViewTravelers ||
                 permissions.CanCreateTravelers ||
                 permissions.CanEditTravelers ||
                 permissions.CanArchiveTravelers ||
                 permissions.CanRestoreTravelers;
 
             existingPermissions.CanManageTrips =
-                permissions.CanViewTrips ||
-                permissions.CanCreateTrips;
+                permissions.CanCreateTrips ||
+                permissions.CanArchiveTrips ||
+                permissions.CanRestoreTrips;
 
             existingPermissions.CanManageBlocks =
-                permissions.CanViewBlocks ||
                 permissions.CanBlockTravelers ||
                 permissions.CanUnblockTravelers;
 

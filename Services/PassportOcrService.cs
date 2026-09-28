@@ -1,5 +1,7 @@
 ﻿using Azure;
 using Azure.AI.DocumentIntelligence;
+using Docnet.Core;
+using Docnet.Core.Models;
 using Microsoft.AspNetCore.Http;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -10,9 +12,23 @@ namespace RowadUmrahSystem.Web.Services
     {
         public string PassportNumber { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
+        public string FirstNameArabic { get; set; } = string.Empty;
+        public string FatherNameArabic { get; set; } = string.Empty;
+        public string GrandFatherNameArabic { get; set; } = string.Empty;
+        public string FamilyNameArabic { get; set; } = string.Empty;
+        public string FirstNameEnglish { get; set; } = string.Empty;
+        public string FatherNameEnglish { get; set; } = string.Empty;
+        public string GrandFatherNameEnglish { get; set; } = string.Empty;
+        public string FamilyNameEnglish { get; set; } = string.Empty;
         public string Nationality { get; set; } = string.Empty;
         public string Gender { get; set; } = string.Empty;
+        public string Profession { get; set; } = string.Empty;
+        public string BirthCountry { get; set; } = string.Empty;
+        public string BirthCity { get; set; } = string.Empty;
+        public string MaritalStatus { get; set; } = string.Empty;
         public DateTime? DateOfBirth { get; set; }
+        public string ResidenceNumber { get; set; } = string.Empty;
+        public DateTime? ResidenceExpiryDate { get; set; }
         public DateTime? PassportExpiryDate { get; set; }
     }
 
@@ -58,7 +74,8 @@ namespace RowadUmrahSystem.Web.Services
                 ".jpg",
                 ".jpeg",
                 ".png",
-                ".webp"
+                ".webp",
+                ".pdf"
             };
 
             if (!allowed.Contains(extension))
@@ -66,7 +83,7 @@ namespace RowadUmrahSystem.Web.Services
                 return new PassportImageValidationResult
                 {
                     IsValid = false,
-                    Message = "نوع الملف غير مدعوم. الرجاء رفع صورة بصيغة JPG أو PNG أو WEBP."
+                    Message = "نوع الملف غير مدعوم. الرجاء رفع ملف بصيغة JPG أو JPEG أو PNG أو PDF."
                 };
             }
 
@@ -121,6 +138,8 @@ namespace RowadUmrahSystem.Web.Services
             {
                 PassportNumber = GetFieldContent(document, "DocumentNumber"),
                 FullName = BuildFullName(document),
+                FirstNameEnglish = CleanName(GetFieldContent(document, "FirstName")),
+                FamilyNameEnglish = CleanName(GetFieldContent(document, "LastName")),
                 Nationality = GetFieldContent(document, "Nationality"),
                 Gender = GetFieldContent(document, "Sex"),
                 DateOfBirth = GetDateField(document, "DateOfBirth"),
@@ -137,6 +156,8 @@ namespace RowadUmrahSystem.Web.Services
 
                 if (!string.IsNullOrWhiteSpace(mrz.FullName))
                     output.FullName = mrz.FullName;
+
+                ApplyMrzNameParts(output, mrz);
 
                 if (!string.IsNullOrWhiteSpace(mrz.Nationality))
                     output.Nationality = mrz.Nationality;
@@ -155,10 +176,25 @@ namespace RowadUmrahSystem.Web.Services
             if (!string.IsNullOrWhiteSpace(passportNumberFromMrzText))
                 output.PassportNumber = passportNumberFromMrzText;
 
+            EnrichPassportResultFromText(output, allText);
+            EnsureNameParts(output);
+
             output.PassportNumber = CleanPassportNumber(output.PassportNumber);
             output.FullName = ToArabicName(CleanName(output.FullName));
+            output.FirstNameEnglish = CleanName(output.FirstNameEnglish);
+            output.FatherNameEnglish = CleanName(output.FatherNameEnglish);
+            output.GrandFatherNameEnglish = CleanName(output.GrandFatherNameEnglish);
+            output.FamilyNameEnglish = CleanName(output.FamilyNameEnglish);
+            output.FirstNameArabic = PreferArabic(output.FirstNameArabic, ToArabicName(output.FirstNameEnglish));
+            output.FatherNameArabic = PreferArabic(output.FatherNameArabic, ToArabicName(output.FatherNameEnglish));
+            output.GrandFatherNameArabic = PreferArabic(output.GrandFatherNameArabic, ToArabicName(output.GrandFatherNameEnglish));
+            output.FamilyNameArabic = PreferArabic(output.FamilyNameArabic, ToArabicName(output.FamilyNameEnglish));
             output.Nationality = ToArabicNationality(NormalizeNationality(output.Nationality));
             output.Gender = ToArabicGender(NormalizeGender(output.Gender));
+            output.Profession = NormalizeDisplayValue(output.Profession);
+            output.BirthCountry = NormalizeDisplayValue(output.BirthCountry);
+            output.BirthCity = NormalizeDisplayValue(output.BirthCity);
+            output.MaritalStatus = NormalizeDisplayValue(output.MaritalStatus);
 
             if (output.DateOfBirth.HasValue &&
                 output.DateOfBirth.Value.Year < 1900)
@@ -189,8 +225,7 @@ namespace RowadUmrahSystem.Web.Services
             string executablePath = _configuration["Tesseract:ExecutablePath"] ?? "tesseract";
             string language = _configuration["Tesseract:Language"] ?? "eng";
 
-            string text = await RunTesseractAsync(executablePath, language, physicalPath, "6");
-            text += "\n" + await RunTesseractAsync(executablePath, language, physicalPath, "11");
+            string text = await ReadTextWithTesseractAsync(executablePath, language, physicalPath);
 
             return ParseCivilIdText(text);
         }
@@ -200,8 +235,7 @@ namespace RowadUmrahSystem.Web.Services
             string executablePath = _configuration["Tesseract:ExecutablePath"] ?? "tesseract";
             string language = _configuration["Tesseract:Language"] ?? "eng";
 
-            string text = await RunTesseractAsync(executablePath, language, physicalPath, "6");
-            text += "\n" + await RunTesseractAsync(executablePath, language, physicalPath, "11");
+            string text = await ReadTextWithTesseractAsync(executablePath, language, physicalPath);
 
             var mrz = TryParseMrz(text);
             if (mrz == null)
@@ -219,6 +253,14 @@ namespace RowadUmrahSystem.Web.Services
             {
                 PassportNumber = passportNumber,
                 FullName = ToArabicName(CleanName(mrz.FullName)),
+                FirstNameEnglish = mrz.FirstName,
+                FatherNameEnglish = mrz.FatherName,
+                GrandFatherNameEnglish = mrz.GrandFatherName,
+                FamilyNameEnglish = mrz.FamilyName,
+                FirstNameArabic = ToArabicName(mrz.FirstName),
+                FatherNameArabic = ToArabicName(mrz.FatherName),
+                GrandFatherNameArabic = ToArabicName(mrz.GrandFatherName),
+                FamilyNameArabic = ToArabicName(mrz.FamilyName),
                 Nationality = ToArabicNationality(NormalizeNationality(mrz.Nationality)),
                 Gender = ToArabicGender(NormalizeGender(mrz.Gender)),
                 DateOfBirth = mrz.DateOfBirth,
@@ -243,9 +285,20 @@ namespace RowadUmrahSystem.Web.Services
                 CivilId = civilId,
                 PassportNumber = passportNumber,
                 FullName = ToArabicName(CleanName(fullName)),
+                FirstNameEnglish = GetNamePart(fullName, 0),
+                FatherNameEnglish = GetNamePart(fullName, 1),
+                GrandFatherNameEnglish = GetNamePart(fullName, 2),
+                FamilyNameEnglish = GetLastNamePart(fullName),
+                FirstNameArabic = ExtractArabicCivilIdNamePart(text, 0, fullName),
+                FatherNameArabic = ExtractArabicCivilIdNamePart(text, 1, fullName),
+                GrandFatherNameArabic = ExtractArabicCivilIdNamePart(text, 2, fullName),
+                FamilyNameArabic = ExtractArabicCivilIdNamePart(text, 3, fullName),
                 Nationality = ToArabicNationality(NormalizeNationality(nationality)),
                 Gender = ToArabicGender(NormalizeGender(gender)),
+                Profession = ExtractCivilIdProfession(text),
                 DateOfBirth = ExtractCivilIdDate(normalizedText, "BIRTH DATE"),
+                ResidenceNumber = civilId,
+                ResidenceExpiryDate = ExtractCivilIdDate(normalizedText, "EXPIRY DATE"),
                 PassportExpiryDate = ExtractCivilIdDate(normalizedText, "EXPIRY DATE")
             };
         }
@@ -384,6 +437,120 @@ namespace RowadUmrahSystem.Web.Services
             return TryExtractReliablePassportNumber(beforeNationality);
         }
 
+        private static async Task<string> ReadTextWithTesseractAsync(string executablePath, string language, string physicalPath)
+        {
+            var inputPaths = PrepareTesseractInputPaths(physicalPath);
+            var temporaryPaths = inputPaths
+                .Where(path => !string.Equals(path, physicalPath, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            try
+            {
+                var chunks = new List<string>();
+
+                foreach (string inputPath in inputPaths)
+                {
+                    chunks.Add(await RunTesseractAsync(executablePath, language, inputPath, "6"));
+                    chunks.Add(await RunTesseractAsync(executablePath, language, inputPath, "11"));
+                }
+
+                return string.Join("\n", chunks);
+            }
+            finally
+            {
+                foreach (string temporaryPath in temporaryPaths)
+                {
+                    try
+                    {
+                        File.Delete(temporaryPath);
+                    }
+                    catch
+                    {
+                        // Best-effort cleanup. OCR should not fail because a temp image is locked.
+                    }
+                }
+            }
+        }
+
+        private static IReadOnlyList<string> PrepareTesseractInputPaths(string physicalPath)
+        {
+            if (!string.Equals(Path.GetExtension(physicalPath), ".pdf", StringComparison.OrdinalIgnoreCase))
+            {
+                return new[] { physicalPath };
+            }
+
+            return RenderPdfPagesToBmp(physicalPath);
+        }
+
+        private static IReadOnlyList<string> RenderPdfPagesToBmp(string pdfPath)
+        {
+            var outputPaths = new List<string>();
+
+            using var docReader = DocLib.Instance.GetDocReader(pdfPath, new PageDimensions(300.0 / 72.0));
+            int pageCount = Math.Min(docReader.GetPageCount(), 3);
+
+            if (pageCount == 0)
+            {
+                throw new InvalidOperationException("ملف PDF لا يحتوي على صفحات قابلة للقراءة.");
+            }
+
+            for (int pageIndex = 0; pageIndex < pageCount; pageIndex++)
+            {
+                using var pageReader = docReader.GetPageReader(pageIndex);
+                int width = pageReader.GetPageWidth();
+                int height = pageReader.GetPageHeight();
+                byte[] bgraPixels = pageReader.GetImage();
+
+                if (bgraPixels.Length < width * height * 4)
+                {
+                    continue;
+                }
+
+                string outputPath = Path.Combine(Path.GetTempPath(), $"rowad-ocr-{Guid.NewGuid():N}-{pageIndex}.bmp");
+                WriteTopDownBgraBmp(outputPath, width, height, bgraPixels);
+                outputPaths.Add(outputPath);
+            }
+
+            if (outputPaths.Count == 0)
+            {
+                throw new InvalidOperationException("تعذر تحويل صفحات PDF إلى صور للقراءة المحلية.");
+            }
+
+            return outputPaths;
+        }
+
+        private static void WriteTopDownBgraBmp(string path, int width, int height, byte[] bgraPixels)
+        {
+            const int fileHeaderSize = 14;
+            const int dibHeaderSize = 40;
+            const short planes = 1;
+            const short bitsPerPixel = 32;
+
+            int imageSize = width * height * 4;
+            int fileSize = fileHeaderSize + dibHeaderSize + imageSize;
+
+            using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+            using var writer = new BinaryWriter(stream);
+
+            writer.Write((byte)'B');
+            writer.Write((byte)'M');
+            writer.Write(fileSize);
+            writer.Write(0);
+            writer.Write(fileHeaderSize + dibHeaderSize);
+            writer.Write(dibHeaderSize);
+            writer.Write(width);
+            writer.Write(-height);
+            writer.Write(planes);
+            writer.Write(bitsPerPixel);
+            writer.Write(0);
+            writer.Write(imageSize);
+            writer.Write(0);
+            writer.Write(0);
+            writer.Write(0);
+            writer.Write(0);
+            writer.Write(bgraPixels, 0, imageSize);
+        }
+
         private static async Task<string> RunTesseractAsync(string executablePath, string language, string physicalPath, string pageSegmentationMode)
         {
             var startInfo = new ProcessStartInfo
@@ -479,10 +646,335 @@ namespace RowadUmrahSystem.Web.Services
             return GetFieldContent(document, "FullName");
         }
 
+        private static void EnrichPassportResultFromText(PassportOcrResult result, string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return;
+
+            string normalized = NormalizeOcrText(text);
+
+            var mrzName = TryExtractMrzNameParts(normalized);
+            if (mrzName != null)
+            {
+                ApplyMrzNameParts(result, mrzName);
+            }
+            else
+            {
+                var visualName = TryExtractVisualNameParts(normalized);
+                if (visualName != null)
+                {
+                    ApplyMrzNameParts(result, visualName);
+                }
+            }
+
+            string fullEnglishName = FirstNonEmpty(
+                ExtractLabelValue(normalized, "Full Name", "Date Of Birth", "Date of birth", "Nationality", "Sex"),
+                ExtractLabelValue(normalized, "Name", "Passport No", "Nationality", "Sex"));
+
+            if (!string.IsNullOrWhiteSpace(fullEnglishName))
+            {
+                if (!HasReliableNameParts(result))
+                {
+                    result.FullName = CleanName(fullEnglishName);
+                    ApplyNameParts(result, result.FullName);
+                }
+            }
+
+            string arabicName = ExtractArabicName(normalized);
+            if (!string.IsNullOrWhiteSpace(arabicName))
+            {
+                ApplyArabicNameParts(result, arabicName);
+            }
+
+            result.Profession = FirstNonEmpty(
+                result.Profession,
+                ExtractLabelValue(normalized, "Profession", "Address", "العنوان", "اسم الزوج", "Date"),
+                ExtractArabicLabelValue(normalized, "المهنة", "العنوان", "اسم الزوج", "الرقم"));
+
+            result.BirthCity = FirstNonEmpty(
+                result.BirthCity,
+                ExtractLabelValue(normalized, "Place of birth", "Nationality", "Date of Issue", "Date Of Issue", "Profession"),
+                ExtractArabicLabelValue(normalized, "مكان الميلاد", "الجنسية", "تاريخ الإصدار", "تاريخ الاصدار"));
+
+            if (string.IsNullOrWhiteSpace(result.BirthCountry))
+            {
+                result.BirthCountry = GuessCountryFromNationality(result.Nationality);
+            }
+        }
+
+        private static void ApplyNameParts(PassportOcrResult result, string fullName)
+        {
+            string clean = CleanName(fullName);
+            result.FirstNameEnglish = FirstNonEmpty(result.FirstNameEnglish, GetNamePart(clean, 0));
+            result.FatherNameEnglish = FirstNonEmpty(result.FatherNameEnglish, GetNamePart(clean, 1));
+            result.GrandFatherNameEnglish = FirstNonEmpty(result.GrandFatherNameEnglish, GetNamePart(clean, 2));
+            result.FamilyNameEnglish = FirstNonEmpty(result.FamilyNameEnglish, GetLastNamePart(clean));
+        }
+
+        private static void ApplyMrzNameParts(PassportOcrResult result, MrzResult mrz)
+        {
+            ApplyMrzNameParts(result, new MrzNameParts
+            {
+                FullName = mrz.FullName,
+                FirstName = mrz.FirstName,
+                FatherName = mrz.FatherName,
+                GrandFatherName = mrz.GrandFatherName,
+                FamilyName = mrz.FamilyName
+            });
+        }
+
+        private static void ApplyMrzNameParts(PassportOcrResult result, MrzNameParts mrzName)
+        {
+            result.FullName = mrzName.FullName;
+            result.FirstNameEnglish = mrzName.FirstName;
+            result.FatherNameEnglish = mrzName.FatherName;
+            result.GrandFatherNameEnglish = mrzName.GrandFatherName;
+            result.FamilyNameEnglish = mrzName.FamilyName;
+            result.FirstNameArabic = string.Empty;
+            result.FatherNameArabic = string.Empty;
+            result.GrandFatherNameArabic = string.Empty;
+            result.FamilyNameArabic = string.Empty;
+        }
+
+        private static bool HasReliableNameParts(PassportOcrResult result)
+        {
+            return !string.IsNullOrWhiteSpace(result.FirstNameEnglish) &&
+                !LooksLikeOcrNoise(result.FirstNameEnglish) &&
+                !string.IsNullOrWhiteSpace(result.FamilyNameEnglish) &&
+                !LooksLikeOcrNoise(result.FamilyNameEnglish);
+        }
+
+        private static bool LooksLikeOcrNoise(string value)
+        {
+            value = CleanName(value);
+            return value.Length <= 2 || Regex.IsMatch(value, @"^(S{2,}|X{2,}|I{2,})$");
+        }
+
+        private static void ApplyArabicNameParts(PassportOcrResult result, string fullName)
+        {
+            var parts = SplitArabicWords(fullName)
+                .Where(part => !LooksLikeArabicOcrNoise(part))
+                .ToList();
+
+            if (parts.Count == 0)
+                return;
+
+            result.FirstNameArabic = FirstNonEmpty(result.FirstNameArabic, parts.ElementAtOrDefault(0));
+            result.FatherNameArabic = FirstNonEmpty(result.FatherNameArabic, parts.ElementAtOrDefault(1));
+            result.GrandFatherNameArabic = FirstNonEmpty(result.GrandFatherNameArabic, parts.ElementAtOrDefault(2));
+            result.FamilyNameArabic = FirstNonEmpty(result.FamilyNameArabic, parts.Count > 3 ? string.Join(" ", parts.Skip(3)) : parts.LastOrDefault());
+        }
+
+        private static void EnsureNameParts(PassportOcrResult result)
+        {
+            if (LooksLikeOcrNoise(result.FirstNameEnglish))
+                result.FirstNameEnglish = string.Empty;
+
+            if (LooksLikeOcrNoise(result.FatherNameEnglish))
+                result.FatherNameEnglish = string.Empty;
+
+            if (LooksLikeOcrNoise(result.GrandFatherNameEnglish))
+                result.GrandFatherNameEnglish = string.Empty;
+
+            if (LooksLikeOcrNoise(result.FamilyNameEnglish))
+                result.FamilyNameEnglish = string.Empty;
+
+            ApplyNameParts(result, result.FullName);
+        }
+
+        private static string GetNamePart(string fullName, int index)
+        {
+            var parts = CleanName(fullName)
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            return index >= 0 && index < parts.Length ? parts[index] : string.Empty;
+        }
+
+        private static string GetLastNamePart(string fullName)
+        {
+            var parts = CleanName(fullName)
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+            if (parts.Length == 0)
+                return string.Empty;
+
+            if (parts.Length >= 4)
+                return string.Join(" ", parts.Skip(3));
+
+            return parts[^1];
+        }
+
+        private static string NormalizeOcrText(string value)
+        {
+            value = value.Replace("\r", "\n");
+            value = Regex.Replace(value, @"[ \t]+", " ");
+            value = Regex.Replace(value, @"\n{2,}", "\n");
+            return value.Trim();
+        }
+
+        private static string ExtractLabelValue(string text, string label, params string[] stopLabels)
+        {
+            int labelIndex = text.IndexOf(label, StringComparison.OrdinalIgnoreCase);
+            if (labelIndex < 0)
+                return string.Empty;
+
+            string after = text[(labelIndex + label.Length)..];
+            after = Regex.Replace(after, @"^[\s:：/\-]+", "");
+            int stopIndex = after.Length;
+
+            foreach (string stop in stopLabels)
+            {
+                int index = after.IndexOf(stop, StringComparison.OrdinalIgnoreCase);
+                if (index >= 0)
+                    stopIndex = Math.Min(stopIndex, index);
+            }
+
+            string value = after[..Math.Min(stopIndex, 90)];
+            value = value.Split('\n').FirstOrDefault(line => !string.IsNullOrWhiteSpace(line)) ?? value;
+            return Regex.Replace(value, @"\s+", " ").Trim();
+        }
+
+        private static string ExtractArabicLabelValue(string text, string label, params string[] stopLabels)
+        {
+            int labelIndex = text.IndexOf(label, StringComparison.Ordinal);
+            if (labelIndex < 0)
+                return string.Empty;
+
+            string after = text[(labelIndex + label.Length)..];
+            after = Regex.Replace(after, @"^[\s:：/\-]+", "");
+            int stopIndex = after.Length;
+
+            foreach (string stop in stopLabels)
+            {
+                int index = after.IndexOf(stop, StringComparison.Ordinal);
+                if (index >= 0)
+                    stopIndex = Math.Min(stopIndex, index);
+            }
+
+            string value = after[..Math.Min(stopIndex, 90)];
+            value = value.Split('\n').FirstOrDefault(line => Regex.IsMatch(line, @"\p{IsArabic}")) ?? value;
+            return NormalizeDisplayValue(value);
+        }
+
+        private static string ExtractArabicName(string text)
+        {
+            string labeled = ExtractArabicLabelValue(text, "الاسم", "Full Name", "Date", "تاريخ", "الجنسية", "النوع");
+            if (!string.IsNullOrWhiteSpace(labeled))
+                return labeled;
+
+            var arabicLines = text
+                .Split('\n')
+                .Select(NormalizeDisplayValue)
+                .Where(line => Regex.Matches(line, @"\p{IsArabic}").Count >= 6)
+                .Where(line => !Regex.IsMatch(line, @"جمهورية|دولة|جواز|Passport|تاريخ|الجنسية|المهنة"))
+                .ToList();
+
+            return arabicLines.FirstOrDefault() ?? string.Empty;
+        }
+
+        private static IEnumerable<string> SplitArabicWords(string value)
+        {
+            value = NormalizeDisplayValue(value);
+            return Regex.Matches(value, @"[\p{IsArabic}]+")
+                .Select(match => match.Value)
+                .Where(word => word.Length > 1);
+        }
+
+        private static string ExtractCivilIdProfession(string text)
+        {
+            return FirstNonEmpty(
+                ExtractArabicLabelValue(text, "المهنة", "وزارة", "العنوان", "الرقم الآلي", "Serial"),
+                ExtractLabelValue(text, "Profession", "Address", "Serial", "Civil"));
+        }
+
+        private static string ExtractArabicCivilIdNamePart(string text, int index, string fallbackEnglishName)
+        {
+            string arabicName = ExtractArabicName(text);
+            var parts = SplitArabicWords(arabicName).ToList();
+
+            if (parts.Count > index)
+                return parts[index];
+
+            string englishPart = index == 3 ? GetLastNamePart(fallbackEnglishName) : GetNamePart(fallbackEnglishName, index);
+            return ToArabicName(englishPart);
+        }
+
+        private static string FirstNonEmpty(params string?[] values)
+        {
+            return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value))?.Trim() ?? string.Empty;
+        }
+
+        private static string PreferArabic(string arabic, string fallback)
+        {
+            arabic = NormalizeDisplayValue(arabic ?? string.Empty);
+
+            if (Regex.IsMatch(arabic, @"\p{IsArabic}") && !LooksLikeArabicOcrNoise(arabic))
+            {
+                return arabic;
+            }
+
+            return fallback;
+        }
+
+        private static bool LooksLikeArabicOcrNoise(string value)
+        {
+            value = NormalizeDisplayValue(value);
+
+            if (string.IsNullOrWhiteSpace(value))
+                return true;
+
+            var letters = Regex.Matches(value, @"\p{IsArabic}")
+                .Select(match => match.Value[0])
+                .ToList();
+
+            if (letters.Count == 0)
+                return true;
+
+            if (letters.Count <= 2)
+                return true;
+
+            if (letters.Distinct().Count() == 1)
+                return true;
+
+            return Regex.IsMatch(value, @"^(س|ص|ش|ا){3,}$");
+        }
+
+        private static string NormalizeDisplayValue(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return string.Empty;
+
+            value = Regex.Replace(value, @"[<>|]+", " ");
+            value = Regex.Replace(value, @"\s+", " ");
+            return value.Trim(' ', ':', '-', '/', '\\');
+        }
+
+        private static string GuessCountryFromNationality(string nationality)
+        {
+            return NormalizeNationality(nationality) switch
+            {
+                "EGY" => "مصر",
+                "MLI" => "مالي",
+                "SAU" => "السعودية",
+                "KWT" => "الكويت",
+                "SYR" => "سوريا",
+                "JOR" => "الأردن",
+                "LBN" => "لبنان",
+                "DZA" => "الجزائر",
+                "MAR" => "المغرب",
+                "TUN" => "تونس",
+                _ => string.Empty
+            };
+        }
+
         private class MrzResult
         {
             public string PassportNumber { get; set; } = string.Empty;
             public string FullName { get; set; } = string.Empty;
+            public string FirstName { get; set; } = string.Empty;
+            public string FatherName { get; set; } = string.Empty;
+            public string GrandFatherName { get; set; } = string.Empty;
+            public string FamilyName { get; set; } = string.Empty;
             public string Nationality { get; set; } = string.Empty;
             public string Gender { get; set; } = string.Empty;
             public DateTime? DateOfBirth { get; set; }
@@ -531,7 +1023,7 @@ namespace RowadUmrahSystem.Web.Services
             if (line1 == null || line2Candidates.Count == 0)
                 return null;
 
-            string fullName = ExtractNameFromMrzLine1(line1);
+            var mrzName = ExtractNamePartsFromMrzLine1(line1);
 
             var line2Fields = line2Candidates
                 .Select(TryExtractMrzLine2Fields)
@@ -543,7 +1035,11 @@ namespace RowadUmrahSystem.Web.Services
             return new MrzResult
             {
                 PassportNumber = line2Fields.PassportNumber,
-                FullName = fullName,
+                FullName = mrzName.FullName,
+                FirstName = mrzName.FirstName,
+                FatherName = mrzName.FatherName,
+                GrandFatherName = mrzName.GrandFatherName,
+                FamilyName = mrzName.FamilyName,
                 Nationality = line2Fields.Nationality,
                 Gender = line2Fields.Gender,
                 DateOfBirth = line2Fields.DateOfBirth,
@@ -642,7 +1138,7 @@ namespace RowadUmrahSystem.Web.Services
 
         private static MrzResult? TryExtractNoisyMrzLine2Fields(string line2)
         {
-            string[] countryCodes = { "EGY", "SAU", "DZA", "MAR", "TUN", "SYR", "JOR", "LBN", "IRQ", "KWT", "QAT", "ARE", "OMN", "BHR", "YEM", "PSE", "TUR" };
+            string[] countryCodes = { "EGY", "MLI", "SAU", "DZA", "MAR", "TUN", "SYR", "JOR", "LBN", "IRQ", "KWT", "QAT", "ARE", "OMN", "BHR", "YEM", "PSE", "TUR" };
             string? nationality = countryCodes.FirstOrDefault(line2.Contains);
 
             if (string.IsNullOrWhiteSpace(nationality))
@@ -928,17 +1424,107 @@ namespace RowadUmrahSystem.Web.Services
             return cleaned;
         }
 
-        private static string ExtractNameFromMrzLine1(string line1)
+        private sealed class MrzNameParts
         {
+            public string FullName { get; set; } = string.Empty;
+            public string FirstName { get; set; } = string.Empty;
+            public string FatherName { get; set; } = string.Empty;
+            public string GrandFatherName { get; set; } = string.Empty;
+            public string FamilyName { get; set; } = string.Empty;
+        }
+
+        private static MrzNameParts? TryExtractMrzNameParts(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return null;
+
+            var lines = text
+                .Split('\n', '\r')
+                .Select(NormalizeMrzLine)
+                .Where(line => line.Length >= 12 && line.Contains("<<"))
+                .ToList();
+
+            string? line1 = lines.FirstOrDefault(line =>
+                line.StartsWith("P<") ||
+                Regex.IsMatch(line, @"^P[A-Z]{3}[A-Z<]+<<[A-Z<]+"));
+
+            if (string.IsNullOrWhiteSpace(line1))
+                return null;
+
+            var parts = ExtractNamePartsFromMrzLine1(line1);
+
+            if (string.IsNullOrWhiteSpace(parts.FirstName) || string.IsNullOrWhiteSpace(parts.FamilyName))
+                return null;
+
+            return parts;
+        }
+
+        private static MrzNameParts? TryExtractVisualNameParts(string text)
+        {
+            var lines = text
+                .Split('\n', '\r')
+                .Select(line => Regex.Replace(line.Trim(), @"\s+", " "))
+                .Where(line => !string.IsNullOrWhiteSpace(line))
+                .ToList();
+
+            string surname = ExtractNextLatinLineAfterLabel(lines, "Surname", "Nom");
+            string givenNames = ExtractNextLatinLineAfterLabel(lines, "Given names", "Prenoms", "Prénoms");
+
+            if (string.IsNullOrWhiteSpace(surname) || string.IsNullOrWhiteSpace(givenNames))
+                return null;
+
+            var givenParts = CleanName(givenNames)
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            string cleanSurname = CleanName(surname);
+
+            if (givenParts.Length == 0 || string.IsNullOrWhiteSpace(cleanSurname))
+                return null;
+
+            return new MrzNameParts
+            {
+                FullName = CleanName($"{string.Join(" ", givenParts)} {cleanSurname}"),
+                FirstName = givenParts.ElementAtOrDefault(0) ?? string.Empty,
+                FatherName = givenParts.ElementAtOrDefault(1) ?? string.Empty,
+                GrandFatherName = givenParts.Length > 2 ? string.Join(" ", givenParts.Skip(2)) : string.Empty,
+                FamilyName = cleanSurname
+            };
+        }
+
+        private static string ExtractNextLatinLineAfterLabel(IReadOnlyList<string> lines, params string[] labels)
+        {
+            for (int index = 0; index < lines.Count; index++)
+            {
+                if (!labels.Any(label => lines[index].Contains(label, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+
+                for (int offset = 1; offset <= 4 && index + offset < lines.Count; offset++)
+                {
+                    string candidate = CleanName(lines[index + offset]);
+                    if (candidate.Length >= 2 && !labels.Any(label => candidate.Contains(label, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        return candidate;
+                    }
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private static MrzNameParts ExtractNamePartsFromMrzLine1(string line1)
+        {
+            string fallbackName = line1.Length > 5 ? CleanName(line1.Substring(5)) : CleanName(line1);
             int doubleSeparatorIndex = line1.IndexOf("<<", StringComparison.Ordinal);
 
             if (doubleSeparatorIndex < 0)
             {
-                string fallback = line1.Length > 5
-                    ? line1.Substring(5)
-                    : line1;
-
-                return CleanName(fallback);
+                return new MrzNameParts
+                {
+                    FullName = fallbackName,
+                    FirstName = GetNamePart(fallbackName, 0),
+                    FatherName = GetNamePart(fallbackName, 1),
+                    GrandFatherName = GetNamePart(fallbackName, 2),
+                    FamilyName = GetLastNamePart(fallbackName)
+                };
             }
 
             string beforeSeparator = line1.Substring(0, doubleSeparatorIndex);
@@ -948,9 +1534,19 @@ namespace RowadUmrahSystem.Web.Services
                 ? beforeSeparator.Substring(5)
                 : beforeSeparator;
 
-            string givenNames = afterSeparator;
+            var givenParts = CleanName(afterSeparator)
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            string cleanSurname = CleanName(surname);
+            string fullName = CleanName($"{string.Join(" ", givenParts)} {cleanSurname}");
 
-            return CleanName($"{givenNames} {surname}");
+            return new MrzNameParts
+            {
+                FullName = fullName,
+                FirstName = givenParts.ElementAtOrDefault(0) ?? string.Empty,
+                FatherName = givenParts.ElementAtOrDefault(1) ?? string.Empty,
+                GrandFatherName = givenParts.Length > 2 ? string.Join(" ", givenParts.Skip(2)) : string.Empty,
+                FamilyName = cleanSurname
+            };
         }
 
         private static DateTime? ParseMrzDate(string value, bool isBirthDate)
@@ -1098,6 +1694,9 @@ namespace RowadUmrahSystem.Web.Services
             if (value.Contains("YR") || value.Contains("SY"))
                 return "SYR";
 
+            if (value.Contains("MLI") || value.Contains("MALI"))
+                return "MLI";
+
             return value;
         }
 
@@ -1152,6 +1751,7 @@ namespace RowadUmrahSystem.Web.Services
                 "YEM" => "يمنية",
                 "PSE" => "فلسطينية",
                 "TUR" => "تركية",
+                "MLI" => "مالية",
                 _ => value
             };
         }
@@ -1165,8 +1765,13 @@ namespace RowadUmrahSystem.Web.Services
             {
                 ["AHMED"] = "أحمد",
                 ["ALI"] = "علي",
+                ["ABDOUL"] = "عبدول",
+                ["ABDUL"] = "عبدول",
                 ["AMR"] = "عمرو",
+                ["ARAMA"] = "اراما",
+                ["ARAMAX"] = "اراما",
                 ["AYMAN"] = "أيمن",
+                ["AZIZ"] = "عزيز",
                 ["ELHENNAWI"] = "الحنّاوي",
                 ["ELHENNAWY"] = "الحنّاوي",
                 ["FATMA"] = "فاطمة",

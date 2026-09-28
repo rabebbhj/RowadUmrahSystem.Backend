@@ -8,6 +8,10 @@
 
         public ApplicationUser User { get; set; } = null!;
 
+        public bool CanAccessDashboard { get; set; } = false;
+
+        public bool CanViewNotifications { get; set; } = false;
+
         // Old permissions - keep temporarily
         public bool CanManageTravelers { get; set; } = false;
         public bool CanManageTrips { get; set; } = false;

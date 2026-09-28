@@ -18,6 +18,8 @@ namespace RowadUmrahSystem.Web.ViewModels.Api
         string? PassportImagePath,
         DateTime? PassportExpiryDate,
         DateTime CreatedAt,
+        bool DocumentsReviewed,
+        DateTime? DocumentsReviewedAt,
         int TripCount,
         DateTime? DeletedAt,
         string? DeletedBy

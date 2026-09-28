@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RowadUmrahSystem.Web.Data;
 using RowadUmrahSystem.Web.Models;
+using RowadUmrahSystem.Web.Services;
 
 namespace RowadUmrahSystem.Web.Controllers
 {
@@ -12,17 +13,23 @@ namespace RowadUmrahSystem.Web.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly PermissionService _permissionService;
 
         public NotificationsController(
             ApplicationDbContext context,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            PermissionService permissionService)
         {
             _context = context;
             _userManager = userManager;
+            _permissionService = permissionService;
         }
 
         public async Task<IActionResult> Index(string? filter)
         {
+            if (!await _permissionService.HasPermissionAsync(User, "Notifications.View"))
+                return Forbid();
+
             var user = await _userManager.GetUserAsync(User);
 
             if (user == null)
@@ -50,6 +57,9 @@ namespace RowadUmrahSystem.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> MyNotifications()
         {
+            if (!await _permissionService.HasPermissionAsync(User, "Notifications.View"))
+                return Forbid();
+
             var user = await _userManager.GetUserAsync(User);
 
             if (user == null)
@@ -87,6 +97,9 @@ namespace RowadUmrahSystem.Web.Controllers
 
         public async Task<IActionResult> Open(int id)
         {
+            if (!await _permissionService.HasPermissionAsync(User, "Notifications.View"))
+                return Forbid();
+
             var user = await _userManager.GetUserAsync(User);
 
             if (user == null)
@@ -118,6 +131,9 @@ namespace RowadUmrahSystem.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> MarkAllAsRead()
         {
+            if (!await _permissionService.HasPermissionAsync(User, "Notifications.View"))
+                return Forbid();
+
             var user = await _userManager.GetUserAsync(User);
 
             if (user == null)
@@ -144,6 +160,9 @@ namespace RowadUmrahSystem.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> MarkAsRead(int id)
         {
+            if (!await _permissionService.HasPermissionAsync(User, "Notifications.View"))
+                return Forbid();
+
             var user = await _userManager.GetUserAsync(User);
 
             if (user == null)
@@ -170,6 +189,9 @@ namespace RowadUmrahSystem.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
+            if (!await _permissionService.HasPermissionAsync(User, "Notifications.View"))
+                return Forbid();
+
             var user = await _userManager.GetUserAsync(User);
 
             if (user == null)
@@ -198,6 +220,9 @@ namespace RowadUmrahSystem.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteAll()
         {
+            if (!await _permissionService.HasPermissionAsync(User, "Notifications.View"))
+                return Forbid();
+
             var user = await _userManager.GetUserAsync(User);
 
             if (user == null)

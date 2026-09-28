@@ -4,6 +4,7 @@ namespace RowadUmrahSystem.Web.ViewModels.Api
 
     public sealed record AuthPermissionsDto(
         bool CanAccessDashboard,
+        bool CanViewNotifications,
         bool CanManageUsers,
         bool CanViewTravelers,
         bool CanCreateTravelers,

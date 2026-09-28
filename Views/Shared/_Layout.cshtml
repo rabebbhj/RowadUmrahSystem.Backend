@@ -18,8 +18,11 @@
     var canManageUsers = isSignedIn && await PermissionService.HasPermissionAsync(User, "Users.Manage");
     var canViewReports = isSignedIn && await PermissionService.HasPermissionAsync(User, "Reports.View");
     var canViewAccounting = isSignedIn && await PermissionService.HasPermissionAsync(User, "Accounting.View");
+    var canAccessDashboardPermission = isSignedIn && await PermissionService.HasPermissionAsync(User, "Dashboard.View");
+    var canViewNotifications = isSignedIn && await PermissionService.HasPermissionAsync(User, "Notifications.View");
 
     var canAccessDashboard =
+    canAccessDashboardPermission ||
     canViewTravelers ||
     canViewTrips ||
     canViewDocuments ||
@@ -125,10 +128,13 @@
                         </a>
                     }
 
-                    <a class="rowad-nav-link" asp-controller="Notifications" asp-action="Index">
-                        <span>🔔</span>
-                        <strong>الإشعارات</strong>
-                    </a>
+                    @if (canViewNotifications)
+                    {
+                        <a class="rowad-nav-link" asp-controller="Notifications" asp-action="Index">
+                            <span>🔔</span>
+                            <strong>الإشعارات</strong>
+                        </a>
+                    }
 
                 </nav>
 

@@ -33,9 +33,23 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         public sealed record PassportOcrResponseDto(
             string PassportNumber,
             string FullName,
+            string FirstNameArabic,
+            string FatherNameArabic,
+            string GrandFatherNameArabic,
+            string FamilyNameArabic,
+            string FirstNameEnglish,
+            string FatherNameEnglish,
+            string GrandFatherNameEnglish,
+            string FamilyNameEnglish,
             string Nationality,
             string Gender,
+            string Profession,
+            string BirthCountry,
+            string BirthCity,
+            string MaritalStatus,
             DateTime? DateOfBirth,
+            string ResidenceNumber,
+            DateTime? ResidenceExpiryDate,
             DateTime? PassportExpiryDate,
             string Mode,
             string Message);
@@ -44,9 +58,23 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             string CivilId,
             string PassportNumber,
             string FullName,
+            string FirstNameArabic,
+            string FatherNameArabic,
+            string GrandFatherNameArabic,
+            string FamilyNameArabic,
+            string FirstNameEnglish,
+            string FatherNameEnglish,
+            string GrandFatherNameEnglish,
+            string FamilyNameEnglish,
             string Nationality,
             string Gender,
+            string Profession,
+            string BirthCountry,
+            string BirthCity,
+            string MaritalStatus,
             DateTime? DateOfBirth,
+            string ResidenceNumber,
+            DateTime? ResidenceExpiryDate,
             DateTime? PassportExpiryDate,
             string Mode,
             string Message);
@@ -55,10 +83,18 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         public async Task<ActionResult<IReadOnlyList<TravelerListItemDto>>> GetAll(
             [FromQuery] string? search = null,
             [FromQuery] bool includeDeleted = false,
-            [FromQuery] bool onlyActive = false)
+            [FromQuery] bool onlyActive = false,
+            [FromQuery] bool documentsReviewedOnly = false)
         {
-            if (!await CanViewTravelers())
+            if (documentsReviewedOnly)
+            {
+                if (!await CanViewDocuments())
+                    return Forbid();
+            }
+            else if (!await CanViewTravelers())
+            {
                 return Forbid();
+            }
 
             var query = _context.Travelers
                 .AsNoTracking()
@@ -83,6 +119,11 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     (x.Email != null && x.Email.Contains(search)));
             }
 
+            if (documentsReviewedOnly)
+            {
+                query = query.Where(x => x.DocumentsReviewed);
+            }
+
             var travelers = await query
                 .OrderByDescending(x => x.CreatedAt)
                 .Select(x => new TravelerListItemDto(
@@ -103,6 +144,8 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     x.PassportImagePath,
                     x.PassportExpiryDate,
                     x.CreatedAt,
+                    x.DocumentsReviewed,
+                    x.DocumentsReviewedAt,
                     x.Trips.Count,
                     x.DeletedAt,
                     x.DeletedBy))
@@ -114,7 +157,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         [HttpGet("{id:int}")]
         public async Task<ActionResult<TravelerDetailDto>> GetById(int id)
         {
-            if (!await CanViewTravelers())
+            if (!await CanViewTravelers() && !await CanViewDocuments())
                 return Forbid();
 
             var traveler = await _context.Travelers
@@ -137,7 +180,8 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         public async Task<ActionResult<TravelerDetailDto>> Create(
             [FromForm] TravelerUpsertRequestDto request,
             [FromForm] IFormFile? passportImage,
-            [FromForm] IFormFile? civilIdImage)
+            [FromForm] IFormFile? civilIdImage,
+            [FromForm] IFormFile? visaImage)
         {
             if (string.IsNullOrWhiteSpace(request.PassportNumber) ||
                 string.IsNullOrWhiteSpace(request.FullName) ||
@@ -153,6 +197,11 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 return BadRequest("الرجاء رفع صورة الجواز أو توفير مسارها.");
             }
 
+            if (request.HasVisa && visaImage == null)
+            {
+                return BadRequest("الرجاء رفع صورة التأشيرة.");
+            }
+
             var existingTraveler = await _context.Travelers
                 .FirstOrDefaultAsync(t => t.PassportNumber == request.PassportNumber && !t.IsDeleted);
 
@@ -165,6 +214,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
 
                 if (HasReservationPackageData(request))
                 {
+                    await AddReservationDocumentsAsync(existingTraveler.Id, civilIdImage, visaImage);
                     await AddReservationTripAsync(existingTraveler, request);
                     return Ok(await MapDetailAsync(existingTraveler.Id));
                 }
@@ -177,11 +227,24 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 PassportNumber = request.PassportNumber.Trim(),
                 PassportImagePath = await SavePassportImageAsync(passportImage, request.PassportImagePath),
                 FullName = request.FullName.Trim(),
+                FirstNameArabic = CleanOptional(request.FirstNameArabic),
+                FatherNameArabic = CleanOptional(request.FatherNameArabic),
+                GrandFatherNameArabic = CleanOptional(request.GrandFatherNameArabic),
+                FamilyNameArabic = CleanOptional(request.FamilyNameArabic),
+                FirstNameEnglish = CleanOptional(request.FirstNameEnglish),
+                FatherNameEnglish = CleanOptional(request.FatherNameEnglish),
+                GrandFatherNameEnglish = CleanOptional(request.GrandFatherNameEnglish),
+                FamilyNameEnglish = CleanOptional(request.FamilyNameEnglish),
                 Nationality = request.Nationality.Trim(),
                 Gender = request.Gender.Trim(),
+                Profession = CleanOptional(request.Profession),
+                BirthCountry = CleanOptional(request.BirthCountry),
+                BirthCity = CleanOptional(request.BirthCity),
+                MaritalStatus = CleanOptional(request.MaritalStatus),
                 DateOfBirth = request.DateOfBirth,
                 Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim(),
                 ResidenceNumber = string.IsNullOrWhiteSpace(request.ResidenceNumber) ? null : request.ResidenceNumber.Trim(),
+                ResidenceExpiryDate = request.ResidenceExpiryDate,
                 PassportExpiryDate = request.PassportExpiryDate,
                 PhoneNumber = request.PhoneNumber.Trim(),
                 Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim(),
@@ -195,22 +258,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             _context.Travelers.Add(traveler);
             await _context.SaveChangesAsync();
 
-            if (civilIdImage is { Length: > 0 })
-            {
-                var documentPath = await SaveTravelerDocumentAsync(traveler.Id, civilIdImage);
-                _context.TravelerDocuments.Add(new TravelerDocument
-                {
-                    TravelerId = traveler.Id,
-                    DocumentType = "CivilId",
-                    FileName = Path.GetFileName(civilIdImage.FileName),
-                    FilePath = documentPath,
-                    Notes = "بطاقة الهوية من طلب الحجز العام",
-                    UploadedAt = DateTime.UtcNow,
-                    IsDeleted = false
-                });
-
-                await _context.SaveChangesAsync();
-            }
+            await AddReservationDocumentsAsync(traveler.Id, civilIdImage, visaImage);
 
             if (HasReservationPackageData(request))
             {
@@ -323,11 +371,24 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             traveler.PassportNumber = request.PassportNumber.Trim();
             traveler.PassportImagePath = await SavePassportImageAsync(passportImage, request.PassportImagePath) ?? traveler.PassportImagePath;
             traveler.FullName = request.FullName.Trim();
+            traveler.FirstNameArabic = CleanOptional(request.FirstNameArabic);
+            traveler.FatherNameArabic = CleanOptional(request.FatherNameArabic);
+            traveler.GrandFatherNameArabic = CleanOptional(request.GrandFatherNameArabic);
+            traveler.FamilyNameArabic = CleanOptional(request.FamilyNameArabic);
+            traveler.FirstNameEnglish = CleanOptional(request.FirstNameEnglish);
+            traveler.FatherNameEnglish = CleanOptional(request.FatherNameEnglish);
+            traveler.GrandFatherNameEnglish = CleanOptional(request.GrandFatherNameEnglish);
+            traveler.FamilyNameEnglish = CleanOptional(request.FamilyNameEnglish);
             traveler.Nationality = request.Nationality.Trim();
             traveler.Gender = request.Gender.Trim();
+            traveler.Profession = CleanOptional(request.Profession);
+            traveler.BirthCountry = CleanOptional(request.BirthCountry);
+            traveler.BirthCity = CleanOptional(request.BirthCity);
+            traveler.MaritalStatus = CleanOptional(request.MaritalStatus);
             traveler.DateOfBirth = request.DateOfBirth;
             traveler.Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email.Trim();
             traveler.ResidenceNumber = string.IsNullOrWhiteSpace(request.ResidenceNumber) ? null : request.ResidenceNumber.Trim();
+            traveler.ResidenceExpiryDate = request.ResidenceExpiryDate;
             traveler.PassportExpiryDate = request.PassportExpiryDate;
             traveler.PhoneNumber = request.PhoneNumber.Trim();
             traveler.Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
@@ -386,6 +447,28 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             return Ok(await MapDetailAsync(traveler.Id));
         }
 
+        [HttpPost("{id:int}/documents-reviewed")]
+        public async Task<ActionResult<TravelerDetailDto>> MarkDocumentsReviewed(int id)
+        {
+            if (!await CanEditTravelers())
+                return Forbid();
+
+            var traveler = await _context.Travelers
+                .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
+
+            if (traveler == null)
+            {
+                return NotFound();
+            }
+
+            traveler.DocumentsReviewed = true;
+            traveler.DocumentsReviewedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(await MapDetailAsync(traveler.Id));
+        }
+
         [HttpPost("{id:int}/delete")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -431,6 +514,11 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         private async Task<bool> CanViewTravelers()
         {
             return await _permissionService.HasPermissionAsync(User, "Travelers.View");
+        }
+
+        private async Task<bool> CanViewDocuments()
+        {
+            return await _permissionService.HasPermissionAsync(User, "Documents.View");
         }
 
         private async Task<bool> CanEditTravelers()
@@ -510,11 +598,24 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 traveler.PassportNumber,
                 traveler.PassportImagePath,
                 traveler.FullName,
+                traveler.FirstNameArabic,
+                traveler.FatherNameArabic,
+                traveler.GrandFatherNameArabic,
+                traveler.FamilyNameArabic,
+                traveler.FirstNameEnglish,
+                traveler.FatherNameEnglish,
+                traveler.GrandFatherNameEnglish,
+                traveler.FamilyNameEnglish,
                 traveler.Nationality,
                 traveler.Gender,
+                traveler.Profession,
+                traveler.BirthCountry,
+                traveler.BirthCity,
+                traveler.MaritalStatus,
                 traveler.DateOfBirth,
                 traveler.Email,
                 traveler.ResidenceNumber,
+                traveler.ResidenceExpiryDate,
                 traveler.PassportExpiryDate,
                 traveler.PhoneNumber,
                 traveler.UmrahCount,
@@ -526,6 +627,8 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 traveler.DeletedAt,
                 traveler.DeletedBy,
                 traveler.CreatedAt,
+                traveler.DocumentsReviewed,
+                traveler.DocumentsReviewedAt,
                 traveler.Trips
                     .OrderByDescending(trip => trip.TripDate)
                     .Select(trip => new TravelerTripDto(trip.Id, trip.TripType, trip.TripDate, trip.Notes))
@@ -537,6 +640,11 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             );
         }
 
+        private static string? CleanOptional(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        }
+
         private static bool HasReservationPackageData(TravelerUpsertRequestDto request)
         {
             return !string.IsNullOrWhiteSpace(request.PackageId) ||
@@ -544,6 +652,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 request.BookingDate.HasValue ||
                 !string.IsNullOrWhiteSpace(request.RoomType) ||
                 !string.IsNullOrWhiteSpace(request.TransportType) ||
+                request.HasVisa ||
                 request.ReservationTotal.HasValue;
         }
 
@@ -557,10 +666,54 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 request.BookingDate.HasValue ? $"تاريخ الحجز: {request.BookingDate.Value:yyyy-MM-dd}" : "",
                 string.IsNullOrWhiteSpace(request.RoomType) ? "" : $"نوع الغرفة: {request.RoomType.Trim()}",
                 string.IsNullOrWhiteSpace(request.TransportType) ? "" : $"وسيلة النقل: {request.TransportType.Trim()}",
+                $"التأشيرة: {(request.HasVisa ? "لديه تأشيرة" : "بدون تأشيرة")}",
                 request.ReservationTotal.HasValue ? $"المبلغ المحسوب: {request.ReservationTotal.Value:0.##} د.ك" : ""
             };
 
             return string.Join(" | ", parts.Where(part => !string.IsNullOrWhiteSpace(part)));
+        }
+
+        private async Task AddReservationDocumentsAsync(int travelerId, IFormFile? civilIdImage, IFormFile? visaImage)
+        {
+            var documents = new List<TravelerDocument>();
+
+            if (civilIdImage is { Length: > 0 })
+            {
+                var documentPath = await SaveTravelerDocumentAsync(travelerId, civilIdImage);
+                documents.Add(new TravelerDocument
+                {
+                    TravelerId = travelerId,
+                    DocumentType = "CivilId",
+                    FileName = Path.GetFileName(civilIdImage.FileName),
+                    FilePath = documentPath,
+                    Notes = "بطاقة الهوية من طلب الحجز العام",
+                    UploadedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                });
+            }
+
+            if (visaImage is { Length: > 0 })
+            {
+                var documentPath = await SaveTravelerDocumentAsync(travelerId, visaImage);
+                documents.Add(new TravelerDocument
+                {
+                    TravelerId = travelerId,
+                    DocumentType = "Visa",
+                    FileName = Path.GetFileName(visaImage.FileName),
+                    FilePath = documentPath,
+                    Notes = "تأشيرة من طلب الحجز العام",
+                    UploadedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                });
+            }
+
+            if (documents.Count == 0)
+            {
+                return;
+            }
+
+            _context.TravelerDocuments.AddRange(documents);
+            await _context.SaveChangesAsync();
         }
 
         private async Task AddReservationTripAsync(Traveler traveler, TravelerUpsertRequestDto request)
@@ -598,9 +751,23 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             return new PassportOcrResponseDto(
                 result.PassportNumber ?? string.Empty,
                 result.FullName ?? string.Empty,
+                result.FirstNameArabic ?? string.Empty,
+                result.FatherNameArabic ?? string.Empty,
+                result.GrandFatherNameArabic ?? string.Empty,
+                result.FamilyNameArabic ?? string.Empty,
+                result.FirstNameEnglish ?? string.Empty,
+                result.FatherNameEnglish ?? string.Empty,
+                result.GrandFatherNameEnglish ?? string.Empty,
+                result.FamilyNameEnglish ?? string.Empty,
                 result.Nationality ?? string.Empty,
                 result.Gender ?? string.Empty,
+                result.Profession ?? string.Empty,
+                result.BirthCountry ?? string.Empty,
+                result.BirthCity ?? string.Empty,
+                result.MaritalStatus ?? string.Empty,
                 result.DateOfBirth,
+                result.ResidenceNumber ?? string.Empty,
+                result.ResidenceExpiryDate,
                 result.PassportExpiryDate,
                 mode,
                 message);
@@ -612,6 +779,20 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 string.Empty,
                 string.Empty,
                 string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                null,
                 string.Empty,
                 null,
                 null,
@@ -625,9 +806,23 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 result.CivilId ?? string.Empty,
                 result.PassportNumber ?? string.Empty,
                 result.FullName ?? string.Empty,
+                result.FirstNameArabic ?? string.Empty,
+                result.FatherNameArabic ?? string.Empty,
+                result.GrandFatherNameArabic ?? string.Empty,
+                result.FamilyNameArabic ?? string.Empty,
+                result.FirstNameEnglish ?? string.Empty,
+                result.FatherNameEnglish ?? string.Empty,
+                result.GrandFatherNameEnglish ?? string.Empty,
+                result.FamilyNameEnglish ?? string.Empty,
                 result.Nationality ?? string.Empty,
                 result.Gender ?? string.Empty,
+                result.Profession ?? string.Empty,
+                result.BirthCountry ?? string.Empty,
+                result.BirthCity ?? string.Empty,
+                result.MaritalStatus ?? string.Empty,
                 result.DateOfBirth,
+                result.ResidenceNumber ?? string.Empty,
+                result.ResidenceExpiryDate,
                 result.PassportExpiryDate,
                 mode,
                 message);
@@ -640,6 +835,20 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 string.Empty,
                 string.Empty,
                 string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                null,
                 string.Empty,
                 null,
                 null,

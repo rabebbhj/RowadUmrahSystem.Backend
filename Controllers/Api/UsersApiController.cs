@@ -169,6 +169,8 @@ namespace RowadUmrahSystem.Web.Controllers.Api
 
             var permissions = await EnsurePermissionsAsync(id);
 
+            permissions.CanAccessDashboard = request.CanAccessDashboard;
+            permissions.CanViewNotifications = request.CanViewNotifications;
             permissions.CanManageUsers = request.CanManageUsers;
             permissions.CanViewTravelers = request.CanViewTravelers;
             permissions.CanCreateTravelers = request.CanCreateTravelers;
@@ -201,18 +203,17 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             permissions.CanViewFinancialReports = request.CanViewFinancialReports;
 
             permissions.CanManageTravelers =
-                permissions.CanViewTravelers ||
                 permissions.CanCreateTravelers ||
                 permissions.CanEditTravelers ||
                 permissions.CanArchiveTravelers ||
                 permissions.CanRestoreTravelers;
 
             permissions.CanManageTrips =
-                permissions.CanViewTrips ||
-                permissions.CanCreateTrips;
+                permissions.CanCreateTrips ||
+                permissions.CanArchiveTrips ||
+                permissions.CanRestoreTrips;
 
             permissions.CanManageBlocks =
-                permissions.CanViewBlocks ||
                 permissions.CanBlockTravelers ||
                 permissions.CanUnblockTravelers;
 
@@ -263,6 +264,8 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 UserId = user.Id,
                 UserFullName = user.FullName,
                 UserEmail = user.Email ?? string.Empty,
+                CanAccessDashboard = permissions.CanAccessDashboard,
+                CanViewNotifications = permissions.CanViewNotifications,
                 CanManageUsers = permissions.CanManageUsers,
                 CanViewTravelers = permissions.CanViewTravelers,
                 CanCreateTravelers = permissions.CanCreateTravelers,
@@ -301,6 +304,8 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             return new UserPermission
             {
                 UserId = userId,
+                CanAccessDashboard = true,
+                CanViewNotifications = true,
                 CanManageTravelers = true,
                 CanManageTrips = true,
                 CanManageBlocks = false,

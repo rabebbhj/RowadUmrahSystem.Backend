@@ -8,6 +8,7 @@ namespace RowadUmrahSystem.Web.Services
 {
     public class PermissionService
     {
+        private const string MainAdminEmail = "admin@rowad.local";
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
 
@@ -31,7 +32,7 @@ namespace RowadUmrahSystem.Web.Services
             if (!user.IsActive)
                 return false;
 
-            if (await _userManager.IsInRoleAsync(user, "Admin"))
+            if (IsMainAdmin(user))
                 return true;
 
             var permissions = await _context.UserPermissions
@@ -44,43 +45,48 @@ namespace RowadUmrahSystem.Web.Services
             return permissionName switch
             {
                 // Old compatibility
-                "Travelers" => permissions.CanManageTravelers || permissions.CanViewTravelers,
-                "Trips" => permissions.CanManageTrips || permissions.CanViewTrips,
-                "Blocks" => permissions.CanManageBlocks || permissions.CanViewBlocks,
+                "Travelers" => permissions.CanViewTravelers,
+                "Trips" => permissions.CanViewTrips,
+                "Blocks" => permissions.CanViewBlocks,
                 "Reports" => permissions.CanViewReports,
                 "Users" => permissions.CanManageUsers,
+                "Dashboard" => permissions.CanAccessDashboard,
+                "Notifications" => permissions.CanViewNotifications,
 
                 // Travelers
-                "Travelers.View" => permissions.CanViewTravelers || permissions.CanManageTravelers,
-                "Travelers.Create" => permissions.CanCreateTravelers || permissions.CanManageTravelers,
-                "Travelers.Edit" => permissions.CanEditTravelers || permissions.CanManageTravelers,
-                "Travelers.Archive" => permissions.CanArchiveTravelers || permissions.CanManageTravelers,
-                "Travelers.Restore" => permissions.CanRestoreTravelers || permissions.CanManageTravelers,
+                "Travelers.View" => permissions.CanViewTravelers,
+                "Travelers.Create" => permissions.CanCreateTravelers,
+                "Travelers.Edit" => permissions.CanEditTravelers,
+                "Travelers.Archive" => permissions.CanArchiveTravelers,
+                "Travelers.Restore" => permissions.CanRestoreTravelers,
 
                 // Trips
-                "Trips.View" => permissions.CanViewTrips || permissions.CanManageTrips,
-                "Trips.Create" => permissions.CanCreateTrips || permissions.CanManageTrips,
-                "Trips.Archive" => permissions.CanArchiveTrips || permissions.CanManageTrips,
-                "Trips.Restore" => permissions.CanRestoreTrips || permissions.CanManageTrips,
+                "Trips.View" => permissions.CanViewTrips,
+                "Trips.Create" => permissions.CanCreateTrips,
+                "Trips.Archive" => permissions.CanArchiveTrips,
+                "Trips.Restore" => permissions.CanRestoreTrips,
 
                 // Documents
-                "Documents.View" => permissions.CanViewDocuments || permissions.CanManageTravelers,
-                "Documents.Upload" => permissions.CanUploadDocuments || permissions.CanManageTravelers,
-                "Documents.Archive" => permissions.CanArchiveDocuments || permissions.CanManageTravelers,
-                "Documents.Restore" => permissions.CanRestoreDocuments || permissions.CanManageTravelers,
+                "Documents.View" => permissions.CanViewDocuments,
+                "Documents.Upload" => permissions.CanUploadDocuments,
+                "Documents.Archive" => permissions.CanArchiveDocuments,
+                "Documents.Restore" => permissions.CanRestoreDocuments,
 
                 // Blocks
-                "Blocks.View" => permissions.CanViewBlocks || permissions.CanManageBlocks,
-                "Blocks.Block" => permissions.CanBlockTravelers || permissions.CanManageBlocks,
-                "Blocks.Unblock" => permissions.CanUnblockTravelers || permissions.CanManageBlocks,
+                "Blocks.View" => permissions.CanViewBlocks,
+                "Blocks.Block" => permissions.CanBlockTravelers,
+                "Blocks.Unblock" => permissions.CanUnblockTravelers,
 
                 // Reports
                 "Reports.View" => permissions.CanViewReports,
-                "Reports.Export" => permissions.CanExportReports || permissions.CanViewReports,
+                "Reports.Export" => permissions.CanExportReports,
 
                 // Audit
                 "AuditLogs.View" => permissions.CanViewAuditLogs,
 
+                // Dashboard and notifications
+                "Dashboard.View" => permissions.CanAccessDashboard,
+                "Notifications.View" => permissions.CanViewNotifications,
 
                 // Accounting
                 "Accounting.View" =>
@@ -126,6 +132,11 @@ namespace RowadUmrahSystem.Web.Services
 
                 _ => false
             };
+        }
+
+        private static bool IsMainAdmin(ApplicationUser user)
+        {
+            return string.Equals(user.Email, MainAdminEmail, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
