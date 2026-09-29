@@ -5,6 +5,7 @@ using RowadUmrahSystem.Web.ViewModels.Api;
 using Microsoft.AspNetCore.Authorization;
 using RowadUmrahSystem.Web.Models;
 using RowadUmrahSystem.Web.Services;
+using System.Security.Claims;
 
 namespace RowadUmrahSystem.Web.Controllers.Api
 {
@@ -13,6 +14,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
     [Route("api/travelers")]
     public class TravelersApiController : ControllerBase
     {
+        private const string MaskedPhoneNumber = "********";
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
         private readonly PassportOcrService _passportOcrService;
@@ -124,6 +126,8 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 query = query.Where(x => x.DocumentsReviewed);
             }
 
+            var canViewPhoneNumber = await CanViewTravelerPhoneNumber();
+
             var travelers = await query
                 .OrderByDescending(x => x.CreatedAt)
                 .Select(x => new TravelerListItemDto(
@@ -134,7 +138,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     x.Gender,
                     x.DateOfBirth,
                     x.Email,
-                    x.PhoneNumber,
+                    canViewPhoneNumber ? x.PhoneNumber : MaskedPhoneNumber,
                     x.UmrahCount,
                     x.IsBlocked,
                     x.IsDeleted,
@@ -171,7 +175,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 return NotFound();
             }
 
-            return Ok(MapDetail(traveler));
+            return Ok(MapDetail(traveler, await CanViewTravelerPhoneNumber()));
         }
 
         [AllowAnonymous]
@@ -390,7 +394,10 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             traveler.ResidenceNumber = string.IsNullOrWhiteSpace(request.ResidenceNumber) ? null : request.ResidenceNumber.Trim();
             traveler.ResidenceExpiryDate = request.ResidenceExpiryDate;
             traveler.PassportExpiryDate = request.PassportExpiryDate;
-            traveler.PhoneNumber = request.PhoneNumber.Trim();
+            if (!IsMaskedPhoneNumber(request.PhoneNumber))
+            {
+                traveler.PhoneNumber = request.PhoneNumber.Trim();
+            }
             traveler.Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
             traveler.IsBlocked = request.IsBlocked;
             traveler.BlockReason = string.IsNullOrWhiteSpace(request.BlockReason) ? null : request.BlockReason.Trim();
@@ -546,6 +553,37 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             return await _permissionService.HasPermissionAsync(User, "Blocks.Unblock");
         }
 
+        private async Task<bool> CanViewTravelerPhoneNumber()
+        {
+            var currentEmail =
+                User.FindFirstValue(ClaimTypes.Email) ??
+                User.FindFirstValue(ClaimTypes.Name) ??
+                User.Identity?.Name;
+
+            if (string.Equals(currentEmail, "admin@rowad.local", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return false;
+            }
+
+            var permissions = await _context.UserPermissions
+                .AsNoTracking()
+                .Include(permission => permission.User)
+                .FirstOrDefaultAsync(permission => permission.UserId == userId);
+
+            return string.Equals(permissions?.User.Email, "admin@rowad.local", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsMaskedPhoneNumber(string? phoneNumber)
+        {
+            return string.Equals(phoneNumber?.Trim(), MaskedPhoneNumber, StringComparison.Ordinal);
+        }
+
         private async Task<string?> SavePassportImageAsync(IFormFile? passportImage, string? existingPath)
         {
             if (passportImage == null || passportImage.Length == 0)
@@ -588,10 +626,10 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 .Include(t => t.Documents.Where(d => !d.IsDeleted))
                 .FirstAsync(t => t.Id == id);
 
-            return MapDetail(traveler);
+            return MapDetail(traveler, await CanViewTravelerPhoneNumber());
         }
 
-        private static TravelerDetailDto MapDetail(Traveler traveler)
+        private static TravelerDetailDto MapDetail(Traveler traveler, bool canViewPhoneNumber)
         {
             return new TravelerDetailDto(
                 traveler.Id,
@@ -617,7 +655,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 traveler.ResidenceNumber,
                 traveler.ResidenceExpiryDate,
                 traveler.PassportExpiryDate,
-                traveler.PhoneNumber,
+                canViewPhoneNumber ? traveler.PhoneNumber : MaskedPhoneNumber,
                 traveler.UmrahCount,
                 traveler.IsBlocked,
                 traveler.BlockReason,

@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <UseAppHost>false</UseAppHost>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-RowadUmrahSystem.Web-39389746-9870-40e8-9603-03751b6198ae</UserSecretsId>
