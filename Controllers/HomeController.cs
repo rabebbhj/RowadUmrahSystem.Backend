@@ -6,9 +6,17 @@ namespace RowadUmrahSystem.Web.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly IWebHostEnvironment _environment;
+
+        public HomeController(IWebHostEnvironment environment)
+        {
+            _environment = environment;
+        }
+
         public IActionResult Index()
         {
-            return Redirect("http://127.0.0.1:5173/");
+            var appIndexPath = Path.Combine(_environment.WebRootPath, "app", "index.html");
+            return PhysicalFile(appIndexPath, "text/html; charset=utf-8");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
