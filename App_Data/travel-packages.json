@@ -543,7 +543,7 @@
       },
       {
         "id": "private-car",
-        "label": "سيارة فردية",
+        "label": "سيارة خاصة",
         "active": true,
         "supplement": 500,
         "price": null
@@ -643,7 +643,7 @@
       },
       {
         "id": "private-car",
-        "label": "سيارة فردية",
+        "label": "سيارة خاصة",
         "active": true,
         "supplement": 350,
         "price": null
@@ -736,7 +736,7 @@
       },
       {
         "id": "private-car",
-        "label": "سيارة فردية",
+        "label": "سيارة خاصة",
         "active": true,
         "supplement": 350,
         "price": null

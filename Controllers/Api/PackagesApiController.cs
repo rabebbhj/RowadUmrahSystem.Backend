@@ -279,7 +279,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     new List<PackageOptionDto>
                     {
                         new("bus", "باص", true, 0m, null),
-                        new("private-car", "سيارة فردية", true, 500m, null)
+                        new("private-car", "سيارة خاصة", true, 500m, null)
                     },
                     new List<PackageOptionDto>
                     {
@@ -318,7 +318,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     new List<PackageOptionDto>
                     {
                         new("bus", "باص", true, 0m, null),
-                        new("private-car", "سيارة فردية", true, 350m, null)
+                        new("private-car", "سيارة خاصة", true, 350m, null)
                     },
                     new List<PackageOptionDto>
                     {
