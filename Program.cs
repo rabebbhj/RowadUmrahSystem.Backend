@@ -95,7 +95,28 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler(errorApp =>
+    {
+        errorApp.Run(async context =>
+        {
+            if (context.Request.Path.StartsWithSegments("/api"))
+            {
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                context.Response.ContentType = "application/problem+json; charset=utf-8";
+
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    title = "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+                    status = StatusCodes.Status500InternalServerError,
+                    traceId = context.TraceIdentifier
+                });
+
+                return;
+            }
+
+            context.Response.Redirect("/Home/Error");
+        });
+    });
     app.UseHsts();
 }
 
