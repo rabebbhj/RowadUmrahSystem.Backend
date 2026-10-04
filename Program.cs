@@ -28,6 +28,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
+    options.User.RequireUniqueEmail = true;
 })
 .AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -81,6 +82,7 @@ builder.Services.AddScoped<PermissionService>();
 builder.Services.AddScoped<PassportOcrService>();
 builder.Services.AddScoped<AuditService>();
 builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<IAuthEmailSender, SmtpAuthEmailSender>();
 builder.Services.AddScoped<IPdfReportService, PdfReportService>();
 
 QuestPDF.Settings.License = LicenseType.Community;
@@ -217,7 +219,7 @@ using (var scope = app.Services.CreateScope())
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-    string[] roles = { "Admin", "Employee" };
+    string[] roles = { "Admin", "Employee", "Traveler" };
 
     foreach (var role in roles)
     {

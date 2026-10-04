@@ -2,6 +2,23 @@ namespace RowadUmrahSystem.Web.ViewModels.Api
 {
     public sealed record LoginRequestDto(string Email, string Password, bool RememberMe);
 
+    public sealed record RegisterTravelerRequestDto(
+        string FullName,
+        string Email,
+        string Phone,
+        string Password);
+
+    public sealed record VerifyEmailRequestDto(string Email, string Code, bool RememberMe);
+
+    public sealed record ResendEmailCodeRequestDto(string Email);
+
+    public sealed record ForgotPasswordRequestDto(string Email);
+
+    public sealed record ResetPasswordRequestDto(
+        string Email,
+        string Code,
+        string Password);
+
     public sealed record AuthPermissionsDto(
         bool CanAccessDashboard,
         bool CanViewNotifications,
