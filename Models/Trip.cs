@@ -14,6 +14,8 @@
 
         public string? Notes { get; set; }
 
+        public string Status { get; set; } = "pending";
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public bool IsDeleted { get; set; } = false;

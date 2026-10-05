@@ -61,6 +61,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     x.Traveler.PassportNumber,
                     x.TripType,
                     x.TripDate,
+                    string.IsNullOrWhiteSpace(x.Status) ? "pending" : x.Status,
                     x.Notes,
                     x.CreatedAt,
                     x.IsDeleted,
@@ -109,6 +110,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 TripType = "Umrah",
                 TripDate = tripDate,
                 Notes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim(),
+                Status = "pending",
                 CreatedAt = DateTime.UtcNow,
                 IsDeleted = false
             };
@@ -127,6 +129,31 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 .FirstAsync(x => x.Id == trip.Id);
 
             return Ok(MapTrip(createdTrip));
+        }
+
+        public sealed record TripStatusUpdateRequestDto(string Status);
+
+        [HttpPost("{id:int}/status")]
+        public async Task<ActionResult<TripListItemDto>> UpdateStatus(int id, [FromBody] TripStatusUpdateRequestDto request)
+        {
+            if (!await CanCreateTrips())
+                return Forbid();
+
+            var normalizedStatus = NormalizeStatus(request.Status);
+            if (normalizedStatus == null)
+                return BadRequest("Invalid trip status.");
+
+            var trip = await _context.Trips
+                .Include(x => x.Traveler)
+                .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
+
+            if (trip == null)
+                return NotFound();
+
+            trip.Status = normalizedStatus;
+            await _context.SaveChangesAsync();
+
+            return Ok(MapTrip(trip));
         }
 
         [HttpPost("{id:int}/archive")]
@@ -218,11 +245,24 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 trip.Traveler?.PassportNumber ?? string.Empty,
                 trip.TripType,
                 trip.TripDate,
+                NormalizeStatus(trip.Status) ?? "pending",
                 trip.Notes,
                 trip.CreatedAt,
                 trip.IsDeleted,
                 trip.DeletedAt,
                 trip.DeletedBy);
+        }
+
+        private static string? NormalizeStatus(string? status)
+        {
+            return status?.Trim().ToLowerInvariant() switch
+            {
+                "pending" or "pendingreview" or "review" => "pending",
+                "confirmed" or "active" => "confirmed",
+                "completed" or "complete" => "completed",
+                "cancelled" or "canceled" => "cancelled",
+                _ => null
+            };
         }
     }
 }

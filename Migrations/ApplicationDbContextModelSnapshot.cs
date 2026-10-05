@@ -1357,6 +1357,10 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("TravelerId")
                         .HasColumnType("INTEGER");
 

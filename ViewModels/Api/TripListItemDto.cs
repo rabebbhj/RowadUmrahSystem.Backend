@@ -7,6 +7,7 @@ namespace RowadUmrahSystem.Web.ViewModels.Api
         string PassportNumber,
         string TripType,
         DateTime TripDate,
+        string Status,
         string? Notes,
         DateTime CreatedAt,
         bool IsDeleted,
