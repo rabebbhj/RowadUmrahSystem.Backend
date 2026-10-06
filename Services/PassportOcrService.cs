@@ -240,7 +240,10 @@ namespace RowadUmrahSystem.Web.Services
             var mrz = TryParseMrz(text);
             if (mrz == null)
             {
-                throw new InvalidOperationException("Tesseract OCR could not find passport MRZ lines.");
+                var fallbackResult = new PassportOcrResult();
+                EnrichPassportResultFromText(fallbackResult, text);
+                NormalizePassportResult(fallbackResult);
+                return fallbackResult;
             }
 
             string visualPassportNumber = ExtractVisualPassportNumber(text);
@@ -249,10 +252,10 @@ namespace RowadUmrahSystem.Web.Services
                 visualPassportNumber,
                 mrz.Nationality);
 
-            return new PassportOcrResult
+            var result = new PassportOcrResult
             {
                 PassportNumber = passportNumber,
-                FullName = ToArabicName(CleanName(mrz.FullName)),
+                FullName = CleanName(mrz.FullName),
                 FirstNameEnglish = mrz.FirstName,
                 FatherNameEnglish = mrz.FatherName,
                 GrandFatherNameEnglish = mrz.GrandFatherName,
@@ -266,6 +269,10 @@ namespace RowadUmrahSystem.Web.Services
                 DateOfBirth = mrz.DateOfBirth,
                 PassportExpiryDate = mrz.PassportExpiryDate
             };
+
+            EnrichPassportResultFromText(result, text);
+            NormalizePassportResult(result);
+            return result;
         }
 
         private static CivilIdOcrResult ParseCivilIdText(string text)
@@ -384,6 +391,40 @@ namespace RowadUmrahSystem.Web.Services
                 return string.Empty;
 
             return passportNumber;
+        }
+
+        private static void NormalizePassportResult(PassportOcrResult result)
+        {
+            EnsureNameParts(result);
+
+            result.PassportNumber = CleanPassportNumber(result.PassportNumber);
+            result.FullName = ToArabicName(CleanName(result.FullName));
+            result.FirstNameEnglish = CleanName(result.FirstNameEnglish);
+            result.FatherNameEnglish = CleanName(result.FatherNameEnglish);
+            result.GrandFatherNameEnglish = CleanName(result.GrandFatherNameEnglish);
+            result.FamilyNameEnglish = CleanName(result.FamilyNameEnglish);
+            result.FirstNameArabic = PreferArabic(result.FirstNameArabic, ToArabicName(result.FirstNameEnglish));
+            result.FatherNameArabic = PreferArabic(result.FatherNameArabic, ToArabicName(result.FatherNameEnglish));
+            result.GrandFatherNameArabic = PreferArabic(result.GrandFatherNameArabic, ToArabicName(result.GrandFatherNameEnglish));
+            result.FamilyNameArabic = PreferArabic(result.FamilyNameArabic, ToArabicName(result.FamilyNameEnglish));
+            result.Nationality = ToArabicNationality(NormalizeNationality(result.Nationality));
+            result.Gender = ToArabicGender(NormalizeGender(result.Gender));
+            result.Profession = NormalizeDisplayValue(result.Profession);
+            result.BirthCountry = NormalizeDisplayValue(result.BirthCountry);
+            result.BirthCity = NormalizeDisplayValue(result.BirthCity);
+            result.MaritalStatus = NormalizeDisplayValue(result.MaritalStatus);
+
+            if (result.DateOfBirth.HasValue &&
+                result.DateOfBirth.Value.Year < 1900)
+            {
+                result.DateOfBirth = null;
+            }
+
+            if (result.PassportExpiryDate.HasValue &&
+                result.PassportExpiryDate.Value.Year < DateTime.UtcNow.Year - 20)
+            {
+                result.PassportExpiryDate = null;
+            }
         }
 
         private static string SelectMostReliablePassportNumber(string mrzPassportNumber, string visualPassportNumber, string nationality)
@@ -590,6 +631,16 @@ namespace RowadUmrahSystem.Web.Services
                 return string.Empty;
 
             var candidates = new List<string>();
+            string normalizedText = NormalizeOcrText(text);
+
+            foreach (string candidate in ExtractLabeledPassportNumberCandidates(normalizedText))
+            {
+                string normalizedCandidate = NormalizeVisualPassportNumberCandidate(candidate);
+                if (!string.IsNullOrWhiteSpace(normalizedCandidate))
+                {
+                    candidates.Add(normalizedCandidate);
+                }
+            }
 
             foreach (Match match in Regex.Matches(text.ToUpperInvariant(), @"\bA\s*[0-9OQDBIS]{8}\b"))
             {
@@ -602,8 +653,75 @@ namespace RowadUmrahSystem.Web.Services
                 }
             }
 
+            foreach (Match match in Regex.Matches(text.ToUpperInvariant(), @"\b[A-Z]{1,2}\s*[0-9OQDBIS]{6,8}\b"))
+            {
+                string normalizedCandidate = NormalizeVisualPassportNumberCandidate(match.Value);
+                if (!string.IsNullOrWhiteSpace(normalizedCandidate))
+                {
+                    candidates.Add(normalizedCandidate);
+                }
+            }
+
             return candidates
                 .FirstOrDefault() ?? string.Empty;
+        }
+
+        private static IEnumerable<string> ExtractLabeledPassportNumberCandidates(string text)
+        {
+            string[] labels =
+            {
+                "Passport No",
+                "Passport Number",
+                "Passport N",
+                "No Passeport",
+                "N Passeport",
+                "Numero Passeport",
+                "Numero du Passeport",
+                "Numéro Passeport",
+                "Numéro du Passeport",
+                "Document No",
+                "رقم الجواز",
+                "رقم جواز السفر",
+                "عدد الجواز"
+            };
+
+            foreach (string label in labels)
+            {
+                var match = Regex.Match(
+                    text,
+                    $@"{Regex.Escape(label)}[\s:：#°/.\-]*([A-Z0-9\s<]{{5,20}})",
+                    RegexOptions.IgnoreCase);
+
+                if (match.Success)
+                {
+                    yield return match.Groups[1].Value;
+                }
+            }
+        }
+
+        private static string NormalizeVisualPassportNumberCandidate(string value)
+        {
+            string compact = Regex.Replace(value.ToUpperInvariant(), @"[^A-Z0-9]", "");
+            compact = compact.Trim('<');
+
+            if (compact.Length < 6 || compact.Length > 12)
+                return string.Empty;
+
+            if (Regex.IsMatch(compact, @"^(PASSPORT|PASSEPORT|DOCUMENT|NATIONALITY|TUNISIE|TUNISIA)$"))
+                return string.Empty;
+
+            if (Regex.IsMatch(compact, @"^[0-9]{6,9}$"))
+                return compact;
+
+            if (Regex.IsMatch(compact, @"^[A-Z]{1,2}[0-9OQDBIS]{6,8}$"))
+            {
+                int prefixLength = compact.TakeWhile(char.IsLetter).Count();
+                return compact[..prefixLength] + ToMrzDigits(compact[prefixLength..]);
+            }
+
+            return Regex.IsMatch(compact, @"^(?=.*[A-Z])(?=.*[0-9])[A-Z0-9]{6,12}$")
+                ? compact
+                : string.Empty;
         }
 
         private static string GetFieldContent(AnalyzedDocument document, string fieldName)
@@ -653,6 +771,12 @@ namespace RowadUmrahSystem.Web.Services
 
             string normalized = NormalizeOcrText(text);
 
+            result.PassportNumber = FirstNonEmpty(result.PassportNumber, ExtractVisualPassportNumber(normalized));
+            result.Nationality = FirstNonEmpty(result.Nationality, ExtractVisualNationality(normalized));
+            result.Gender = FirstNonEmpty(result.Gender, ExtractVisualGender(normalized));
+            result.DateOfBirth ??= ExtractVisualDate(normalized, "Date of birth", "Date de naissance", "Birth Date", "تاريخ الميلاد");
+            result.PassportExpiryDate ??= ExtractVisualDate(normalized, "Date of expiry", "Date d'expiration", "Expiry Date", "Expiration Date", "تاريخ الانتهاء", "تاريخ انتهاء الجواز");
+
             var mrzName = TryExtractMrzNameParts(normalized);
             if (mrzName != null)
             {
@@ -699,6 +823,76 @@ namespace RowadUmrahSystem.Web.Services
             if (string.IsNullOrWhiteSpace(result.BirthCountry))
             {
                 result.BirthCountry = GuessCountryFromNationality(result.Nationality);
+            }
+        }
+
+        private static string ExtractVisualNationality(string text)
+        {
+            string value = FirstNonEmpty(
+                ExtractLabelValue(text, "Nationality", "Sex", "Date", "Passport"),
+                ExtractLabelValue(text, "Nationalite", "Sexe", "Date", "Passeport"),
+                ExtractLabelValue(text, "Nationalité", "Sexe", "Date", "Passeport"),
+                ExtractArabicLabelValue(text, "الجنسية", "النوع", "تاريخ", "رقم"));
+
+            string normalized = NormalizeNationality(value);
+            if (normalized.Length == 3)
+                return normalized;
+
+            string guessed = NormalizeNationality(text);
+            return guessed.Length == 3 ? guessed : string.Empty;
+        }
+
+        private static string ExtractVisualGender(string text)
+        {
+            string value = FirstNonEmpty(
+                ExtractLabelValue(text, "Sex", "Date", "Place", "Nationality"),
+                ExtractLabelValue(text, "Sexe", "Date", "Lieu", "Nationalite", "Nationalité"),
+                ExtractArabicLabelValue(text, "النوع", "تاريخ", "مكان", "الجنسية"),
+                ExtractArabicLabelValue(text, "الجنس", "تاريخ", "مكان", "الجنسية"));
+
+            return NormalizeGender(value);
+        }
+
+        private static DateTime? ExtractVisualDate(string text, params string[] labels)
+        {
+            foreach (string label in labels)
+            {
+                int labelIndex = text.IndexOf(label, StringComparison.OrdinalIgnoreCase);
+                if (labelIndex < 0)
+                    continue;
+
+                string searchArea = text.Substring(labelIndex, Math.Min(100, text.Length - labelIndex));
+                DateTime? parsed = ExtractFirstDate(searchArea);
+                if (parsed.HasValue)
+                    return parsed;
+            }
+
+            return null;
+        }
+
+        private static DateTime? ExtractFirstDate(string text)
+        {
+            var match = Regex.Match(text, @"([0-9]{1,2})[\s./\-]([0-9]{1,2})[\s./\-]([0-9]{2,4})");
+            if (!match.Success)
+                return null;
+
+            int day = int.Parse(match.Groups[1].Value);
+            int month = int.Parse(match.Groups[2].Value);
+            int year = int.Parse(match.Groups[3].Value);
+
+            if (year < 100)
+            {
+                int currentYearTwoDigits = DateTime.UtcNow.Year % 100;
+                year += year > currentYearTwoDigits ? 1900 : 2000;
+            }
+
+            try
+            {
+                return new DateTime(year, month, day);
+            }
+            catch
+            {
+                return null;
             }
         }
 
@@ -1691,11 +1885,39 @@ namespace RowadUmrahSystem.Web.Services
                 .Replace("0", "O")
                 .Replace("1", "I");
 
-            if (value.Contains("YR") || value.Contains("SY"))
+            string compact = Regex.Replace(value, @"[^A-Z\p{IsArabic}]", "");
+
+            if (compact is "EGY" or "EGYPT" || value.Contains("EGYPT", StringComparison.OrdinalIgnoreCase) || value.Contains("مصر", StringComparison.Ordinal))
+                return "EGY";
+
+            if (compact is "TUN" or "TUNISIA" or "TUNISIE" or "TUNISIEN" or "TUNISIENNE" ||
+                value.Contains("TUNIS", StringComparison.OrdinalIgnoreCase) ||
+                value.Contains("تونس", StringComparison.Ordinal))
+                return "TUN";
+
+            if (compact is "SYR" or "SY" or "SYRIA" or "SYRIAN" || value.Contains("SYRI", StringComparison.OrdinalIgnoreCase) || value.Contains("سور", StringComparison.Ordinal))
                 return "SYR";
 
-            if (value.Contains("MLI") || value.Contains("MALI"))
+            if (compact is "MLI" or "MALI")
                 return "MLI";
+
+            if (compact is "SAU" or "SAUDI" || value.Contains("SAUDI", StringComparison.OrdinalIgnoreCase) || value.Contains("سعود", StringComparison.Ordinal))
+                return "SAU";
+
+            if (compact is "DZA" or "ALGERIA" or "ALGERIE" || value.Contains("ALGER", StringComparison.OrdinalIgnoreCase) || value.Contains("جزائر", StringComparison.Ordinal))
+                return "DZA";
+
+            if (compact is "MAR" or "MOROCCO" or "MAROC" || value.Contains("MOROCC", StringComparison.OrdinalIgnoreCase) || value.Contains("MAROC", StringComparison.OrdinalIgnoreCase) || value.Contains("مغرب", StringComparison.Ordinal))
+                return "MAR";
+
+            if (compact is "JOR" or "JORDAN" || value.Contains("JORDAN", StringComparison.OrdinalIgnoreCase) || value.Contains("أردن", StringComparison.Ordinal))
+                return "JOR";
+
+            if (compact is "LBN" or "LEBANON" or "LIBAN" || value.Contains("LEBAN", StringComparison.OrdinalIgnoreCase) || value.Contains("LIBAN", StringComparison.OrdinalIgnoreCase) || value.Contains("لبنان", StringComparison.Ordinal))
+                return "LBN";
+
+            if (compact.Length == 3 && compact.All(char.IsLetter))
+                return compact;
 
             return value;
         }
