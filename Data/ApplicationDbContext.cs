@@ -20,6 +20,8 @@ namespace RowadUmrahSystem.Web.Data
         public DbSet<TravelerDocument> TravelerDocuments { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<UserNotification> UserNotifications { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
+        public DbSet<BookingTraveler> BookingTravelers { get; set; }
 
         // Accounting
         public DbSet<Account> Accounts { get; set; }
@@ -58,6 +60,30 @@ namespace RowadUmrahSystem.Web.Data
             builder.Entity<UserPermission>()
                 .HasIndex(x => x.UserId)
                 .IsUnique();
+
+            builder.Entity<Booking>(booking =>
+            {
+                booking.HasIndex(x => x.Reference).IsUnique();
+                booking.HasIndex(x => new { x.UserId, x.ClientRequestId }).IsUnique();
+                booking.Property(x => x.TotalAmount).HasPrecision(18, 3);
+                booking.HasOne<ApplicationUser>()
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            builder.Entity<BookingTraveler>(link =>
+            {
+                link.HasIndex(x => new { x.BookingId, x.TravelerId }).IsUnique();
+                link.HasOne(x => x.Booking)
+                    .WithMany(x => x.Travelers)
+                    .HasForeignKey(x => x.BookingId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                link.HasOne(x => x.Traveler)
+                    .WithMany()
+                    .HasForeignKey(x => x.TravelerId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
             builder.Entity<Account>()
                 .HasIndex(x => x.Code)

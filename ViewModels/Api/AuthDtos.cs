@@ -19,6 +19,10 @@ namespace RowadUmrahSystem.Web.ViewModels.Api
         string Code,
         string Password);
 
+    public sealed record UpdateProfileRequestDto(
+        string FullName,
+        string PhoneNumber);
+
     public sealed record AuthPermissionsDto(
         bool CanAccessDashboard,
         bool CanViewNotifications,
@@ -57,6 +61,7 @@ namespace RowadUmrahSystem.Web.ViewModels.Api
         bool IsAuthenticated,
         string? Email,
         string? FullName,
+        string? PhoneNumber,
         string[] Roles,
         AuthPermissionsDto? Permissions = null);
 

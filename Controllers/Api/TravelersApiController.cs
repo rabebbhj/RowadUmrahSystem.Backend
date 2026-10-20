@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using RowadUmrahSystem.Web.Data;
 using RowadUmrahSystem.Web.ViewModels.Api;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using RowadUmrahSystem.Web.Models;
 using RowadUmrahSystem.Web.Services;
 using System.Security.Claims;
@@ -179,6 +180,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting("public-traveler")]
         [HttpPost]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<TravelerDetailDto>> Create(
@@ -273,6 +275,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting("public-traveler")]
         [HttpPost("read-passport")]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<PassportOcrResponseDto>> ReadPassport([FromForm] IFormFile? passportImage)
@@ -310,6 +313,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting("public-traveler")]
         [HttpPost("read-civil-id")]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<CivilIdOcrResponseDto>> ReadCivilId([FromForm] IFormFile? civilIdImage)

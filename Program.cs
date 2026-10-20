@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
@@ -33,10 +36,28 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 .AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AssistantAccess", policy => policy.RequireAssertion(context =>
+        builder.Environment.IsDevelopment() || context.User.Identity?.IsAuthenticated == true));
+});
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login";
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api/assistant")) context.Response.StatusCode = 401;
+        else context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api/assistant")) context.Response.StatusCode = 403;
+        else context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
 
     options.Events.OnValidatePrincipal = async context =>
     {
@@ -73,6 +94,31 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddAntiforgery(options => options.HeaderName = "X-Ruwad-CSRF");
+builder.Services.Configure<VoiceAssistantOptions>(builder.Configuration.GetSection("OpenAI"));
+builder.Services.AddHttpClient<IVoiceAssistantService, VoiceAssistantService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.openai.com/v1/");
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = 429;
+    // A second, daily budget applies only to assistant requests.
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        context.Request.Path.StartsWithSegments("/api/assistant")
+            ? RateLimitPartition.GetFixedWindowLimiter(context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = 200, Window = TimeSpan.FromDays(1), QueueLimit = 0 })
+            : RateLimitPartition.GetNoLimiter("other-endpoints"));
+    options.AddPolicy("assistant", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+    // Anonymous traveler creation and paid OCR calls used by the public booking form and the app:
+    // limited per account, or per IP address for visitors, to stop flooding and OCR cost abuse.
+    options.AddPolicy("public-traveler", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(10), QueueLimit = 0 }));
+});
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 
@@ -133,6 +179,7 @@ app.UseCors("FrontendDev");
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 string[] adminSpaRoutes =
 {

@@ -115,7 +115,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             var copy = NormalizePackage(package with
             {
                 Id = Guid.NewGuid().ToString("N"),
-                Name = $"{package.Name} - Ù†Ø³Ø®Ø©",
+                Name = $"{package.Name} - نسخة",
                 Status = "draft",
                 DisplayOrder = packages.Count == 0 ? 1 : packages.Max(item => item.DisplayOrder) + 1,
                 CreatedAt = DateTime.UtcNow,
@@ -199,7 +199,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         {
             var id = string.IsNullOrWhiteSpace(package.Id) ? Guid.NewGuid().ToString("N") : package.Id;
             var durationDays = package.DurationDays <= 0 ? 6 : package.DurationDays;
-            var durationLabel = string.IsNullOrWhiteSpace(package.DurationLabel) ? $"{durationDays} Ø£ÙŠØ§Ù…" : package.DurationLabel.Trim();
+            var durationLabel = string.IsNullOrWhiteSpace(package.DurationLabel) ? $"{durationDays} أيام" : package.DurationLabel.Trim();
             var status = string.IsNullOrWhiteSpace(package.Status) ? "draft" : package.Status.Trim();
             var priceMode = package.PriceMode == "rules" ? "rules" : "fixed";
 
@@ -207,14 +207,14 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             {
                 Id = id,
                 Name = string.IsNullOrWhiteSpace(package.Name) ? durationLabel : package.Name.Trim(),
-                ShortTitle = string.IsNullOrWhiteSpace(package.ShortTitle) ? "Ø±Ø­Ù„Ø© Ø¹Ù…Ø±Ø©" : package.ShortTitle.Trim(),
+                ShortTitle = string.IsNullOrWhiteSpace(package.ShortTitle) ? "رحلة عمرة" : package.ShortTitle.Trim(),
                 Description = package.Description?.Trim() ?? "",
                 DurationDays = durationDays,
                 DurationLabel = durationLabel,
                 ImageUrl = string.IsNullOrWhiteSpace(package.ImageUrl) ? "/landingpage/avion.png" : package.ImageUrl.Trim(),
                 BasePrice = Math.Max(0, package.BasePrice),
                 VisaSupplement = Math.Max(0, package.VisaSupplement),
-                Currency = string.IsNullOrWhiteSpace(package.Currency) ? "Ø¯.Ùƒ" : package.Currency.Trim(),
+                Currency = string.IsNullOrWhiteSpace(package.Currency) ? "د.ك" : package.Currency.Trim(),
                 PriceMode = priceMode,
                 Status = status,
                 DisplayOrder = package.DisplayOrder <= 0 ? 1 : package.DisplayOrder,
@@ -308,11 +308,11 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             var merged = NormalizePackage(shortPackage with
             {
                 Id = FlexibleUmrahPackageId,
-                Name = "Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¹Ù…Ø±Ø© Ø§Ù„Ù…Ø±Ù†Ø©",
-                ShortTitle = "Ø§Ø®ØªØ± Ø±Ø­Ù„ØªÙƒ",
-                Description = "Ø¨Ø§Ù‚Ø© Ø¹Ù…Ø±Ø© Ù…Ø±Ù†Ø© ÙŠØ®ØªØ§Ø± ÙÙŠÙ‡Ø§ Ø§Ù„Ù…Ø³Ø§ÙØ± Ø¨Ø¯Ø§ÙŠØ© ÙˆÙ†Ù‡Ø§ÙŠØ© Ø§Ù„Ø±Ø­Ù„Ø©.",
+                Name = "باقة العمرة المرنة",
+                ShortTitle = "اختر رحلتك",
+                Description = "باقة عمرة مرنة يختار فيها المسافر بداية ونهاية الرحلة.",
                 DurationDays = 6,
-                DurationLabel = "6 Ø£ÙŠØ§Ù… ÙØ£ÙƒØ«Ø±",
+                DurationLabel = "6 أيام فأكثر",
                 ImageUrl = string.IsNullOrWhiteSpace(longPackage.ImageUrl) ? shortPackage.ImageUrl : longPackage.ImageUrl,
                 BasePrice = basePrice,
                 VisaSupplement = Math.Max(shortPackage.VisaSupplement, longPackage.VisaSupplement),
@@ -431,7 +431,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             {
                 new(
                     "rule-flex-6-default",
-                    "Ø§Ù„Ø³Ø¹Ø± Ø§Ù„Ø£Ø³Ø§Ø³ÙŠ - 6 Ø£ÙŠØ§Ù…",
+                    "السعر الأساسي - 6 أيام",
                     new List<PricingConditionDto> { new("durationDays", "equals", "6") },
                     shortPackage.BasePrice,
                     "perPerson",
@@ -439,7 +439,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     true),
                 new(
                     "rule-flex-10-default",
-                    "Ø§Ù„Ø³Ø¹Ø± Ø§Ù„Ø£Ø³Ø§Ø³ÙŠ - 10 Ø£ÙŠØ§Ù… ÙØ£ÙƒØ«Ø±",
+                    "السعر الأساسي - 10 أيام فأكثر",
                     new List<PricingConditionDto> { new("durationDays", "equals", "10") },
                     longPackage.BasePrice,
                     "perPerson",
@@ -447,7 +447,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     true),
                 new(
                     "rule-flex-default",
-                    "Ø§Ù„Ø³Ø¹Ø± Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠ",
+                    "السعر الافتراضي",
                     Array.Empty<PricingConditionDto>(),
                     shortPackage.BasePrice,
                     "perPerson",
@@ -464,38 +464,38 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             {
                 NormalizePackage(new TravelPackageDto(
                     "umrah-10-days",
-                    "Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¹Ù…Ø±Ø© 10 Ø£ÙŠØ§Ù…",
-                    "Ø±Ø­Ù„Ø© Ù…ØªÙƒØ§Ù…Ù„Ø© Ù„Ø§ ØªÙ†Ø³Ù‰",
-                    "Ø¨Ø§Ù‚Ø© Ø¹Ù…Ø±Ø© ØªØ´Ù…Ù„ Ø§Ù„Ø¥Ù‚Ø§Ù…Ø© ÙˆØ§Ù„ØªÙ†Ù‚Ù„Ø§Øª ÙˆØ®Ø¯Ù…Ø© Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø©.",
+                    "باقة العمرة 10 أيام",
+                    "رحلة متكاملة لا تنسى",
+                    "باقة عمرة تشمل الإقامة والتنقلات وخدمة المتابعة.",
                     10,
-                    "10 Ø£ÙŠØ§Ù…",
+                    "10 أيام",
                     "/landingpage/avion.png",
                     95m,
                     0m,
-                    "Ø¯.Ùƒ",
+                    "د.ك",
                     "rules",
                     PublishedStatus,
                     1,
                     new List<PackageOptionDto>
                     {
-                        new("bus", "Ø¨Ø§Øµ", true, 0m, null),
-                        new("private-car", "Ø³ÙŠØ§Ø±Ø© Ø®Ø§ØµØ©", true, 500m, null)
+                        new("bus", "باص", true, 0m, null),
+                        new("private-car", "سيارة خاصة", true, 500m, null)
                     },
                     new List<PackageOptionDto>
                     {
-                        new("double", "ØºØ±ÙØ© Ù…Ø²Ø¯ÙˆØ¬Ø©", true, 0m, null),
-                        new("triple", "ØºØ±ÙØ© Ø«Ù„Ø§Ø«ÙŠØ©", true, 15m, null),
-                        new("quad", "ØºØ±ÙØ© Ø±Ø¨Ø§Ø¹ÙŠØ©", true, 0m, null),
-                        new("single", "ØºØ±ÙØ© ÙØ±Ø¯ÙŠØ©", true, 60m, null)
+                        new("double", "غرفة مزدوجة", true, 0m, null),
+                        new("triple", "غرفة ثلاثية", true, 15m, null),
+                        new("quad", "غرفة رباعية", true, 0m, null),
+                        new("single", "غرفة فردية", true, 60m, null)
                     },
                     new List<string> { "2026-10-07", "2026-10-14", "2026-10-21" },
                     new List<PricingRuleDto>
                     {
-                        new("rule-10-default", "Ø§Ù„Ø³Ø¹Ø± Ø§Ù„Ø£Ø³Ø§Ø³ÙŠ - 10 Ø£ÙŠØ§Ù…", Array.Empty<PricingConditionDto>(), 95m, "perPerson", 10, true),
-                        new("rule-10-double", "ØºØ±ÙØ© Ø«Ù†Ø§Ø¦ÙŠØ© - Ø¨Ø§Øµ", new List<PricingConditionDto>
+                        new("rule-10-default", "السعر الأساسي - 10 أيام", Array.Empty<PricingConditionDto>(), 95m, "perPerson", 10, true),
+                        new("rule-10-double", "غرفة ثنائية - باص", new List<PricingConditionDto>
                         {
-                            new("roomType", "equals", "ØºØ±ÙØ© Ù…Ø²Ø¯ÙˆØ¬Ø©"),
-                            new("transport", "equals", "Ø¨Ø§Øµ")
+                            new("roomType", "equals", "غرفة مزدوجة"),
+                            new("transport", "equals", "باص")
                         }, 95m, "perPerson", 80, true)
                     },
                     null,
@@ -503,37 +503,37 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     now)),
                 NormalizePackage(new TravelPackageDto(
                     "umrah-6-days",
-                    "Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¹Ù…Ø±Ø© 6 Ø£ÙŠØ§Ù…",
-                    "Ø±Ø­Ù„Ø© Ø§Ù‚ØªØµØ§Ø¯ÙŠØ© Ù…Ø±ÙŠØ­Ø©",
-                    "Ø¨Ø§Ù‚Ø© Ù‚ØµÙŠØ±Ø© Ù…Ù†Ø§Ø³Ø¨Ø© Ù„Ù„Ø­Ø¬ÙˆØ²Ø§Øª Ø§Ù„Ø³Ø±ÙŠØ¹Ø©.",
+                    "باقة العمرة 6 أيام",
+                    "رحلة اقتصادية مريحة",
+                    "باقة قصيرة مناسبة للحجوزات السريعة.",
                     6,
-                    "6 Ø£ÙŠØ§Ù…",
+                    "6 أيام",
                     "/landingpage/paysage.png",
                     75m,
                     0m,
-                    "Ø¯.Ùƒ",
+                    "د.ك",
                     "rules",
                     PublishedStatus,
                     2,
                     new List<PackageOptionDto>
                     {
-                        new("bus", "Ø¨Ø§Øµ", true, 0m, null),
-                        new("private-car", "Ø³ÙŠØ§Ø±Ø© Ø®Ø§ØµØ©", true, 350m, null)
+                        new("bus", "باص", true, 0m, null),
+                        new("private-car", "سيارة خاصة", true, 350m, null)
                     },
                     new List<PackageOptionDto>
                     {
-                        new("double", "ØºØ±ÙØ© Ù…Ø²Ø¯ÙˆØ¬Ø©", true, 0m, null),
-                        new("triple", "ØºØ±ÙØ© Ø«Ù„Ø§Ø«ÙŠØ©", true, 10m, null),
-                        new("quad", "ØºØ±ÙØ© Ø±Ø¨Ø§Ø¹ÙŠØ©", true, 0m, null)
+                        new("double", "غرفة مزدوجة", true, 0m, null),
+                        new("triple", "غرفة ثلاثية", true, 10m, null),
+                        new("quad", "غرفة رباعية", true, 0m, null)
                     },
                     new List<string> { "2026-10-01", "2026-10-08", "2026-10-15" },
                     new List<PricingRuleDto>
                     {
-                        new("rule-6-default", "Ø§Ù„Ø³Ø¹Ø± Ø§Ù„Ø£Ø³Ø§Ø³ÙŠ - 6 Ø£ÙŠØ§Ù…", Array.Empty<PricingConditionDto>(), 75m, "perPerson", 10, true),
-                        new("rule-6-double", "ØºØ±ÙØ© Ø«Ù†Ø§Ø¦ÙŠØ© - Ø¨Ø§Øµ", new List<PricingConditionDto>
+                        new("rule-6-default", "السعر الأساسي - 6 أيام", Array.Empty<PricingConditionDto>(), 75m, "perPerson", 10, true),
+                        new("rule-6-double", "غرفة ثنائية - باص", new List<PricingConditionDto>
                         {
-                            new("roomType", "equals", "ØºØ±ÙØ© Ù…Ø²Ø¯ÙˆØ¬Ø©"),
-                            new("transport", "equals", "Ø¨Ø§Øµ")
+                            new("roomType", "equals", "غرفة مزدوجة"),
+                            new("transport", "equals", "باص")
                         }, 75m, "perPerson", 80, true)
                     },
                     null,

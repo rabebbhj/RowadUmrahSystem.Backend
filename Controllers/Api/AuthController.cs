@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +38,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         {
             if (User?.Identity?.IsAuthenticated != true)
             {
-                return Ok(new AuthUserDto(false, null, null, Array.Empty<string>()));
+                return Ok(new AuthUserDto(false, null, null, null, Array.Empty<string>()));
             }
 
             var user = await _userManager.GetUserAsync(User);
@@ -50,6 +50,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 true,
                 user?.Email,
                 user?.FullName,
+                user?.PhoneNumber,
                 roles,
                 user == null ? null : await GetAuthPermissionsAsync(user, roles)));
         }
@@ -97,7 +98,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             return Ok(new LoginResponseDto(
                 true,
                 "Login successful.",
-                new AuthUserDto(true, user.Email, user.FullName, roles, await GetAuthPermissionsAsync(user, roles))));
+                new AuthUserDto(true, user.Email, user.FullName, user.PhoneNumber, roles, await GetAuthPermissionsAsync(user, roles))));
         }
 
         [HttpPost("register-traveler")]
@@ -179,7 +180,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             return Ok(new LoginResponseDto(
                 true,
                 "تم تفعيل الحساب بنجاح.",
-                new AuthUserDto(true, user.Email, user.FullName, roles, await GetAuthPermissionsAsync(user, roles))));
+                new AuthUserDto(true, user.Email, user.FullName, user.PhoneNumber, roles, await GetAuthPermissionsAsync(user, roles))));
         }
 
         [HttpPost("resend-email-code")]
@@ -243,6 +244,33 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             }
 
             return Ok(new LoginResponseDto(true, "تم تغيير كلمة المرور بنجاح.", null));
+        }
+
+        [HttpPut("profile")]
+        public async Task<ActionResult<AuthUserDto>> UpdateProfile([FromBody] UpdateProfileRequestDto request)
+        {
+            if (User?.Identity?.IsAuthenticated != true)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            user.FullName = string.IsNullOrWhiteSpace(request.FullName) ? user.FullName : request.FullName.Trim();
+            user.PhoneNumber = request.PhoneNumber?.Trim();
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                return BadRequest(new LoginResponseDto(false, BuildIdentityErrorMessage(result), null));
+            }
+
+            var roles = (await _userManager.GetRolesAsync(user)).ToArray();
+            return Ok(new AuthUserDto(true, user.Email, user.FullName, user.PhoneNumber, roles, await GetAuthPermissionsAsync(user, roles)));
         }
 
         [HttpPost("logout")]
