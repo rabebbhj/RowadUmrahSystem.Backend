@@ -121,6 +121,18 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             {
                 if (!existingUser.EmailConfirmed)
                 {
+                    // Nobody has proved ownership of this address yet, so the latest sign-up wins:
+                    // otherwise a retry with a new password silently keeps the first one.
+                    var passwordResult = await _userManager.RemovePasswordAsync(existingUser);
+                    if (passwordResult.Succeeded) passwordResult = await _userManager.AddPasswordAsync(existingUser, request.Password);
+                    if (!passwordResult.Succeeded)
+                    {
+                        return BadRequest(new LoginResponseDto(false, BuildIdentityErrorMessage(passwordResult), null));
+                    }
+
+                    existingUser.FullName = fullName;
+                    existingUser.PhoneNumber = phone;
+                    await _userManager.UpdateAsync(existingUser);
                     await SendEmailVerificationCodeAsync(existingUser, HttpContext.RequestAborted);
                     return Ok(new LoginResponseDto(false, "EMAIL_NOT_CONFIRMED", null));
                 }
