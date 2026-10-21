@@ -11,14 +11,10 @@ namespace RowadUmrahSystem.Web.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Trips.Status is used by the Trip model but was never applied: the hand-written
-            // AddTripStatus migration has no [Migration] attribute, so EF never discovered it.
-            migrationBuilder.AddColumn<string>(
-                name: "Status",
-                table: "Trips",
-                type: "TEXT",
-                nullable: false,
-                defaultValue: "pending");
+            // Trips.Status is used by the Trip model but no discovered migration creates it (the
+            // hand-written AddTripStatus has no [Migration] attribute). Some databases, production
+            // included, already have it, and SQLite has no "ADD COLUMN IF NOT EXISTS", so it is added
+            // at startup only when missing (see TripStatusColumn in Program.cs).
 
             migrationBuilder.CreateTable(
                 name: "Bookings",
