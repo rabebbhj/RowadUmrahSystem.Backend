@@ -255,6 +255,14 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 return BadRequest(new LoginResponseDto(false, BuildIdentityErrorMessage(result), null));
             }
 
+            // The code arrived by email, so the address is proven: a pending account is activated too.
+            if (!user.EmailConfirmed)
+            {
+                user = await _userManager.FindByIdAsync(user.Id) ?? user;
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
+            }
+
             return Ok(new LoginResponseDto(true, "تم تغيير كلمة المرور بنجاح.", null));
         }
 
