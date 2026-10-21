@@ -14,7 +14,7 @@ namespace RowadUmrahSystem.Web.Migrations
             // Trips.Status is used by the Trip model but no discovered migration creates it (the
             // hand-written AddTripStatus has no [Migration] attribute). Some databases, production
             // included, already have it, and SQLite has no "ADD COLUMN IF NOT EXISTS", so it is added
-            // at startup only when missing (see TripStatusColumn in Program.cs).
+            // at startup only when missing (see Data/SchemaColumns.cs).
 
             migrationBuilder.CreateTable(
                 name: "Bookings",

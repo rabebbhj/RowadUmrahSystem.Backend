@@ -290,7 +290,7 @@ using (var scope = app.Services.CreateScope())
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
     await dbContext.Database.MigrateAsync();
-    await TripStatusColumn.EnsureAsync(dbContext);
+    await SchemaColumns.EnsureAsync(dbContext, app.Logger);
 
     string[] roles = { "Admin", "Employee", "Traveler" };
 
