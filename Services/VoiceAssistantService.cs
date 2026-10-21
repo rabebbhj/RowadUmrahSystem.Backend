@@ -59,7 +59,7 @@ public sealed class VoiceAssistantService(HttpClient client, IOptions<VoiceAssis
     {
         var actions = new List<string>();
         foreach (Match match in ActionsTag.Matches(raw))
-            foreach (var id in match.Groups["ids"].Value.Split([',', '،'], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+            foreach (var id in match.Groups["ids"].Value.Split(new[] { ',', '،' }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
                 if (AllowedActions.Contains(id.ToLowerInvariant()) && !actions.Contains(id.ToLowerInvariant()) && actions.Count < 3)
                     actions.Add(id.ToLowerInvariant());
         var reply = ActionsTag.Replace(raw, "").Trim();
