@@ -26,11 +26,14 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         public async Task<ActionResult<IReadOnlyList<TravelPackageDto>>> GetPublished()
         {
             var packages = await ReadOrCreateAsync();
+            var today = PackageDepartures.TodayInKuwait();
 
+            // The app receives only upcoming departures, with weekly schedules already expanded.
             return Ok(packages
                 .Where(package => package.Status == PublishedStatus)
                 .OrderBy(package => package.DisplayOrder)
                 .ThenBy(package => package.CreatedAt)
+                .Select(package => package with { DepartureDates = PackageDepartures.Upcoming(package, today) })
                 .ToList());
         }
 
@@ -90,6 +93,8 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             var package = NormalizePackage(request with
             {
                 Id = id,
+                // The admin form may not send the weekly schedule: keep the stored one instead of erasing it.
+                DepartureWeekdays = request.DepartureWeekdays ?? current.DepartureWeekdays,
                 CreatedAt = current.CreatedAt,
                 UpdatedAt = DateTime.UtcNow
             });
@@ -226,6 +231,9 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     .Distinct()
                     .OrderBy(date => date)
                     .ToList(),
+                DepartureWeekdays = package.DepartureWeekdays?.Where(day => day is >= 0 and <= 6).Distinct().OrderBy(day => day).ToList(),
+                DepartureWeeksAhead = Math.Clamp(package.DepartureWeeksAhead <= 0 ? 12 : package.DepartureWeeksAhead, 1, 52),
+                DepartureLeadDays = Math.Clamp(package.DepartureLeadDays, 0, 60),
                 PricingRules = NormalizeRules(package.PricingRules),
                 PricingProfile = package.PricingProfile,
                 CreatedAt = package.CreatedAt == default ? DateTime.UtcNow : package.CreatedAt,
@@ -563,7 +571,45 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         IReadOnlyList<PricingRuleDto> PricingRules,
         RowadPricingProfileDto? PricingProfile,
         DateTime CreatedAt,
-        DateTime UpdatedAt);
+        DateTime UpdatedAt,
+        IReadOnlyList<int>? DepartureWeekdays = null,
+        int DepartureWeeksAhead = 12,
+        int DepartureLeadDays = 1);
+
+    /// <summary>
+    /// Departures offered for a package: its fixed dates plus a weekly schedule
+    /// (DepartureWeekdays: 0 = Sunday … 2 = Tuesday … 4 = Thursday … 6 = Saturday), starting DepartureLeadDays
+    /// after today and covering DepartureWeeksAhead weeks. Dates use Kuwait time (UTC+3), yyyy-MM-dd.
+    /// </summary>
+    public static class PackageDepartures
+    {
+        public static DateOnly TodayInKuwait() => DateOnly.FromDateTime(DateTime.UtcNow.AddHours(3));
+
+        public static bool HasSchedule(TravelPackageDto package) =>
+            package.DepartureDates.Count > 0 || (package.DepartureWeekdays?.Count ?? 0) > 0;
+
+        public static IReadOnlyList<string> Upcoming(TravelPackageDto package, DateOnly today)
+        {
+            var first = today.AddDays(Math.Clamp(package.DepartureLeadDays, 0, 60));
+            var dates = new SortedSet<string>(StringComparer.Ordinal);
+            foreach (var value in package.DepartureDates)
+            {
+                if (DateOnly.TryParseExact(value, "yyyy-MM-dd", out var date) && date >= first) dates.Add(value);
+            }
+
+            var weekdays = (package.DepartureWeekdays ?? Array.Empty<int>()).Where(day => day is >= 0 and <= 6).ToHashSet();
+            if (weekdays.Count > 0)
+            {
+                var weeks = Math.Clamp(package.DepartureWeeksAhead <= 0 ? 12 : package.DepartureWeeksAhead, 1, 52);
+                for (var day = first; day < first.AddDays(weeks * 7); day = day.AddDays(1))
+                {
+                    if (weekdays.Contains((int)day.DayOfWeek)) dates.Add(day.ToString("yyyy-MM-dd"));
+                }
+            }
+
+            return dates.ToList();
+        }
+    }
 
     public sealed record RowadPricingProfileDto(
         bool Enabled,

@@ -337,7 +337,12 @@
       }
     },
     "createdAt": "2026-09-23T00:00:00Z",
-    "updatedAt": "2026-09-24T07:25:06.9197069Z"
+    "updatedAt": "2026-10-20T23:50:05.499Z",
+    "departureWeekdays": [
+      4
+    ],
+    "departureWeeksAhead": 12,
+    "departureLeadDays": 1
   },
   {
     "id": "rowad-company-11-days",
@@ -517,7 +522,12 @@
       }
     },
     "createdAt": "2026-09-23T00:00:00Z",
-    "updatedAt": "2026-09-28T21:30:19.0825212Z"
+    "updatedAt": "2026-10-20T23:50:05.500Z",
+    "departureWeekdays": [
+      2
+    ],
+    "departureWeeksAhead": 12,
+    "departureLeadDays": 1
   },
   {
     "id": "umrah-flexible",

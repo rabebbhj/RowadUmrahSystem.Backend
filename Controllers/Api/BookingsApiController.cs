@@ -84,15 +84,11 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             var package = (await ReadPublishedPackagesAsync()).FirstOrDefault(item => item.Id == request.PackageId);
             if (package == null) return BadRequest(BookingError("الباقة غير متاحة للحجز حالياً."));
 
-            var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+            // Same list the app shows: fixed dates plus the weekly schedule, upcoming only.
             var departure = request.DepartureDate?.Trim();
-            if (package.DepartureDates.Count > 0)
-            {
-                if (string.IsNullOrEmpty(departure) || !package.DepartureDates.Contains(departure))
-                    return BadRequest(BookingError("اختر موعد سفر من مواعيد الباقة."));
-                if (string.CompareOrdinal(departure, today) < 0)
-                    return BadRequest(BookingError("موعد السفر المختار انتهى. اختر موعداً قادماً."));
-            }
+            if (PackageDepartures.HasSchedule(package) &&
+                (string.IsNullOrEmpty(departure) || !PackageDepartures.Upcoming(package, PackageDepartures.TodayInKuwait()).Contains(departure)))
+                return BadRequest(BookingError("موعد السفر المختار غير متاح. اختر موعداً قادماً من مواعيد الباقة."));
 
             var transport = package.TransportOptions.FirstOrDefault(option => option.Active && option.Id == request.TransportId)
                 ?? (string.IsNullOrEmpty(request.TransportId) ? package.TransportOptions.FirstOrDefault(option => option.Active) : null);

@@ -46,15 +46,16 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login";
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    // API clients (mobile app, web SPA) need a status code they can react to, never the HTML login page.
     options.Events.OnRedirectToLogin = context =>
     {
-        if (context.Request.Path.StartsWithSegments("/api/assistant")) context.Response.StatusCode = 401;
+        if (context.Request.Path.StartsWithSegments("/api")) context.Response.StatusCode = 401;
         else context.Response.Redirect(context.RedirectUri);
         return Task.CompletedTask;
     };
     options.Events.OnRedirectToAccessDenied = context =>
     {
-        if (context.Request.Path.StartsWithSegments("/api/assistant")) context.Response.StatusCode = 403;
+        if (context.Request.Path.StartsWithSegments("/api")) context.Response.StatusCode = 403;
         else context.Response.Redirect(context.RedirectUri);
         return Task.CompletedTask;
     };

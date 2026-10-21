@@ -8,3 +8,6 @@ rowad.db-wal
 rowad.db
 wwwroot/uploads/
 backend-run.log
+
+# Local database backups (personal data)
+App_Data/backups/
