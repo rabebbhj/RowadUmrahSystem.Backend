@@ -34,7 +34,9 @@ namespace RowadUmrahSystem.Web.Services
             using var message = new MailMessage
             {
                 From = new MailAddress(from, smtpSection["FromName"] ?? "Rowad Umrah"),
-                Subject = subject,
+                // The code in the subject keeps each email out of the previous Gmail conversation
+                // (same subject = same thread) and shows it in the phone notification.
+                Subject = $"{code} - {subject}",
                 Body = BuildBody(code),
                 IsBodyHtml = true
             };
@@ -65,6 +67,7 @@ namespace RowadUmrahSystem.Web.Services
                   <div style="font-size:28px;font-weight:700;letter-spacing:6px;direction:ltr;text-align:center;margin:24px 0;padding:16px;border:1px solid #e1b94f;border-radius:8px">
                     {{WebUtility.HtmlEncode(code)}}
                   </div>
+                  <p>الرمز صالح لبضع دقائق فقط. عند طلب رمز جديد، استخدم آخر رسالة وصلتك.</p>
                   <p>إذا لم تطلب هذا الرمز، يمكنك تجاهل هذه الرسالة.</p>
                 </div>
                 """;
