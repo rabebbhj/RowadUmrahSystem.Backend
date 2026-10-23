@@ -1297,6 +1297,73 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.ToTable("BookingTravelers");
                 });
 
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.GroupKhatma", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Dedication")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DepartureDate")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PackageId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PackageId", "DepartureDate", "CompletedAt");
+
+                    b.ToTable("GroupKhatmas");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.GroupKhatmaHizb", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GroupKhatmaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Hizb")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ReservedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupKhatmaId", "Hizb")
+                        .IsUnique();
+
+                    b.ToTable("GroupKhatmaHizbs");
+                });
+
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -2031,6 +2098,17 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.Navigation("Traveler");
                 });
 
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.GroupKhatmaHizb", b =>
+                {
+                    b.HasOne("RowadUmrahSystem.Web.Models.GroupKhatma", "GroupKhatma")
+                        .WithMany("Hizbs")
+                        .HasForeignKey("GroupKhatmaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GroupKhatma");
+                });
+
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.TravelerDocument", b =>
                 {
                     b.HasOne("RowadUmrahSystem.Web.Models.Traveler", "Traveler")
@@ -2093,6 +2171,11 @@ namespace RowadUmrahSystem.Web.Migrations
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.Booking", b =>
                 {
                     b.Navigation("Travelers");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.GroupKhatma", b =>
+                {
+                    b.Navigation("Hizbs");
                 });
 
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.Traveler", b =>

@@ -22,6 +22,8 @@ namespace RowadUmrahSystem.Web.Data
         public DbSet<UserNotification> UserNotifications { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<BookingTraveler> BookingTravelers { get; set; }
+        public DbSet<GroupKhatma> GroupKhatmas { get; set; }
+        public DbSet<GroupKhatmaHizb> GroupKhatmaHizbs { get; set; }
 
         // Accounting
         public DbSet<Account> Accounts { get; set; }
@@ -71,6 +73,14 @@ namespace RowadUmrahSystem.Web.Data
                     .HasForeignKey(x => x.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
+
+            // One khatma at a time per trip (package + departure); each hizb exists once per khatma.
+            builder.Entity<GroupKhatma>(khatma =>
+            {
+                khatma.HasIndex(x => new { x.PackageId, x.DepartureDate, x.CompletedAt });
+                khatma.HasMany(x => x.Hizbs).WithOne(x => x.GroupKhatma).HasForeignKey(x => x.GroupKhatmaId).OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<GroupKhatmaHizb>().HasIndex(x => new { x.GroupKhatmaId, x.Hizb }).IsUnique();
 
             builder.Entity<BookingTraveler>(link =>
             {
