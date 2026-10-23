@@ -1,0 +1,2 @@
+# Quran text from Tanzil: kept byte-for-byte (verbatim copies only, no line-ending conversion).
+wwwroot/quran/*.txt -text
