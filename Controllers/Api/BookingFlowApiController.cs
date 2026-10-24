@@ -95,6 +95,33 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         }
 
         /// <summary>
+        /// The account holder's passport from an earlier booking (traveler with the account email
+        /// and a stored passport image), so step 2 starts with «المسافر 1 · صاحب الحساب». No image
+        /// is sent back; the stored one is reused when the booking is sent.
+        /// </summary>
+        [Authorize]
+        [HttpGet("my-passport")]
+        public async Task<ActionResult<SavedPassportDto>> MyPassport()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (string.IsNullOrWhiteSpace(user?.Email)) return NoContent();
+            var email = user.Email.Trim().ToLower();
+            var traveler = await _context.Travelers.AsNoTracking()
+                .Where(item => !item.IsDeleted && !item.IsBlocked && item.Email != null && item.Email.ToLower() == email && item.PassportImagePath != null)
+                .OrderByDescending(item => item.CreatedAt)
+                .FirstOrDefaultAsync();
+            if (traveler == null) return NoContent();
+            return Ok(new SavedPassportDto(
+                traveler.FullName,
+                traveler.PassportNumber,
+                traveler.PassportExpiryDate?.ToString("yyyy-MM-dd"),
+                traveler.DateOfBirth == default ? null : traveler.DateOfBirth.ToString("yyyy-MM-dd"),
+                traveler.Nationality,
+                traveler.Gender is "أنثى" or "female" ? "female" : traveler.Gender is "ذكر" or "male" ? "male" : null,
+                traveler.ResidenceNumber));
+        }
+
+        /// <summary>
         /// Price lines and total for a draft, with blocking errors and notices (seats included).
         /// With paymentMethods=true (signed in), the methods MyFatoorah offers for that total.
         /// </summary>
@@ -119,7 +146,9 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         /// <summary>
         /// Creates (or updates, same clientRequestId) the booking as "pending payment" and holds
         /// its seats and beds for PaymentHoldMinutes. When expectedTotal differs from the server
-        /// total, nothing is held and 409 returns the new quote to show before paying.
+        /// total, nothing is held and 409 returns the new quote to show before paying. While the
+        /// MyFatoorah key is not set, the booking is confirmed at once and stays unpaid: Rowad
+        /// collects the payment (back-office shows it as confirmed, unpaid).
         /// </summary>
         [Authorize]
         [HttpPost("checkout")]
@@ -134,7 +163,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
 
             var booking = await _context.Bookings.Include(item => item.Travelers)
                 .FirstOrDefaultAsync(item => item.UserId == userId && item.ClientRequestId == request.ClientRequestId);
-            if (booking?.PaymentStatus == BookingPaymentStatuses.Paid)
+            if (booking?.PaymentStatus == BookingPaymentStatuses.Paid || (booking?.Status == BookingStatuses.Confirmed && !_gateway.IsConfigured))
                 return Ok(new CheckoutResponseDto(BookingsApiController.Map(await LoadBookingAsync(booking.Id)), null));
 
             // The server's copy of each traveler (documents already uploaded) wins over the draft.
@@ -185,12 +214,15 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             booking.DurationDays = package.DurationDays;
             booking.ImageUrl = package.ImageUrl;
             booking.DepartureDate = quote.DepartureDate;
-            booking.Nationality = request.Nationality.Trim();
+            // The group's main nationality: the one most travelers' passports show.
+            booking.Nationality = string.IsNullOrWhiteSpace(request.Nationality)
+                ? quote.Travelers.GroupBy(item => item.Nationality).OrderByDescending(group => group.Count()).Select(group => group.Key).FirstOrDefault() ?? ""
+                : request.Nationality.Trim();
             booking.Hotel = string.Join(" · ", stays.Select(stay => config.Hotel(stay.HotelId)?.Name).Where(name => name != null));
             booking.RoomType = makkah == null ? null : RoomSummary(makkah, request.FamilyMode);
             booking.Transport = "باص";
             booking.HasExistingVisa = request.Travelers.All(item => item.VisaOption == BookingQuote.ExistingVisa);
-            booking.VisaIssuer = config.VisaType(request.Nationality);
+            booking.VisaIssuer = config.VisaType(booking.Nationality);
             booking.Men = quote.Men;
             booking.Women = quote.Women;
             booking.Adults = quote.Men + quote.Women;
@@ -220,7 +252,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             }
             await _context.SaveChangesAsync();
 
-            var sleepers = quote.Travelers.Select(item => new AllocationTraveler(request.Travelers[item.Index].TravelerId!.Value, item.Kind, item.Gender ?? "male", item.Nationality)).ToList();
+            var sleepers = quote.Travelers.Select(item => new AllocationTraveler(request.Travelers[item.Index].TravelerId!.Value, item.Kind, item.SleepGender ?? item.Gender ?? "male", item.Nationality)).ToList();
             var problem = await _flow.AllocateAsync(booking, sleepers, stays, config);
             if (problem != null)
             {
@@ -232,6 +264,20 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     Valid = false,
                     Issues = quote.Issues.Append(new QuoteIssue("room-full", "error", problem)).ToList()
                 }));
+            }
+
+            if (!_gateway.IsConfigured)
+            {
+                // TODO: remove when the MyFatoorah key is set. The payment gateway is not configured
+                // yet, so the booking is confirmed and marked paid in a clearly labelled TEST mode
+                // (no money is collected); the back-office sees "دفع تجريبي". The real flow (pending
+                // → MyFatoorah → paid, verified on the server) comes back on its own once the key is set.
+                booking.Status = BookingStatuses.Confirmed;
+                booking.PaymentStatus = BookingPaymentStatuses.Paid;
+                booking.PaymentMethod = "دفع تجريبي (بانتظار تفعيل بوابة الدفع)";
+                booking.PaidAt = now;
+                booking.HoldExpiresAt = null;
+                await _context.SaveChangesAsync();
             }
 
             return Ok(new CheckoutResponseDto(BookingsApiController.Map(await LoadBookingAsync(booking.Id)), quote));
@@ -287,6 +333,31 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             }
         }
 
+        /// <summary>
+        /// TEST payment (no money) for an existing unpaid booking, from the trip page, so the
+        /// "paid" display can be checked while MyFatoorah is not configured. Works only when the
+        /// gateway is off; the back-office sees "دفع تجريبي".
+        /// TODO: remove once the MyFatoorah key is set (the real pay flow takes over).
+        /// </summary>
+        [Authorize]
+        [HttpPost("bookings/{reference}/test-pay")]
+        public async Task<ActionResult<PaymentStatusDto>> TestPay(string reference)
+        {
+            if (_gateway.IsConfigured) return BadRequest(Problem("الدفع الإلكتروني مفعّل؛ استخدم الدفع الحقيقي."));
+            var userId = _userManager.GetUserId(User);
+            var booking = await _context.Bookings.FirstOrDefaultAsync(item => item.Reference == reference && item.UserId == userId);
+            if (booking == null) return NotFound();
+            if (booking.Status == BookingStatuses.Cancelled) return Conflict(Problem("هذا الحجز ملغى."));
+            booking.Status = BookingStatuses.Confirmed;
+            booking.PaymentStatus = BookingPaymentStatuses.Paid;
+            booking.PaymentMethod = "دفع تجريبي (بانتظار تفعيل بوابة الدفع)";
+            booking.PaidAt = DateTime.UtcNow;
+            booking.HoldExpiresAt = null;
+            booking.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return Ok(new PaymentStatusDto("paid", null, BookingsApiController.Map(await LoadBookingAsync(booking.Id))));
+        }
+
         /// <summary>Status after the payment page: verified with MyFatoorah when still unpaid.</summary>
         [Authorize]
         [HttpGet("bookings/{reference}/payment-status")]
@@ -302,8 +373,9 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         }
 
         /// <summary>
-        /// Where the traveler sleeps (spec § 5.4): before the rooming list freezes, the hotel and the
-        /// room type only; after it, the room number and the roommates' first names.
+        /// Where the traveler sleeps: hotel and room type, the room number once the rooming list
+        /// freezes, and for a shared room «سريرك في غرفة رجال · ٢ من نفس جنسيتك». The other
+        /// occupants are counted, never named.
         /// </summary>
         [Authorize]
         [HttpGet("bookings/{reference}/rooms")]
@@ -317,6 +389,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             var mine = await _context.RoomAssignments.AsNoTracking().Where(item => item.BookingId == booking.Id).ToListAsync();
             var names = await _context.BookingTravelers.AsNoTracking().Where(link => link.BookingId == booking.Id)
                 .Select(link => new { link.TravelerId, link.Traveler.FullName }).ToDictionaryAsync(link => link.TravelerId, link => link.FullName);
+            // Others are counted, never named.
 
             var result = new List<StayRoomsDto>();
             foreach (var group in mine.GroupBy(item => new { item.City, item.HotelId }))
@@ -325,22 +398,26 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 var rooms = new List<RoomInfoDto>();
                 foreach (var room in group.GroupBy(item => new { item.RoomType, item.RoomNumber, item.IsFamily }))
                 {
-                    IReadOnlyList<string> roommates = Array.Empty<string>();
-                    if (frozen && !room.Key.IsFamily)
+                    string? summary = null;
+                    var sameNationality = 0;
+                    if (!room.Key.IsFamily)
                     {
                         var others = await _context.RoomAssignments.AsNoTracking()
                             .Where(item => item.PackageId == booking.PackageId && item.DepartureDate == booking.DepartureDate && item.City == group.Key.City &&
                                 item.HotelId == group.Key.HotelId && item.RoomType == room.Key.RoomType && item.RoomNumber == room.Key.RoomNumber && item.BookingId != booking.Id)
-                            .Join(_context.Travelers.AsNoTracking(), item => item.TravelerId, traveler => traveler.Id, (item, traveler) => traveler.FullName)
+                            .Select(item => item.Nationality)
                             .ToListAsync();
-                        // First names only.
-                        roommates = others.Select(name => name.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "").Where(name => name.Length > 0).ToList();
+                        var mineNationalities = room.Select(item => item.Nationality).ToHashSet();
+                        sameNationality = others.Count(mineNationalities.Contains);
+                        var side = room.First().Gender == "female" ? "نساء" : "رجال";
+                        summary = $"سريرك في غرفة {side}" + (sameNationality > 0 ? $" · {RoomLabels.ArabicNumber(sameNationality)} من نفس جنسيتك" : "");
                     }
                     rooms.Add(new RoomInfoDto(
                         room.Key.IsFamily ? RoomLabels.Of(room.Key.RoomType) : RoomLabels.SharedBed(room.Key.RoomType),
                         frozen ? room.Key.RoomNumber : null,
                         room.Select(item => names.GetValueOrDefault(item.TravelerId) ?? "").ToList(),
-                        roommates));
+                        summary,
+                        sameNationality));
                 }
                 result.Add(new StayRoomsDto(group.Key.City, BookingCities.Label(group.Key.City), hotel?.Name ?? group.Key.HotelId, frozen, rooms));
             }
@@ -603,7 +680,8 @@ namespace RowadUmrahSystem.Web.Controllers.Api
     public sealed record QuoteResponseDto(BookingQuoteResult Quote, IReadOnlyList<PaymentMethodDto> PaymentMethods);
     public sealed record CheckoutResponseDto(BookingDto? Booking, BookingQuoteResult? Quote);
     public sealed record PayResponseDto(string? PaymentUrl, BookingDto Booking);
-    public sealed record RoomInfoDto(string Label, int? RoomNumber, IReadOnlyList<string> Travelers, IReadOnlyList<string> Roommates);
+    public sealed record RoomInfoDto(string Label, int? RoomNumber, IReadOnlyList<string> Travelers, string? Summary, int SameNationality);
+    public sealed record SavedPassportDto(string FullName, string PassportNumber, string? PassportExpiry, string? BirthDate, string Nationality, string? Gender, string? CivilId);
     public sealed record StayRoomsDto(string City, string CityLabel, string Hotel, bool Frozen, IReadOnlyList<RoomInfoDto> Rooms);
     public sealed record PaymentStatusDto(string Status, string? Error, BookingDto Booking);
 }

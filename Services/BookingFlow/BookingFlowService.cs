@@ -420,4 +420,7 @@ public static class RoomLabels
     };
 
     public static string SharedBed(string type) => $"سرير في {Of(type)} مشتركة";
+
+    /// <summary>"٢" for 2, in Arabic sentences.</summary>
+    public static string ArabicNumber(int value) => string.Concat(value.ToString(System.Globalization.CultureInfo.InvariantCulture).Select(digit => (char)('٠' + (digit - '0'))));
 }

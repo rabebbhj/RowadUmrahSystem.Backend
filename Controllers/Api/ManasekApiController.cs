@@ -226,7 +226,31 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         IReadOnlyList<string> Preparation,
         IReadOnlyList<string> Tips,
         ManasekCompletionDto Completion,
-        string Disclaimer);
+        string Disclaimer,
+        ManasekToolsDto? Tools = null);
+
+    /// <summary>
+    /// Tool screens of the «المناسك» tab and texts of the counters: guide summaries and key
+    /// points, common mistakes, ihram prohibitions, dua moments, invocations not tied to a step,
+    /// counter tips and the doubt rule. To be validated by the religious authority (ReviewNote
+    /// is shown at the bottom of the screens).
+    /// </summary>
+    public sealed record ManasekToolsDto(
+        string ReviewNote,
+        string GuideNote,
+        IReadOnlyList<ManasekGuideStepDto> Guide,
+        IReadOnlyList<ManasekMistakeDto> Mistakes,
+        ManasekProhibitionsDto Prohibitions,
+        IReadOnlyList<ManasekDuaMomentDto> DuaMoments,
+        IReadOnlyList<ManasekDuaEntryDto> ExtraDuas,
+        ManasekCounterTipsDto CounterTips);
+
+    public sealed record ManasekGuideStepDto(string StepId, string Summary, IReadOnlyList<string> KeyPoints);
+    public sealed record ManasekMistakeDto(string StepId, string Step, string Wrong, string Right);
+    public sealed record ManasekProhibitionsDto(string StatusTitle, string StatusText, IReadOnlyList<string> Common, IReadOnlyList<string> Men, IReadOnlyList<string> Women, string Advice);
+    public sealed record ManasekDuaMomentDto(string Id, string Label, IReadOnlyList<string> StepIds);
+    public sealed record ManasekDuaEntryDto(string Moment, string Title, string? Text, string? Source, string? AudioUrl);
+    public sealed record ManasekCounterTipsDto(string TawafEarly, string TawafOther, string TawafDone, string SaiGreen, string SaiDone, string? DoubtRule);
 
     public sealed record ManasekTypeDto(string Id, string Title, string Caption, string Image);
 

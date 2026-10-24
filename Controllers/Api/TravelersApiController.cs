@@ -198,7 +198,13 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 return BadRequest("الرجاء تعبئة جميع الحقول الأساسية.");
             }
 
-            if (string.IsNullOrWhiteSpace(request.PassportImagePath) && passportImage == null)
+            var existingTraveler = await _context.Travelers
+                .FirstOrDefaultAsync(t => t.PassportNumber == request.PassportNumber && !t.IsDeleted);
+
+            // The account holder's passport already on file (same passport number and email) is reused.
+            var passportOnFile = existingTraveler?.PassportImagePath != null && !string.IsNullOrWhiteSpace(request.Email)
+                && string.Equals(existingTraveler.Email?.Trim(), request.Email.Trim(), StringComparison.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(request.PassportImagePath) && passportImage == null && !passportOnFile)
             {
                 return BadRequest("الرجاء رفع صورة الجواز أو توفير مسارها.");
             }
@@ -207,9 +213,6 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             {
                 return BadRequest("الرجاء رفع صورة التأشيرة.");
             }
-
-            var existingTraveler = await _context.Travelers
-                .FirstOrDefaultAsync(t => t.PassportNumber == request.PassportNumber && !t.IsDeleted);
 
             if (existingTraveler != null)
             {

@@ -16,6 +16,8 @@ public sealed class DraftTraveler
     [StringLength(10)] public string? BirthDate { get; set; }
     [StringLength(10)] public string? PassportExpiry { get; set; }
     [StringLength(30)] public string? PassportNumber { get; set; }
+    /// <summary>Index (in this draft) of the adult responsible for a child or a baby; a child sleeps with that adult's sex.</summary>
+    [Range(0, 59)] public int? GuardianIndex { get; set; }
 }
 
 public sealed class DraftRoomQuantity
@@ -43,7 +45,8 @@ public class BookingDraftRequest
 {
     [Required, StringLength(64)] public string PackageId { get; set; } = "";
     [StringLength(20)] public string? DepartureDate { get; set; }
-    [Required, StringLength(60)] public string Nationality { get; set; } = "";
+    /// <summary>Optional since the 4-step flow: each traveler's nationality comes from the passport.</summary>
+    [StringLength(60)] public string? Nationality { get; set; }
     public bool FamilyMode { get; set; }
     [Required, MinLength(1), MaxLength(60)] public List<DraftTraveler> Travelers { get; set; } = new();
     [MaxLength(2)] public List<DraftStay> Stays { get; set; } = new();
@@ -54,8 +57,13 @@ public sealed record QuoteLine(string Id, string Label, string Detail, decimal A
 /// <summary>Severity "error" blocks the booking; "notice" is shown before paying (e.g. a corrected type).</summary>
 public sealed record QuoteIssue(string Code, string Severity, string Message, int? TravelerIndex = null);
 
-/// <summary>Traveler as the server prices it: kind and gender may be corrected from the passport data.</summary>
-public sealed record QuotedTraveler(int Index, string Kind, string? Gender, string Nationality, string VisaType, string VisaOption, decimal VisaFee);
+/// <summary>
+/// Traveler as the server prices it: kind and gender may be corrected from the passport data.
+/// SleepGender is the shared-room side (a child follows the adult responsible for it); the
+/// amounts are this traveler's share of the pack, bus and visa lines.
+/// </summary>
+public sealed record QuotedTraveler(int Index, string Kind, string? Gender, string Nationality, string VisaType, string VisaOption, decimal VisaFee,
+    string? SleepGender = null, decimal PackAmount = 0, decimal BusAmount = 0);
 
 public sealed record BookingQuoteResult(
     bool Valid,
@@ -102,7 +110,7 @@ public static class BookingQuote
             issues.Add(Error("departure", "موعد السفر المختار غير متاح. اختر موعداً قادماً."));
         var returnDate = departureDate?.AddDays(package.DurationDays);
 
-        if (config.VisaType(draft.Nationality) == null)
+        if (!string.IsNullOrWhiteSpace(draft.Nationality) && config.VisaType(draft.Nationality) == null)
             issues.Add(Error("nationality", "الجنسية المختارة غير متاحة للحجز حالياً. تواصل مع روّاد."));
 
         // Travelers: kind, gender and nationality from the passport when known.
@@ -129,9 +137,14 @@ public static class BookingQuote
                 kind = corrected;
             }
 
-            var nationality = string.IsNullOrWhiteSpace(traveler.Nationality) ? draft.Nationality.Trim() : traveler.Nationality.Trim();
+            var nationality = (string.IsNullOrWhiteSpace(traveler.Nationality) ? draft.Nationality ?? "" : traveler.Nationality).Trim();
             var visaType = config.VisaType(nationality);
-            if (visaType == null)
+            if (nationality.Length == 0)
+            {
+                issues.Add(Error("traveler-passport", $"المسافر {index + 1}: صوّر جوازه لنعرف جنسيته.", index));
+                visaType = "";
+            }
+            else if (visaType == null)
             {
                 issues.Add(Error("traveler-nationality", $"المسافر {index + 1}: جنسية «{nationality}» غير متاحة للحجز حالياً. تواصل مع روّاد.", index));
                 visaType = "";
@@ -158,15 +171,66 @@ public static class BookingQuote
         if (adults < 1) issues.Add(Error("adult", "يجب أن يضم الحجز مسافراً بالغاً واحداً على الأقل."));
         if (infants > adults) issues.Add(Error("infants", "عدد الرضّع لا يتجاوز عدد البالغين."));
 
-        // Pack price per traveler, by the nationality read from the passport when configured.
-        var packParts = new List<(decimal Unit, string Kind)>();
-        foreach (var traveler in travelers.Where(item => IsPaying(item.Kind)))
+        // Pack price per traveler: the price of the room the traveler sleeps in, for each city of
+        // the stay (pricing profile of the package: quad 25, triple 30… per person), unless a price
+        // by nationality is configured; then the bus for adults and children, and the shared-room
+        // side of each child.
+        var adultIndexes = travelers.Where(item => IsAdult(item.Kind)).Select(item => item.Index).ToList();
+        var priceStays = draft.Stays ?? new List<DraftStay>();
+        // Family: the paying travelers fill the chosen rooms, smallest rooms first (the spare bed
+        // stays in the largest room).
+        var familySlots = new Dictionary<string, List<string>>();
+        if (draft.FamilyMode)
         {
-            var byNationality = pack.PriceByNationality != null && pack.PriceByNationality.TryGetValue(traveler.Nationality, out var price) ? price : null;
-            var adult = byNationality?.Adult ?? pack.AdultPrice ?? package.BasePrice;
-            var unit = traveler.Kind == "child" ? byNationality?.Child ?? pack.ChildPrice ?? adult : adult;
-            packParts.Add((unit, traveler.Kind));
+            foreach (var city in pack.Cities())
+            {
+                var stay = priceStays.FirstOrDefault(item => item.City == city);
+                var hotel = stay == null ? null : config.Hotel(stay.HotelId);
+                if (stay == null || hotel == null) continue;
+                familySlots[city] = stay.Rooms.Where(item => item.Quantity > 0)
+                    .Select(item => (item.Type, Beds: hotel.Room(item.Type)?.Beds ?? 0, item.Quantity))
+                    .OrderBy(item => item.Beds)
+                    .SelectMany(item => Enumerable.Repeat(item.Type, item.Beds * item.Quantity))
+                    .ToList();
+            }
         }
+        var payingOrder = 0;
+        for (var index = 0; index < travelers.Count; index++)
+        {
+            var traveler = travelers[index];
+            var sleep = traveler.Gender;
+            if (!IsAdult(traveler.Kind))
+            {
+                var guardian = draft.Travelers[index].GuardianIndex;
+                if (guardian is int chosen && chosen >= 0 && chosen < travelers.Count && IsAdult(travelers[chosen].Kind)) sleep = travelers[chosen].Gender;
+                else if (guardian != null) issues.Add(Error("guardian", $"المسافر {index + 1}: اختر بالغاً مسؤولاً من هذا الحجز.", index));
+                else if (traveler.Kind == "child" && !draft.FamilyMode && adultIndexes.Count == 1) sleep = travelers[adultIndexes[0]].Gender;
+                else if (traveler.Kind == "child" && !draft.FamilyMode && adultIndexes.Count > 1)
+                    issues.Add(Error("guardian-missing", $"المسافر {index + 1}: اختر البالغ المسؤول عنه، أو فعّل «نسافر كعائلة واحدة».", index));
+            }
+
+            decimal unit = 0;
+            if (IsPaying(traveler.Kind))
+            {
+                decimal? roomPrice = 0;
+                foreach (var city in pack.Cities())
+                {
+                    var stay = priceStays.FirstOrDefault(item => item.City == city);
+                    var type = draft.FamilyMode
+                        ? familySlots.TryGetValue(city, out var slots) && payingOrder < slots.Count ? slots[payingOrder] : null
+                        : sleep == "female" ? stay?.SharedBeds?.Women : stay?.SharedBeds?.Men;
+                    var cityPrice = type == null ? null : RoomPricePerPerson(package, city, type);
+                    roomPrice = cityPrice == null ? null : roomPrice + cityPrice;
+                }
+                payingOrder++;
+
+                var byNationality = pack.PriceByNationality != null && pack.PriceByNationality.TryGetValue(traveler.Nationality, out var price) ? price : null;
+                var adult = byNationality?.Adult ?? roomPrice ?? pack.AdultPrice ?? package.BasePrice;
+                unit = traveler.Kind == "child" ? byNationality?.Child ?? pack.ChildPrice ?? adult : adult;
+            }
+            travelers[index] = traveler with { SleepGender = sleep, PackAmount = unit, BusAmount = IsPaying(traveler.Kind) ? pack.BusPrice : 0 };
+        }
+        var packParts = travelers.Where(item => IsPaying(item.Kind)).Select(item => (Unit: item.PackAmount, item.Kind)).ToList();
 
         var lines = new List<QuoteLine>
         {
@@ -218,12 +282,13 @@ public static class BookingQuote
             else
             {
                 // Children sleep in the room of an adult of the same sex from the booking.
-                var boys = travelers.Count(item => item.Kind == "child" && item.Gender == "male");
-                var girls = travelers.Count(item => item.Kind == "child" && item.Gender == "female");
-                if (travelers.Any(item => item.Kind == "child" && item.Gender == null))
+                // A child sleeps on the side of the adult responsible for it.
+                var boys = travelers.Count(item => item.Kind == "child" && item.SleepGender == "male");
+                var girls = travelers.Count(item => item.Kind == "child" && item.SleepGender == "female");
+                if (travelers.Any(item => item.Kind == "child" && item.SleepGender == null && item.Gender == null))
                     issues.Add(Error("child-gender", "أكمل بيانات جوازات الأطفال لنوزّع الغرف."));
                 if ((boys > 0 && men == 0) || (girls > 0 && women == 0))
-                    issues.Add(Error("child-needs-family", "الطفل يقيم مع بالغ من جنسه في الحجز؛ اختر «نحن عائلة»."));
+                    issues.Add(Error("child-needs-family", "الطفل يقيم مع البالغ المسؤول عنه؛ اختر بالغاً من الحجز أو فعّل «نسافر كعائلة واحدة»."));
 
                 foreach (var (count, type, label) in new[] { (men + boys, stay.SharedBeds?.Men, "الرجال"), (women + girls, stay.SharedBeds?.Women, "النساء") })
                 {
@@ -256,6 +321,22 @@ public static class BookingQuote
             lines,
             issues,
             travelers);
+    }
+
+    /// <summary>
+    /// Per-person price of a room type for the stay in one city, from the pricing profile of the
+    /// package (back-office «الأسعار»: quad, triple, double, single by duration), or null when the
+    /// profile has no price for it.
+    /// </summary>
+    public static decimal? RoomPricePerPerson(TravelPackageDto package, string city, string roomType)
+    {
+        var profile = package.PricingProfile;
+        if (profile is not { Enabled: true }) return null;
+        var label = package.RoomTypes.FirstOrDefault(room => room.Id == roomType)?.Label;
+        if (label == null) return null;
+        var key = package.DurationDays.ToString(CultureInfo.InvariantCulture);
+        var prices = city == BookingCities.Madinah ? profile.MadinahRoomPrices : profile.MakkahRoomPrices;
+        return prices != null && prices.TryGetValue(key, out var byRoom) && byRoom.TryGetValue(label, out var price) ? price : null;
     }
 
     public static int AgeAt(DateOnly birth, DateOnly on)

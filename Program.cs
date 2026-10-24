@@ -323,6 +323,7 @@ using (var scope = app.Services.CreateScope())
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
+    await MigrationAlignment.AlignAsync(dbContext, app.Logger);
     await dbContext.Database.MigrateAsync();
     await SchemaColumns.EnsureAsync(dbContext, app.Logger);
 

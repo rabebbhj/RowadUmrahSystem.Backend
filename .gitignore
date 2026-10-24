@@ -16,3 +16,4 @@ App_Data/backups/
 App_Data/booking-config.local.json
 App_Data/booking-config.backup.json
 App_Data/booking-config.local.json.tmp
+rowad.db.before-repair-*
