@@ -1204,8 +1204,14 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.Property<int>("DurationDays")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("FamilyMode")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("HasExistingVisa")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("HoldExpiresAt")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Hotel")
                         .HasColumnType("TEXT");
@@ -1216,9 +1222,18 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.Property<int>("Infants")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("LastPaymentError")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Men")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Nationality")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("NeedsRoomReview")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("PackageId")
                         .IsRequired()
@@ -1228,8 +1243,26 @@ namespace RowadUmrahSystem.Web.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PaymentId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PaymentInvoiceId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PaymentReturnUrl")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("PaymentStatus")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PriceBreakdownJson")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Reference")
@@ -1241,6 +1274,9 @@ namespace RowadUmrahSystem.Web.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StaysJson")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("TotalAmount")
@@ -1259,6 +1295,9 @@ namespace RowadUmrahSystem.Web.Migrations
 
                     b.Property<string>("VisaIssuer")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Women")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -1280,12 +1319,21 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.Property<int>("BookingId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Gender")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Nationality")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("TravelerId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("VisaOption")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -1395,6 +1443,127 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.RoomAssignment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DepartureDate")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HotelId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsFamily")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsLocked")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Nationality")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PackageId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RoomNumber")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RoomType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TravelerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId", "City", "TravelerId")
+                        .IsUnique();
+
+                    b.HasIndex("PackageId", "DepartureDate", "City", "HotelId", "RoomType");
+
+                    b.ToTable("RoomAssignments");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.RoomMoveLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DepartureDate")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("FromRoom")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("HotelId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("MovedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MovedBy")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PackageId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RoomType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ToRoom")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TravelerId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PackageId", "DepartureDate");
+
+                    b.ToTable("RoomMoveLogs");
                 });
 
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.Traveler", b =>
@@ -2107,6 +2276,17 @@ namespace RowadUmrahSystem.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("GroupKhatma");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.RoomAssignment", b =>
+                {
+                    b.HasOne("RowadUmrahSystem.Web.Models.Booking", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.TravelerDocument", b =>

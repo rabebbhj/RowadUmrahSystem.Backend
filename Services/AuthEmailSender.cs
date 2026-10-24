@@ -6,6 +6,9 @@ namespace RowadUmrahSystem.Web.Services
     public interface IAuthEmailSender
     {
         Task SendOtpAsync(string email, string subject, string code, CancellationToken cancellationToken = default);
+
+        /// <summary>Any other message (e.g. the booking confirmation). Logged only when SMTP is not configured.</summary>
+        Task SendHtmlAsync(string email, string subject, string html, CancellationToken cancellationToken = default);
     }
 
     public sealed class SmtpAuthEmailSender : IAuthEmailSender
@@ -21,23 +24,43 @@ namespace RowadUmrahSystem.Web.Services
 
         public async Task SendOtpAsync(string email, string subject, string code, CancellationToken cancellationToken = default)
         {
-            var smtpSection = _configuration.GetSection("Smtp");
-            var host = smtpSection["Host"];
-            var from = smtpSection["From"];
-
-            if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(from))
+            if (!IsConfigured())
             {
                 _logger.LogWarning("OTP for {Email}: {Code}. Configure Smtp:Host and Smtp:From to send real emails.", email, code);
                 return;
             }
 
+            // The code in the subject keeps each email out of the previous Gmail conversation
+            // (same subject = same thread) and shows it in the phone notification.
+            await SendAsync(email, $"{code} - {subject}", BuildBody(code), cancellationToken);
+        }
+
+        public async Task SendHtmlAsync(string email, string subject, string html, CancellationToken cancellationToken = default)
+        {
+            if (!IsConfigured())
+            {
+                _logger.LogWarning("Email to {Email} not sent ({Subject}): configure Smtp:Host and Smtp:From.", email, subject);
+                return;
+            }
+
+            await SendAsync(email, subject, html, cancellationToken);
+        }
+
+        private bool IsConfigured()
+        {
+            var smtpSection = _configuration.GetSection("Smtp");
+            return !string.IsNullOrWhiteSpace(smtpSection["Host"]) && !string.IsNullOrWhiteSpace(smtpSection["From"]);
+        }
+
+        private async Task SendAsync(string email, string subject, string html, CancellationToken cancellationToken)
+        {
+            var smtpSection = _configuration.GetSection("Smtp");
+            var host = smtpSection["Host"]!;
             using var message = new MailMessage
             {
-                From = new MailAddress(from, smtpSection["FromName"] ?? "Rowad Umrah"),
-                // The code in the subject keeps each email out of the previous Gmail conversation
-                // (same subject = same thread) and shows it in the phone notification.
-                Subject = $"{code} - {subject}",
-                Body = BuildBody(code),
+                From = new MailAddress(smtpSection["From"]!, smtpSection["FromName"] ?? "Rowad Umrah"),
+                Subject = subject,
+                Body = html,
                 IsBodyHtml = true
             };
             message.To.Add(email);

@@ -132,6 +132,17 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<IAuthEmailSender, SmtpAuthEmailSender>();
 builder.Services.AddScoped<IPdfReportService, PdfReportService>();
 
+// Booking flow: rules from App_Data/booking-config.json, MyFatoorah (key on the server only).
+// Without a key, development uses the simulated gateway; production then refuses payments (503).
+builder.Services.AddSingleton<RowadUmrahSystem.Web.Services.BookingFlow.BookingConfigStore>();
+builder.Services.AddScoped<RowadUmrahSystem.Web.Services.BookingFlow.BookingFlowService>();
+builder.Services.Configure<RowadUmrahSystem.Web.Services.BookingFlow.MyFatoorahOptions>(builder.Configuration.GetSection("MyFatoorah"));
+var myFatoorah = builder.Configuration.GetSection("MyFatoorah").Get<RowadUmrahSystem.Web.Services.BookingFlow.MyFatoorahOptions>() ?? new();
+if (string.IsNullOrWhiteSpace(myFatoorah.ApiKey) && myFatoorah.Simulate && builder.Environment.IsDevelopment())
+    builder.Services.AddSingleton<RowadUmrahSystem.Web.Services.BookingFlow.IPaymentGateway, RowadUmrahSystem.Web.Services.BookingFlow.SimulatedPaymentGateway>();
+else
+    builder.Services.AddHttpClient<RowadUmrahSystem.Web.Services.BookingFlow.IPaymentGateway, RowadUmrahSystem.Web.Services.BookingFlow.MyFatoorahGateway>();
+
 QuestPDF.Settings.License = LicenseType.Community;
 
 var app = builder.Build();

@@ -32,6 +32,32 @@ namespace RowadUmrahSystem.Web.Models
         public int Children { get; set; }
         public int Infants { get; set; }
 
+        /// <summary>Men and women among the adults (booking flow v2; 0 for older bookings).</summary>
+        public int Men { get; set; }
+        public int Women { get; set; }
+
+        /// <summary>Family: private rooms; otherwise beds in single-sex shared rooms.</summary>
+        public bool FamilyMode { get; set; }
+
+        /// <summary>Hotel and rooms per city, as sent by the app (JSON of DraftStay[]).</summary>
+        public string? StaysJson { get; set; }
+
+        /// <summary>Price lines computed by the server (JSON of QuoteLine[]).</summary>
+        public string? PriceBreakdownJson { get; set; }
+
+        /// <summary>Seats and beds are held until this time while the payment is pending.</summary>
+        public DateTime? HoldExpiresAt { get; set; }
+
+        public string? PaymentInvoiceId { get; set; }
+        public string? PaymentId { get; set; }
+        public string? PaymentMethod { get; set; }
+        public string? PaymentReturnUrl { get; set; }
+        public string? LastPaymentError { get; set; }
+        public DateTime? PaidAt { get; set; }
+
+        /// <summary>Set when a paid booking could not get all its beds: the back-office places it by hand.</summary>
+        public bool NeedsRoomReview { get; set; }
+
         public decimal TotalAmount { get; set; }
         public string Currency { get; set; } = "د.ك";
 
@@ -59,6 +85,15 @@ namespace RowadUmrahSystem.Web.Models
 
         /// <summary>adult, child or infant.</summary>
         public string Kind { get; set; } = "adult";
+
+        /// <summary>rowad (Rowad issues the visa) or existing (the traveler already has one).</summary>
+        public string? VisaOption { get; set; }
+
+        /// <summary>male or female, from the passport; places the traveler in a shared room.</summary>
+        public string? Gender { get; set; }
+
+        /// <summary>Nationality read from the passport; groups shared rooms by nationality.</summary>
+        public string? Nationality { get; set; }
     }
 
     public static class BookingStatuses
@@ -66,6 +101,7 @@ namespace RowadUmrahSystem.Web.Models
         public const string PendingPayment = "pending_payment";
         public const string Confirmed = "confirmed";
         public const string Cancelled = "cancelled";
+        public const string Expired = "expired";
     }
 
     public static class BookingPaymentStatuses

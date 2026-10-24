@@ -22,6 +22,8 @@ namespace RowadUmrahSystem.Web.Data
         public DbSet<UserNotification> UserNotifications { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<BookingTraveler> BookingTravelers { get; set; }
+        public DbSet<RoomAssignment> RoomAssignments { get; set; }
+        public DbSet<RoomMoveLog> RoomMoveLogs { get; set; }
         public DbSet<GroupKhatma> GroupKhatmas { get; set; }
         public DbSet<GroupKhatmaHizb> GroupKhatmaHizbs { get; set; }
 
@@ -73,6 +75,14 @@ namespace RowadUmrahSystem.Web.Data
                     .HasForeignKey(x => x.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
+
+            builder.Entity<RoomAssignment>(assignment =>
+            {
+                assignment.HasIndex(x => new { x.PackageId, x.DepartureDate, x.City, x.HotelId, x.RoomType });
+                assignment.HasIndex(x => new { x.BookingId, x.City, x.TravelerId }).IsUnique();
+                assignment.HasOne(x => x.Booking).WithMany().HasForeignKey(x => x.BookingId).OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<RoomMoveLog>().HasIndex(x => new { x.PackageId, x.DepartureDate });
 
             // One khatma at a time per trip (package + departure); each hizb exists once per khatma.
             builder.Entity<GroupKhatma>(khatma =>

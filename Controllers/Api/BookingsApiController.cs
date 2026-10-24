@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using RowadUmrahSystem.Web.Data;
 using RowadUmrahSystem.Web.Models;
 using RowadUmrahSystem.Web.Services;
+using RowadUmrahSystem.Web.Services.BookingFlow;
 
 namespace RowadUmrahSystem.Web.Controllers.Api
 {
@@ -175,7 +176,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
 
         private static ProblemDetails BookingError(string message) => new() { Title = message, Detail = message };
 
-        private static BookingDto Map(Booking booking) => new(
+        public static BookingDto Map(Booking booking) => new(
             booking.Reference,
             booking.PackageId,
             booking.PackageName,
@@ -195,7 +196,14 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             booking.Status,
             booking.PaymentStatus,
             booking.CreatedAt,
-            booking.Travelers.Select(link => new BookingTravelerDto(link.TravelerId, link.Traveler.FullName, link.Kind)).ToList());
+            booking.Travelers.Select(link => new BookingTravelerDto(link.TravelerId, link.Traveler.FullName, link.Kind, link.Gender, link.VisaOption)).ToList(),
+            booking.Men,
+            booking.Women,
+            booking.FamilyMode,
+            booking.HoldExpiresAt,
+            booking.PaymentMethod,
+            booking.LastPaymentError,
+            string.IsNullOrEmpty(booking.PriceBreakdownJson) ? null : JsonSerializer.Deserialize<List<QuoteLine>>(booking.PriceBreakdownJson, JsonOptions));
     }
 
     public sealed class CreateBookingRequest
@@ -221,7 +229,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         [Required, RegularExpression("^(adult|child|infant)$")] public string Kind { get; set; } = "adult";
     }
 
-    public sealed record BookingTravelerDto(int TravelerId, string FullName, string Kind);
+    public sealed record BookingTravelerDto(int TravelerId, string FullName, string Kind, string? Gender = null, string? VisaOption = null);
 
     public sealed record BookingDto(
         string Reference,
@@ -243,5 +251,12 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         string Status,
         string PaymentStatus,
         DateTime CreatedAt,
-        IReadOnlyList<BookingTravelerDto> Travelers);
+        IReadOnlyList<BookingTravelerDto> Travelers,
+        int Men = 0,
+        int Women = 0,
+        bool FamilyMode = false,
+        DateTime? HoldExpiresAt = null,
+        string? PaymentMethod = null,
+        string? LastPaymentError = null,
+        IReadOnlyList<QuoteLine>? PriceLines = null);
 }
