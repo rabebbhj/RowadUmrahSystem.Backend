@@ -152,11 +152,40 @@ public sealed class BookingFlowService
     /// Nationality rebalancing of every shared pool of a departure (after a payment or a
     /// cancellation), until the rooming list freezes. Each move is written to RoomMoveLogs.
     /// </summary>
+    /// <summary>The rooming list freezes RoomingFreezeDaysBeforeDeparture days before departure.</summary>
+    public static bool IsFrozen(string departure, BookingConfig config) =>
+        DateOnly.TryParseExact(departure, "yyyy-MM-dd", out var date) &&
+        date.AddDays(-config.RoomingFreezeDaysBeforeDeparture) <= Controllers.Api.PackageDepartures.TodayInKuwait();
+
+    /// <summary>Runs a manual change of beds (back-office) under the same lock as the allocation.</summary>
+    public async Task<T> WithBedsLockAsync<T>(Func<Task<T>> action)
+    {
+        await AllocationLock.WaitAsync();
+        try
+        {
+            return await action();
+        }
+        finally
+        {
+            AllocationLock.Release();
+        }
+    }
+
+    /// <summary>Cancels a booking: its seats and beds are freed and the shared rooms rebalanced.</summary>
+    public async Task CancelAsync(Booking booking)
+    {
+        var config = await _configStore.ReadAsync();
+        _context.RoomAssignments.RemoveRange(_context.RoomAssignments.Where(item => item.BookingId == booking.Id));
+        booking.Status = BookingStatuses.Cancelled;
+        booking.HoldExpiresAt = null;
+        booking.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        if (booking.DepartureDate != null) await RebalanceAsync(booking.PackageId, booking.DepartureDate, config);
+    }
+
     public async Task RebalanceAsync(string packageId, string departure, BookingConfig config)
     {
-        if (DateOnly.TryParseExact(departure, "yyyy-MM-dd", out var date) &&
-            date.AddDays(-config.RoomingFreezeDaysBeforeDeparture) <= Controllers.Api.PackageDepartures.TodayInKuwait())
-            return;
+        if (IsFrozen(departure, config)) return;
 
         await AllocationLock.WaitAsync();
         try

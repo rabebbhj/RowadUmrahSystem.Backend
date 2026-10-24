@@ -350,6 +350,34 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             }
         }
 
+        /// <summary>Visa number and validity read by OCR; the traveler confirms or types them.</summary>
+        [AllowAnonymous]
+        [EnableRateLimiting("public-traveler")]
+        [HttpPost("read-visa")]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<VisaOcrResponseDto>> ReadVisa([FromForm] IFormFile? visaImage)
+        {
+            if (visaImage == null) return BadRequest("الرجاء تحميل صورة التأشيرة.");
+            var validation = _passportOcrService.ValidateImage(visaImage);
+            if (!validation.IsValid) return BadRequest(validation.Message);
+
+            try
+            {
+                var savedPath = await SavePassportImageAsync(visaImage, null);
+                if (string.IsNullOrWhiteSpace(savedPath)) return StatusCode(StatusCodes.Status500InternalServerError, "فشل حفظ صورة التأشيرة.");
+                var result = await _passportOcrService.ReadVisaAsync(savedPath);
+                var complete = !string.IsNullOrEmpty(result.VisaNumber) && result.ValidUntil.HasValue;
+                return Ok(new VisaOcrResponseDto(result.VisaNumber, result.PassportNumber, result.ValidFrom?.ToString("yyyy-MM-dd"), result.ValidUntil?.ToString("yyyy-MM-dd"),
+                    complete ? "ready" : "manual", complete ? "تم استخراج بيانات التأشيرة." : "أكمل بيانات التأشيرة يدوياً."));
+            }
+            catch
+            {
+                return Ok(new VisaOcrResponseDto("", "", null, null, "manual", "تعذرت قراءة التأشيرة حالياً. الرجاء إدخال البيانات يدوياً."));
+            }
+        }
+
+        public sealed record VisaOcrResponseDto(string VisaNumber, string PassportNumber, string? ValidFrom, string? ValidUntil, string Status, string Message);
+
         [HttpPut("{id:int}")]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<TravelerDetailDto>> Update(

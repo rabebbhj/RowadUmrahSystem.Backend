@@ -97,16 +97,29 @@ public static class BookingCities
 public sealed class BookingConfigStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-    private readonly string _path;
+    private readonly string _defaultPath;
+    private readonly string _localPath;
 
+    // booking-config.json (in git) holds the defaults; the back-office saves to
+    // booking-config.local.json (not in git, so a deployment never overwrites it), which wins.
     public BookingConfigStore(IWebHostEnvironment environment)
     {
-        _path = Path.Combine(environment.ContentRootPath, "App_Data", "booking-config.json");
+        _defaultPath = Path.Combine(environment.ContentRootPath, "App_Data", "booking-config.json");
+        _localPath = Path.Combine(environment.ContentRootPath, "App_Data", "booking-config.local.json");
+    }
+
+    /// <summary>Saves the back-office configuration; the previous one is kept as booking-config.backup.json.</summary>
+    public async Task WriteAsync(BookingConfig config)
+    {
+        var temporary = _localPath + ".tmp";
+        await File.WriteAllTextAsync(temporary, JsonSerializer.Serialize(config, new JsonSerializerOptions(JsonOptions) { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
+        if (File.Exists(_localPath)) File.Copy(_localPath, Path.Combine(Path.GetDirectoryName(_localPath)!, "booking-config.backup.json"), overwrite: true);
+        File.Move(temporary, _localPath, overwrite: true);
     }
 
     public async Task<BookingConfig> ReadAsync()
     {
-        await using var stream = File.OpenRead(_path);
+        await using var stream = File.OpenRead(File.Exists(_localPath) ? _localPath : _defaultPath);
         return await JsonSerializer.DeserializeAsync<BookingConfig>(stream, JsonOptions)
             ?? throw new InvalidOperationException("booking-config.json is empty.");
     }

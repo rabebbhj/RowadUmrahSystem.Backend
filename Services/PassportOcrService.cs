@@ -37,6 +37,15 @@ namespace RowadUmrahSystem.Web.Services
         public string CivilId { get; set; } = string.Empty;
     }
 
+    /// <summary>Data read from a visa: number, validity, and the passport it was issued for.</summary>
+    public class VisaOcrResult
+    {
+        public string VisaNumber { get; set; } = string.Empty;
+        public string PassportNumber { get; set; } = string.Empty;
+        public DateTime? ValidFrom { get; set; }
+        public DateTime? ValidUntil { get; set; }
+    }
+
     public class PassportImageValidationResult
     {
         public bool IsValid { get; set; }
@@ -210,6 +219,61 @@ namespace RowadUmrahSystem.Web.Services
 
             return output;
         }
+
+        /// <summary>
+        /// Visa read by OCR (Tesseract): the MRZ of a visa (line starting with "V") gives the
+        /// document number and expiry; otherwise the labelled number and the dates on the page.
+        /// Missing values are typed by the traveler.
+        /// </summary>
+        public async Task<VisaOcrResult> ReadVisaAsync(string imagePath)
+        {
+            string physicalPath = Path.Combine(
+                _environment.WebRootPath,
+                imagePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
+            if (!File.Exists(physicalPath)) throw new FileNotFoundException("Visa image was not found.", physicalPath);
+
+            string text = await ReadTextWithTesseractAsync(_configuration["Tesseract:ExecutablePath"] ?? "tesseract", _configuration["Tesseract:Language"] ?? "eng", physicalPath);
+            return ParseVisaText(text);
+        }
+
+        public static VisaOcrResult ParseVisaText(string text)
+        {
+            var result = new VisaOcrResult();
+            var lines = text.Split('\n').Select(line => line.Replace(" ", "").Trim().ToUpperInvariant()).ToList();
+            var mrzIndex = lines.FindIndex(line => line.StartsWith("V<") || line.StartsWith("VS") || line.StartsWith("VC"));
+            if (mrzIndex >= 0 && mrzIndex + 1 < lines.Count)
+            {
+                var second = lines[mrzIndex + 1];
+                var match = System.Text.RegularExpressions.Regex.Match(second, "^([A-Z0-9<]{9})[0-9<][A-Z<]{3}([0-9]{6})[0-9<][MF<]([0-9]{6})");
+                if (match.Success)
+                {
+                    result.PassportNumber = match.Groups[1].Value.Replace("<", "");
+                    result.ValidUntil = ParseYyMmDd(match.Groups[3].Value);
+                }
+            }
+
+            var number = System.Text.RegularExpressions.Regex.Match(text, @"(?:VISA\s*(?:NO|NUMBER|#)|رقم\s*التأشيرة)[^0-9]{0,12}([0-9]{6,12})", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (number.Success) result.VisaNumber = number.Groups[1].Value;
+
+            var dates = System.Text.RegularExpressions.Regex.Matches(text, @"\b(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})\b|\b(\d{4})[/.-](\d{1,2})[/.-](\d{1,2})\b")
+                .Select(item => item.Groups[3].Success
+                    ? TryDate(item.Groups[3].Value, item.Groups[2].Value, item.Groups[1].Value)
+                    : TryDate(item.Groups[4].Value, item.Groups[5].Value, item.Groups[6].Value))
+                .Where(date => date.HasValue && date.Value.Year >= 2000)
+                .Select(date => date!.Value)
+                .OrderBy(date => date)
+                .ToList();
+            if (dates.Count >= 2) result.ValidFrom = dates[0];
+            result.ValidUntil ??= dates.Count > 0 ? dates[^1] : null;
+            return result;
+        }
+
+        private static DateTime? ParseYyMmDd(string value) =>
+            int.TryParse(value[..2], out var year) && int.TryParse(value[2..4], out var month) && int.TryParse(value[4..6], out var day) ? TryDate((2000 + year).ToString(), month.ToString(), day.ToString()) : null;
+
+        private static DateTime? TryDate(string year, string month, string day) =>
+            int.TryParse(year, out var y) && int.TryParse(month, out var m) && int.TryParse(day, out var d) && m is >= 1 and <= 12 && d >= 1 && d <= DateTime.DaysInMonth(Math.Clamp(y, 1, 9999), m)
+                ? new DateTime(y, m, d) : null;
 
         public async Task<CivilIdOcrResult> ReadCivilIdAsync(string imagePath)
         {

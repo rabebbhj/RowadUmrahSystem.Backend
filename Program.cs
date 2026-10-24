@@ -136,6 +136,7 @@ builder.Services.AddScoped<IPdfReportService, PdfReportService>();
 // Without a key, development uses the simulated gateway; production then refuses payments (503).
 builder.Services.AddSingleton<RowadUmrahSystem.Web.Services.BookingFlow.BookingConfigStore>();
 builder.Services.AddScoped<RowadUmrahSystem.Web.Services.BookingFlow.BookingFlowService>();
+builder.Services.AddHostedService<RowadUmrahSystem.Web.Services.BookingFlow.BookingRemindersService>();
 builder.Services.Configure<RowadUmrahSystem.Web.Services.BookingFlow.MyFatoorahOptions>(builder.Configuration.GetSection("MyFatoorah"));
 var myFatoorah = builder.Configuration.GetSection("MyFatoorah").Get<RowadUmrahSystem.Web.Services.BookingFlow.MyFatoorahOptions>() ?? new();
 if (string.IsNullOrWhiteSpace(myFatoorah.ApiKey) && myFatoorah.Simulate && builder.Environment.IsDevelopment())
@@ -214,7 +215,9 @@ string[] adminSpaRoutes =
     "/expenses",
     "/journal-entries",
     "/receipt-vouchers",
-    "/payment-vouchers"
+    "/payment-vouchers",
+    "/booking-settings",
+    "/rooming"
 };
 
 string[] backendActionPrefixes =

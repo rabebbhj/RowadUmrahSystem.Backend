@@ -11,3 +11,8 @@ backend-run.log
 
 # Local database backups (personal data)
 App_Data/backups/
+
+# Booking settings saved from the back-office (production data, never overwritten by a deployment)
+App_Data/booking-config.local.json
+App_Data/booking-config.backup.json
+App_Data/booking-config.local.json.tmp

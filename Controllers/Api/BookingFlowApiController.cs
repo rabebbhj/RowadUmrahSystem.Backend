@@ -302,6 +302,52 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         }
 
         /// <summary>
+        /// Where the traveler sleeps (spec § 5.4): before the rooming list freezes, the hotel and the
+        /// room type only; after it, the room number and the roommates' first names.
+        /// </summary>
+        [Authorize]
+        [HttpGet("bookings/{reference}/rooms")]
+        public async Task<ActionResult<IReadOnlyList<StayRoomsDto>>> Rooms(string reference)
+        {
+            var userId = _userManager.GetUserId(User);
+            var booking = await _context.Bookings.AsNoTracking().FirstOrDefaultAsync(item => item.Reference == reference && item.UserId == userId);
+            if (booking == null) return NotFound();
+            var config = await _configStore.ReadAsync();
+            var frozen = booking.DepartureDate != null && BookingFlowService.IsFrozen(booking.DepartureDate, config);
+            var mine = await _context.RoomAssignments.AsNoTracking().Where(item => item.BookingId == booking.Id).ToListAsync();
+            var names = await _context.BookingTravelers.AsNoTracking().Where(link => link.BookingId == booking.Id)
+                .Select(link => new { link.TravelerId, link.Traveler.FullName }).ToDictionaryAsync(link => link.TravelerId, link => link.FullName);
+
+            var result = new List<StayRoomsDto>();
+            foreach (var group in mine.GroupBy(item => new { item.City, item.HotelId }))
+            {
+                var hotel = config.Hotel(group.Key.HotelId);
+                var rooms = new List<RoomInfoDto>();
+                foreach (var room in group.GroupBy(item => new { item.RoomType, item.RoomNumber, item.IsFamily }))
+                {
+                    IReadOnlyList<string> roommates = Array.Empty<string>();
+                    if (frozen && !room.Key.IsFamily)
+                    {
+                        var others = await _context.RoomAssignments.AsNoTracking()
+                            .Where(item => item.PackageId == booking.PackageId && item.DepartureDate == booking.DepartureDate && item.City == group.Key.City &&
+                                item.HotelId == group.Key.HotelId && item.RoomType == room.Key.RoomType && item.RoomNumber == room.Key.RoomNumber && item.BookingId != booking.Id)
+                            .Join(_context.Travelers.AsNoTracking(), item => item.TravelerId, traveler => traveler.Id, (item, traveler) => traveler.FullName)
+                            .ToListAsync();
+                        // First names only.
+                        roommates = others.Select(name => name.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "").Where(name => name.Length > 0).ToList();
+                    }
+                    rooms.Add(new RoomInfoDto(
+                        room.Key.IsFamily ? RoomLabels.Of(room.Key.RoomType) : RoomLabels.SharedBed(room.Key.RoomType),
+                        frozen ? room.Key.RoomNumber : null,
+                        room.Select(item => names.GetValueOrDefault(item.TravelerId) ?? "").ToList(),
+                        roommates));
+                }
+                result.Add(new StayRoomsDto(group.Key.City, BookingCities.Label(group.Key.City), hotel?.Name ?? group.Key.HotelId, frozen, rooms));
+            }
+            return Ok(result);
+        }
+
+        /// <summary>
         /// CallBackUrl / ErrorUrl of MyFatoorah. The paymentId is checked with GetPaymentStatus
         /// (never trusted as such), then the browser goes back to the app.
         /// </summary>
@@ -557,5 +603,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
     public sealed record QuoteResponseDto(BookingQuoteResult Quote, IReadOnlyList<PaymentMethodDto> PaymentMethods);
     public sealed record CheckoutResponseDto(BookingDto? Booking, BookingQuoteResult? Quote);
     public sealed record PayResponseDto(string? PaymentUrl, BookingDto Booking);
+    public sealed record RoomInfoDto(string Label, int? RoomNumber, IReadOnlyList<string> Travelers, IReadOnlyList<string> Roommates);
+    public sealed record StayRoomsDto(string City, string CityLabel, string Hotel, bool Frozen, IReadOnlyList<RoomInfoDto> Rooms);
     public sealed record PaymentStatusDto(string Status, string? Error, BookingDto Booking);
 }
