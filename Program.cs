@@ -116,8 +116,12 @@ builder.Services.AddRateLimiter(options =>
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
     // Anonymous traveler creation and paid OCR calls used by the public booking form and the app:
     // limited per account, or per IP address for visitors, to stop flooding and OCR cost abuse.
+    // Codes and device sign-in: limited per IP address so codes cannot be guessed by brute force.
+    options.AddPolicy("auth-codes", context => RateLimitPartition.GetFixedWindowLimiter(
+        ClientAddress(context),
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 12, Window = TimeSpan.FromMinutes(10), QueueLimit = 0 }));
     options.AddPolicy("public-traveler", context => RateLimitPartition.GetFixedWindowLimiter(
-        context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? ClientAddress(context),
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(10), QueueLimit = 0 }));
 });
 builder.Services.AddRazorPages();
@@ -242,6 +246,22 @@ string[] backendActionPrefixes =
     "/accounts/export",
     "/journalentries/export"
 };
+
+// Address of the visitor for rate limits. Behind nginx on the same machine every request comes
+// from 127.0.0.1, so the address nginx forwards (X-Forwarded-For / X-Real-IP) is used instead;
+// it is trusted only when the request really comes from the local proxy.
+static string ClientAddress(HttpContext context)
+{
+    var remote = context.Connection.RemoteIpAddress;
+    if (remote != null && System.Net.IPAddress.IsLoopback(remote))
+    {
+        var forwarded = context.Request.Headers["X-Forwarded-For"].ToString().Split(',')[0].Trim();
+        if (forwarded.Length > 0) return forwarded;
+        var real = context.Request.Headers["X-Real-IP"].ToString().Trim();
+        if (real.Length > 0) return real;
+    }
+    return remote?.ToString() ?? "unknown";
+}
 
 static bool IsAdminSpaPageRequest(HttpRequest request, string[] spaRoutes, string[] backendPrefixes)
 {

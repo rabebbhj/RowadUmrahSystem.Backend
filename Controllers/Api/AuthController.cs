@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using System.Security.Cryptography;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +19,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         private const string MainAdminEmail = "admin@rowad.local";
         private const string EmailVerificationPurpose = "traveler-email-verification";
         private const string PasswordResetPurpose = "traveler-password-reset";
+        private const string LoginCodePurpose = "traveler-login-code";
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
@@ -298,6 +302,108 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         {
             await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
             return Ok();
+        }
+
+        /// <summary>
+        /// Checks a password-reset code without using it, so the app can say "wrong code" on the
+        /// code screen before asking for the new password. reset-password checks it again.
+        /// </summary>
+        [HttpPost("check-reset-code")]
+        [EnableRateLimiting("auth-codes")]
+        public async Task<ActionResult<LoginResponseDto>> CheckResetCode([FromBody] CodeCheckRequestDto request)
+        {
+            var user = await _userManager.FindByEmailAsync(request.Email?.Trim() ?? string.Empty);
+            var valid = user != null && await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultEmailProvider, PasswordResetPurpose, NormalizeCode(request.Code));
+            return valid
+                ? Ok(new LoginResponseDto(true, "الرمز صحيح.", null))
+                : BadRequest(new LoginResponseDto(false, "رمز التحقق غير صحيح أو منتهي الصلاحية.", null));
+        }
+
+        /// <summary>
+        /// Sign-in with a code sent by email (no password). The answer is the same whether the
+        /// account exists or not, so the address of a customer is never revealed.
+        /// </summary>
+        [HttpPost("login-code")]
+        [EnableRateLimiting("auth-codes")]
+        public async Task<ActionResult<LoginResponseDto>> RequestLoginCode([FromBody] ResendEmailCodeRequestDto request)
+        {
+            var user = await _userManager.FindByEmailAsync(request.Email?.Trim() ?? string.Empty);
+            if (user != null && user.IsActive && user.EmailConfirmed)
+            {
+                var code = await _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultEmailProvider, LoginCodePurpose);
+                await _emailSender.SendOtpAsync(user.Email ?? string.Empty, "رمز الدخول إلى رواد العمرة", code, HttpContext.RequestAborted);
+            }
+            return Ok(new LoginResponseDto(false, "إذا كان البريد مسجّلاً لدينا سيصلك الرمز خلال دقيقة.", null));
+        }
+
+        [HttpPost("login-code/verify")]
+        [EnableRateLimiting("auth-codes")]
+        public async Task<ActionResult<LoginResponseDto>> VerifyLoginCode([FromBody] VerifyEmailRequestDto request)
+        {
+            var user = await _userManager.FindByEmailAsync(request.Email?.Trim() ?? string.Empty);
+            if (user == null || !user.IsActive || !user.EmailConfirmed ||
+                !await _userManager.VerifyUserTokenAsync(user, TokenOptions.DefaultEmailProvider, LoginCodePurpose, NormalizeCode(request.Code)))
+                return BadRequest(new LoginResponseDto(false, "رمز التحقق غير صحيح أو منتهي الصلاحية.", null));
+
+            await _signInManager.SignInAsync(user, request.RememberMe);
+            return Ok(await SignedInResponseAsync(user, "تم تسجيل الدخول."));
+        }
+
+        /// <summary>Creates the token a phone keeps for biometric sign-in (the raw token is shown once).</summary>
+        [Authorize]
+        [HttpPost("device-token")]
+        public async Task<ActionResult<object>> CreateDeviceToken([FromBody] DeviceTokenRequestDto request)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+            _context.DeviceLoginTokens.Add(new DeviceLoginToken
+            {
+                UserId = user.Id,
+                TokenHash = HashToken(token),
+                DeviceName = string.IsNullOrWhiteSpace(request.DeviceName) ? null : request.DeviceName.Trim()[..Math.Min(80, request.DeviceName.Trim().Length)]
+            });
+            await _context.SaveChangesAsync();
+            return Ok(new { token });
+        }
+
+        /// <summary>Biometric sign-in: the phone sends the token it unlocked with Face ID / fingerprint.</summary>
+        [HttpPost("device-login")]
+        [EnableRateLimiting("auth-codes")]
+        public async Task<ActionResult<LoginResponseDto>> DeviceLogin([FromBody] DeviceLoginRequestDto request)
+        {
+            var hash = HashToken(request.Token ?? string.Empty);
+            var stored = await _context.DeviceLoginTokens.FirstOrDefaultAsync(item => item.TokenHash == hash && item.RevokedAt == null);
+            var user = stored == null ? null : await _userManager.FindByIdAsync(stored.UserId);
+            if (stored == null || user == null || !user.IsActive || !string.Equals(user.Email, request.Email?.Trim(), StringComparison.OrdinalIgnoreCase))
+                return Unauthorized(new LoginResponseDto(false, "DEVICE_TOKEN_INVALID", null));
+
+            stored.LastUsedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            await _signInManager.SignInAsync(user, isPersistent: true);
+            return Ok(await SignedInResponseAsync(user, "تم تسجيل الدخول."));
+        }
+
+        /// <summary>Turns biometric sign-in off for one phone.</summary>
+        [HttpPost("device-token/revoke")]
+        public async Task<IActionResult> RevokeDeviceToken([FromBody] DeviceLoginRequestDto request)
+        {
+            var hash = HashToken(request.Token ?? string.Empty);
+            var stored = await _context.DeviceLoginTokens.FirstOrDefaultAsync(item => item.TokenHash == hash && item.RevokedAt == null);
+            if (stored != null)
+            {
+                stored.RevokedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+            return NoContent();
+        }
+
+        private static string HashToken(string token) => Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(token)));
+
+        private async Task<LoginResponseDto> SignedInResponseAsync(ApplicationUser user, string message)
+        {
+            var roles = (await _userManager.GetRolesAsync(user)).ToArray();
+            return new LoginResponseDto(true, message, new AuthUserDto(true, user.Email, user.FullName, user.PhoneNumber, roles, await GetAuthPermissionsAsync(user, roles)));
         }
 
         private async Task<AuthPermissionsDto> GetAuthPermissionsAsync(ApplicationUser user, IReadOnlyCollection<string> roles)

@@ -1345,6 +1345,42 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.ToTable("BookingTravelers");
                 });
 
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.DeviceLoginToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DeviceName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DeviceLoginTokens");
+                });
+
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.GroupKhatma", b =>
                 {
                     b.Property<int>("Id")
@@ -2265,6 +2301,15 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.Navigation("Booking");
 
                     b.Navigation("Traveler");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.DeviceLoginToken", b =>
+                {
+                    b.HasOne("RowadUmrahSystem.Web.Models.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.GroupKhatmaHizb", b =>

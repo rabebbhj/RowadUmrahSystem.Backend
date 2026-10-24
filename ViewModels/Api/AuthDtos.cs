@@ -10,6 +10,12 @@ namespace RowadUmrahSystem.Web.ViewModels.Api
 
     public sealed record VerifyEmailRequestDto(string Email, string Code, bool RememberMe);
 
+    public sealed record CodeCheckRequestDto(string Email, string Code);
+
+    public sealed record DeviceTokenRequestDto(string? DeviceName);
+
+    public sealed record DeviceLoginRequestDto(string Email, string Token);
+
     public sealed record ResendEmailCodeRequestDto(string Email);
 
     public sealed record ForgotPasswordRequestDto(string Email);
