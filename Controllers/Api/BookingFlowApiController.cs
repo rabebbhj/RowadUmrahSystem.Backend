@@ -400,6 +400,8 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 {
                     string? summary = null;
                     var sameNationality = 0;
+                    var complete = true;
+                    var freeBeds = 0;
                     if (!room.Key.IsFamily)
                     {
                         var others = await _context.RoomAssignments.AsNoTracking()
@@ -409,6 +411,10 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                             .ToListAsync();
                         var mineNationalities = room.Select(item => item.Nationality).ToHashSet();
                         sameNationality = others.Count(mineNationalities.Contains);
+                        // Waiting list: a shared room is complete once all its beds are taken.
+                        var beds = hotel?.Room(room.Key.RoomType)?.Beds ?? room.Count() + others.Count;
+                        freeBeds = Math.Max(0, beds - (room.Count() + others.Count));
+                        complete = freeBeds == 0;
                         var side = room.First().Gender == "female" ? "نساء" : "رجال";
                         summary = $"سريرك في غرفة {side}" + (sameNationality > 0 ? $" · {RoomLabels.ArabicNumber(sameNationality)} من نفس جنسيتك" : "");
                     }
@@ -417,7 +423,9 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                         frozen ? room.Key.RoomNumber : null,
                         room.Select(item => names.GetValueOrDefault(item.TravelerId) ?? "").ToList(),
                         summary,
-                        sameNationality));
+                        sameNationality,
+                        complete,
+                        freeBeds));
                 }
                 result.Add(new StayRoomsDto(group.Key.City, BookingCities.Label(group.Key.City), hotel?.Name ?? group.Key.HotelId, frozen, rooms));
             }
@@ -680,7 +688,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
     public sealed record QuoteResponseDto(BookingQuoteResult Quote, IReadOnlyList<PaymentMethodDto> PaymentMethods);
     public sealed record CheckoutResponseDto(BookingDto? Booking, BookingQuoteResult? Quote);
     public sealed record PayResponseDto(string? PaymentUrl, BookingDto Booking);
-    public sealed record RoomInfoDto(string Label, int? RoomNumber, IReadOnlyList<string> Travelers, string? Summary, int SameNationality);
+    public sealed record RoomInfoDto(string Label, int? RoomNumber, IReadOnlyList<string> Travelers, string? Summary, int SameNationality, bool Complete, int FreeBeds);
     public sealed record SavedPassportDto(string FullName, string PassportNumber, string? PassportExpiry, string? BirthDate, string Nationality, string? Gender, string? CivilId);
     public sealed record StayRoomsDto(string City, string CityLabel, string Hotel, bool Frozen, IReadOnlyList<RoomInfoDto> Rooms);
     public sealed record PaymentStatusDto(string Status, string? Error, BookingDto Booking);

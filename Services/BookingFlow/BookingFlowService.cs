@@ -237,10 +237,57 @@ public sealed class BookingFlowService
                 }));
             }
             await _context.SaveChangesAsync();
+            await NotifyCompletedSharedRoomsAsync(packageId, departure, config);
         }
         finally
         {
             AllocationLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Waiting list: once every shared room of a booking is full (all beds taken by travelers of
+    /// the same sex), the traveler is told «اكتملت غرفتك». Sent once per booking (deduplicated by
+    /// the notification's TargetGroup). Family bookings and bookings still waiting are left out.
+    /// </summary>
+    private async Task NotifyCompletedSharedRoomsAsync(string packageId, string departure, BookingConfig config)
+    {
+        var confirmed = _context.Bookings.Where(booking => booking.Status == BookingStatuses.Confirmed).Select(booking => booking.Id);
+        var shared = await _context.RoomAssignments
+            .Where(item => item.PackageId == packageId && item.DepartureDate == departure && !item.IsFamily && confirmed.Contains(item.BookingId))
+            .Select(item => new { item.BookingId, item.City, item.HotelId, item.RoomType, item.RoomNumber })
+            .ToListAsync();
+        if (shared.Count == 0) return;
+
+        var fullRooms = shared.GroupBy(item => (item.City, item.HotelId, item.RoomType, item.RoomNumber))
+            .Where(group => (config.Hotel(group.Key.HotelId)?.Room(group.Key.RoomType)?.Beds ?? 0) is var beds && beds > 0 && group.Count() >= beds)
+            .Select(group => group.Key).ToHashSet();
+
+        var completeBookingIds = shared.GroupBy(item => item.BookingId)
+            .Where(group => group.All(item => fullRooms.Contains((item.City, item.HotelId, item.RoomType, item.RoomNumber))))
+            .Select(group => group.Key).ToList();
+        if (completeBookingIds.Count == 0) return;
+
+        var bookings = await _context.Bookings.Where(booking => completeBookingIds.Contains(booking.Id))
+            .Select(booking => new { booking.UserId, booking.Reference }).ToListAsync();
+        var now = DateTime.UtcNow;
+        foreach (var booking in bookings)
+        {
+            if (string.IsNullOrEmpty(booking.UserId)) continue;
+            var key = $"rooms-complete:{booking.Reference}";
+            if (await _context.Notifications.AnyAsync(item => item.TargetGroup == key)) continue;
+            var notification = new Notification
+            {
+                Title = "اكتملت غرفتك",
+                Message = "تمّ إكمال غرفتك المشتركة بمسافرين من جنسك. يظهر رقم الغرفة قبل السفر بأيام.",
+                Type = "booking",
+                TargetGroup = key,
+                Url = $"rowadumrah://trip/{booking.Reference}"
+            };
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+            _context.UserNotifications.Add(new UserNotification { UserId = booking.UserId, NotificationId = notification.Id });
+            await _context.SaveChangesAsync();
         }
     }
 

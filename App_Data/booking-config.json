@@ -11,21 +11,66 @@
   "minPassportValidityMonths": 6,
   "extractionConfidenceThreshold": 0.8,
   "roomingFreezeDaysBeforeDeparture": 3,
-  "frequentNationalities": [ "مصري", "سوري", "أردني", "هندي", "باكستاني" ],
+  "frequentNationalities": [
+    "مصري",
+    "سوري",
+    "أردني",
+    "هندي",
+    "باكستاني"
+  ],
   "nationalities": [
-    { "name": "مصري", "visaType": "umrah" },
-    { "name": "هندي", "visaType": "umrah" },
-    { "name": "بنغلاديشي", "visaType": "umrah" },
-    { "name": "اندونيسي", "visaType": "umrah" },
-    { "name": "تونسي", "visaType": "umrah" },
-    { "name": "جزائري", "visaType": "umrah" },
-    { "name": "فلسطيني", "visaType": "umrah" },
-    { "name": "سوري", "visaType": "tourist" },
-    { "name": "مالي", "visaType": "tourist" },
-    { "name": "سوداني", "visaType": "tourist" },
-    { "name": "باكستاني", "visaType": "tourist" },
-    { "name": "مغربي", "visaType": "tourist" },
-    { "name": "أردني", "visaType": "tourist" }
+    {
+      "name": "مصري",
+      "visaType": "umrah"
+    },
+    {
+      "name": "هندي",
+      "visaType": "umrah"
+    },
+    {
+      "name": "بنغلاديشي",
+      "visaType": "umrah"
+    },
+    {
+      "name": "اندونيسي",
+      "visaType": "umrah"
+    },
+    {
+      "name": "تونسي",
+      "visaType": "umrah"
+    },
+    {
+      "name": "جزائري",
+      "visaType": "umrah"
+    },
+    {
+      "name": "فلسطيني",
+      "visaType": "umrah"
+    },
+    {
+      "name": "سوري",
+      "visaType": "tourist"
+    },
+    {
+      "name": "مالي",
+      "visaType": "tourist"
+    },
+    {
+      "name": "سوداني",
+      "visaType": "tourist"
+    },
+    {
+      "name": "باكستاني",
+      "visaType": "tourist"
+    },
+    {
+      "name": "مغربي",
+      "visaType": "tourist"
+    },
+    {
+      "name": "أردني",
+      "visaType": "tourist"
+    }
   ],
   "documents": {
     "civilIdRequired": true,
@@ -35,23 +80,43 @@
   "packs": [
     {
       "packageId": "rowad-company-6-days",
-      "nights": { "makkah": 3, "madinah": 0 },
+      "nights": {
+        "makkah": 3,
+        "madinah": 0
+      },
       "adultPrice": null,
       "childPrice": null,
       "priceByNationality": {},
       "busPrice": 20,
       "seatsPerDeparture": 45,
-      "hotels": { "makkah": [ "durrat-rahaf", "abraj-altaiseer" ], "madinah": [] }
+      "hotels": {
+        "makkah": [
+          "durrat-rahaf",
+          "abraj-altaiseer"
+        ],
+        "madinah": []
+      }
     },
     {
       "packageId": "rowad-company-11-days",
-      "nights": { "makkah": 5, "madinah": 2 },
+      "nights": {
+        "makkah": 5,
+        "madinah": 2
+      },
       "adultPrice": null,
       "childPrice": null,
       "priceByNationality": {},
       "busPrice": 30,
       "seatsPerDeparture": 45,
-      "hotels": { "makkah": [ "durrat-rahaf", "abraj-altaiseer" ], "madinah": [ "madinah-tbd" ] }
+      "hotels": {
+        "makkah": [
+          "durrat-rahaf",
+          "abraj-altaiseer"
+        ],
+        "madinah": [
+          "madinah-tbd"
+        ]
+      }
     }
   ],
   "hotels": [
@@ -63,7 +128,16 @@
       "district": "",
       "walkMinutes": null,
       "description": "فندق درة رهف في مكة المكرمة: بهو واسع، ومصلى داخل الفندق، ومطعم، وغرف ثنائية وعائلية، مع دورات مياه مجهّزة لذوي الإعاقة.",
-      "amenities": [ "غرف لغير المدخنين", "خدمة الغرف", "مرافق لذوي الإعاقة", "موقف مجاني", "واي فاي مجاني", "غرف عائلية", "مصلى داخل الفندق", "مطعم" ],
+      "amenities": [
+        "غرف لغير المدخنين",
+        "خدمة الغرف",
+        "مرافق لذوي الإعاقة",
+        "موقف مجاني",
+        "واي فاي مجاني",
+        "غرف عائلية",
+        "مصلى داخل الفندق",
+        "مطعم"
+      ],
       "photos": [
         "/images/hotels/durrat-rahaf/01.jpg",
         "/images/hotels/durrat-rahaf/02.jpg",
@@ -79,9 +153,34 @@
       "placeholder": false,
       "supplementPerPersonPerNight": 0,
       "rooms": [
-        { "type": "double", "beds": 2, "roomsPerDeparture": 20, "familySupplementPerRoomPerNight": 0, "sharedSupplementPerBedPerNight": 0 },
-        { "type": "triple", "beds": 3, "roomsPerDeparture": 20, "familySupplementPerRoomPerNight": 0, "sharedSupplementPerBedPerNight": 0 },
-        { "type": "quad", "beds": 4, "roomsPerDeparture": 20, "familySupplementPerRoomPerNight": 0, "sharedSupplementPerBedPerNight": 0 }
+        {
+          "type": "double",
+          "beds": 2,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "triple",
+          "beds": 3,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "quad",
+          "beds": 4,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "single",
+          "beds": 1,
+          "roomsPerDeparture": 10,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        }
       ]
     },
     {
@@ -92,7 +191,18 @@
       "district": "",
       "walkMinutes": null,
       "description": "فندق أبراج التيسير في مكة المكرمة: غرف ثنائية وثلاثية ورباعية بتصميم دافئ، ومطعم واسع، وبهو للاستراحة، واستقبال على مدار الساعة.",
-      "amenities": [ "موقف خاص", "واي فاي مجاني", "مطعم", "مرافق لذوي الإعاقة", "استقبال 24 ساعة", "مصعد", "خدمة غسيل الملابس", "تكييف", "غلاية شاي وقهوة في الغرف", "إفطار" ],
+      "amenities": [
+        "موقف خاص",
+        "واي فاي مجاني",
+        "مطعم",
+        "مرافق لذوي الإعاقة",
+        "استقبال 24 ساعة",
+        "مصعد",
+        "خدمة غسيل الملابس",
+        "تكييف",
+        "غلاية شاي وقهوة في الغرف",
+        "إفطار"
+      ],
       "photos": [
         "/images/hotels/abraj-altaiseer/01.jpg",
         "/images/hotels/abraj-altaiseer/02.jpg",
@@ -111,9 +221,34 @@
       "placeholder": false,
       "supplementPerPersonPerNight": 0,
       "rooms": [
-        { "type": "double", "beds": 2, "roomsPerDeparture": 20, "familySupplementPerRoomPerNight": 0, "sharedSupplementPerBedPerNight": 0 },
-        { "type": "triple", "beds": 3, "roomsPerDeparture": 20, "familySupplementPerRoomPerNight": 0, "sharedSupplementPerBedPerNight": 0 },
-        { "type": "quad", "beds": 4, "roomsPerDeparture": 20, "familySupplementPerRoomPerNight": 0, "sharedSupplementPerBedPerNight": 0 }
+        {
+          "type": "double",
+          "beds": 2,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "triple",
+          "beds": 3,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "quad",
+          "beds": 4,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "single",
+          "beds": 1,
+          "roomsPerDeparture": 10,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        }
       ]
     },
     {
@@ -131,9 +266,34 @@
       "placeholder": true,
       "supplementPerPersonPerNight": 0,
       "rooms": [
-        { "type": "double", "beds": 2, "roomsPerDeparture": 20, "familySupplementPerRoomPerNight": 0, "sharedSupplementPerBedPerNight": 0 },
-        { "type": "triple", "beds": 3, "roomsPerDeparture": 20, "familySupplementPerRoomPerNight": 0, "sharedSupplementPerBedPerNight": 0 },
-        { "type": "quad", "beds": 4, "roomsPerDeparture": 20, "familySupplementPerRoomPerNight": 0, "sharedSupplementPerBedPerNight": 0 }
+        {
+          "type": "double",
+          "beds": 2,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "triple",
+          "beds": 3,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "quad",
+          "beds": 4,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "single",
+          "beds": 1,
+          "roomsPerDeparture": 10,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        }
       ]
     }
   ]
