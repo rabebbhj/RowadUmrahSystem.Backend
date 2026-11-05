@@ -139,6 +139,7 @@ builder.Services.AddScoped<IPdfReportService, PdfReportService>();
 // Booking flow: rules from App_Data/booking-config.json, MyFatoorah (key on the server only).
 // Without a key, development uses the simulated gateway; production then refuses payments (503).
 builder.Services.AddSingleton<RowadUmrahSystem.Web.Services.BookingFlow.BookingConfigStore>();
+builder.Services.AddSingleton<RowadUmrahSystem.Web.Services.Badal.BadalConfigStore>();
 builder.Services.AddScoped<RowadUmrahSystem.Web.Services.BookingFlow.BookingFlowService>();
 builder.Services.AddHostedService<RowadUmrahSystem.Web.Services.BookingFlow.BookingRemindersService>();
 builder.Services.Configure<RowadUmrahSystem.Web.Services.BookingFlow.MyFatoorahOptions>(builder.Configuration.GetSection("MyFatoorah"));

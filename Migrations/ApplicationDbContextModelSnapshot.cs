@@ -1176,6 +1176,261 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.ToTable("AuditLogs");
                 });
 
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.BadalMedia", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BadalRiteEventId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("StoragePath")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("TakenAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BadalRiteEventId");
+
+                    b.ToTable("BadalMedia");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.BadalOrder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("AssignedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BeneficiaryFullName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BeneficiaryGender")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BeneficiaryRelation")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BeneficiaryStatus")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("CertificateIssuedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CertificateNumber")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CertificatePdfPath")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ClientRequestId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CurrencyIso")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DeclarationAcceptedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastPaymentError")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PaymentId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PaymentInvoiceId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PaymentReturnUrl")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("PerformerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PersonalDua")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("PersonalDuaApproved")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PersonalDuaRejectedReason")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RefundReason")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("RefundedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ScheduledAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("TimingDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TimingType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PerformerId");
+
+                    b.ToTable("BadalOrders");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.BadalPerformer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BadalCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Languages")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("OwnUmrahDone")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("Rating")
+                        .HasColumnType("REAL");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Verified")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BadalPerformers");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.BadalRiteEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double?>("AccuracyMeters")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("BadalOrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("NiyyaText")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Rite")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("Rounds")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Zone")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BadalOrderId");
+
+                    b.ToTable("BadalRiteEvents");
+                });
+
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.Booking", b =>
                 {
                     b.Property<int>("Id")
@@ -2275,6 +2530,37 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.Navigation("JournalEntry");
                 });
 
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.BadalMedia", b =>
+                {
+                    b.HasOne("RowadUmrahSystem.Web.Models.BadalRiteEvent", "RiteEvent")
+                        .WithMany("Media")
+                        .HasForeignKey("BadalRiteEventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RiteEvent");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.BadalOrder", b =>
+                {
+                    b.HasOne("RowadUmrahSystem.Web.Models.BadalPerformer", "Performer")
+                        .WithMany()
+                        .HasForeignKey("PerformerId");
+
+                    b.Navigation("Performer");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.BadalRiteEvent", b =>
+                {
+                    b.HasOne("RowadUmrahSystem.Web.Models.BadalOrder", "Order")
+                        .WithMany("Rites")
+                        .HasForeignKey("BadalOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.Booking", b =>
                 {
                     b.HasOne("RowadUmrahSystem.Web.Models.ApplicationUser", null)
@@ -2391,6 +2677,16 @@ namespace RowadUmrahSystem.Web.Migrations
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.Accounting.JournalEntry", b =>
                 {
                     b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.BadalOrder", b =>
+                {
+                    b.Navigation("Rites");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.BadalRiteEvent", b =>
+                {
+                    b.Navigation("Media");
                 });
 
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.Booking", b =>

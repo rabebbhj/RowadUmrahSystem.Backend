@@ -28,6 +28,12 @@ namespace RowadUmrahSystem.Web.Data
         public DbSet<GroupKhatma> GroupKhatmas { get; set; }
         public DbSet<GroupKhatmaHizb> GroupKhatmaHizbs { get; set; }
 
+        // عمرة البدل
+        public DbSet<BadalOrder> BadalOrders { get; set; }
+        public DbSet<BadalRiteEvent> BadalRiteEvents { get; set; }
+        public DbSet<BadalMedia> BadalMedia { get; set; }
+        public DbSet<BadalPerformer> BadalPerformers { get; set; }
+
         // Accounting
         public DbSet<Account> Accounts { get; set; }
         public DbSet<AccountBalance> AccountBalances { get; set; }
