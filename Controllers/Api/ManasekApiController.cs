@@ -110,7 +110,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         /// <summary>The four Ihram screens of Ruwad's design: preparation, clothing, intention and talbiya, prohibitions.</summary>
         private static IReadOnlyList<ManasekPageDto> IhramPages() => new List<ManasekPageDto>
         {
-            new("preparation", "الاستعداد للإحرام", "تهيأ بخشوع لتبدأ رحلتك المباركة", "/landingpage/hero-kaaba-premium.png", "تم الاستعداد", new List<ManasekBlockDto>
+            new("preparation", "الاستعداد للإحرام", "تهيأ بخشوع لتبدأ رحلتك المباركة", "/landingpage/hero-kaaba-premium.webp", "تم الاستعداد", new List<ManasekBlockDto>
             {
                 new("checklist", "قبل أن تُحرم", "جهز نفسك بدنياً ومعنوياً قبل نية الإحرام", "clipboard-outline", Items: new List<ManasekItemDto>
                 {
@@ -128,17 +128,17 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     new("مظلة", Icon: "umbrella-outline")
                 })
             }),
-            new("attire", "ملابس الإحرام", "التهيؤ لنسك العمرة", "/landingpage/kaaba.png", "الانتقال إلى النية والتلبية", new List<ManasekBlockDto>
+            new("attire", "ملابس الإحرام", "التهيؤ لنسك العمرة", "/landingpage/kaaba.webp", "الانتقال إلى النية والتلبية", new List<ManasekBlockDto>
             {
                 new("attire", Groups: new List<ManasekGroupDto>
                 {
-                    new("للرجال", "إزار ورداء أبيضان", "/landingpage/kaaba.png", "man-outline", new List<ManasekItemDto>
+                    new("للرجال", "إزار ورداء أبيضان", "/landingpage/kaaba.webp", "man-outline", new List<ManasekItemDto>
                     {
                         new("إزار ورداء أبيضان", Icon: "shirt-outline"),
                         new("غير مخيطين", Icon: "close-circle-outline"),
                         new("صندل مناسب", Icon: "footsteps-outline")
                     }),
-                    new("للنساء", "ببساطة واحتشام", "/landingpage/auth-mosque-bg.png", "woman-outline", new List<ManasekItemDto>
+                    new("للنساء", "ببساطة واحتشام", "/landingpage/auth-mosque-bg.webp", "woman-outline", new List<ManasekItemDto>
                     {
                         new("ملابس محتشمة عادية", Icon: "shirt-outline"),
                         new("دون لون محدد", Icon: "color-palette-outline"),
@@ -152,15 +152,15 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     new("الراحة والستر أولاً", Icon: "heart-outline")
                 })
             }),
-            new("intention", "النية والتلبية", "ابدأ رحلتك بخشوع .. من الميقات", "/landingpage/auth-login-bg.png", "بدأت التلبية", new List<ManasekBlockDto>
+            new("intention", "النية والتلبية", "ابدأ رحلتك بخشوع .. من الميقات", "/landingpage/auth-login-bg.webp", "بدأت التلبية", new List<ManasekBlockDto>
             {
-                new("intention", "من الميقات", "استحضر نية العمرة خالصةً لوجه الله تعالى", "location-outline", "/landingpage/auth-mosque-bg.png",
+                new("intention", "من الميقات", "استحضر نية العمرة خالصةً لوجه الله تعالى", "location-outline", "/landingpage/auth-mosque-bg.webp",
                     Text: "انوِ العمرة بقلبك", Highlight: "لَبَّيْكَ اللَّهُمَّ عُمْرَةً"),
                 new("recitation", "ردد الآن", "واستمع إلى التلبية بصوت واضح", "pulse-outline",
                     Text: "لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لَا شَرِيكَ لَكَ."),
                 new("tip", "تنبيه", Icon: "bulb-outline", Text: "استمر في التلبية من وقت الإحرام وحتى بدء الطواف في المسجد الحرام.")
             }),
-            new("prohibitions", "محظورات الإحرام", "لتحافظ على إحرامك وتؤدي مناسكك بطمأنينة", "/landingpage/hero-kaaba-premium.png", "الانتقال إلى الطواف", new List<ManasekBlockDto>
+            new("prohibitions", "محظورات الإحرام", "لتحافظ على إحرامك وتؤدي مناسكك بطمأنينة", "/landingpage/hero-kaaba-premium.webp", "الانتقال إلى الطواف", new List<ManasekBlockDto>
             {
                 new("list", "محظورات الإحرام", "يجب تجنب المحظورات التالية أثناء الإحرام", "ban-outline", Items: new List<ManasekItemDto>
                 {
@@ -171,7 +171,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     new("اجتناب الصيد البري", "يمنع صيد الحيوانات البرية وقت الإحرام", "paw-outline"),
                     new("للرجال: عدم تغطية الرأس ولبس المخيط", "يمنع على الرجل تغطية الرأس ولبس الملابس المخيطة", "shirt-outline")
                 }),
-                new("success", "أنت جاهز الآن", Image: "/landingpage/kaaba.png", Text: "بعد إتمام الإحرام يمكنك التوجه إلى الطواف حول الكعبة.")
+                new("success", "أنت جاهز الآن", Image: "/landingpage/kaaba.webp", Text: "بعد إتمام الإحرام يمكنك التوجه إلى الطواف حول الكعبة.")
             })
         };
 
@@ -184,12 +184,12 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 DateTime.UtcNow,
                 new List<ManasekTypeDto>
                 {
-                    new("single", "العمرة المفردة", "العمرة فقط بدون حج", "/landingpage/kaaba.png"),
-                    new("tamattu", "العمرة مع الحج", "العمرة والحج معاً (التمتع)", "/landingpage/auth-login-bg.png")
+                    new("single", "العمرة المفردة", "العمرة فقط بدون حج", "/landingpage/kaaba.webp"),
+                    new("tamattu", "العمرة مع الحج", "العمرة والحج معاً (التمتع)", "/landingpage/auth-login-bg.webp")
                 },
                 new List<ManasekStepDto>
                 {
-                    new("ihram", 1, "الإحرام", "النية والتلبية من الميقات", "person-outline", "/landingpage/auth-mosque-bg.png",
+                    new("ihram", 1, "الإحرام", "النية والتلبية من الميقات", "person-outline", "/landingpage/auth-mosque-bg.webp",
                         new[] { "الاغتسال والتنظف", "ارتداء ملابس الإحرام البيضاء", "أداء ركعتي سنة الإحرام", "النية وقول التلبية" },
                         new List<ManasekDuaDto>
                         {
@@ -198,15 +198,15 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                                 "Labbaik Allahumma labbaik, labbaika la sharika laka labbaik, inna alhamda wa ni'mata laka wal-mulk, la sharika lak.")
                         },
                         new[] { "تأكد من الميقات المخصص لرحلتك مع المشرف" }, null, both, IhramPages()),
-                    new("tawaf", 2, "الطواف", "سبعة أشواط حول الكعبة", "cube-outline", "/landingpage/kaaba.png",
+                    new("tawaf", 2, "الطواف", "سبعة أشواط حول الكعبة", "cube-outline", "/landingpage/kaaba.webp",
                         new[] { "ابدأ من الحجر الأسود واستلمه إن أمكن", "طف حول الكعبة سبعة أشواط", "اجعل الكعبة على يسارك دائماً", "اقرأ الأدعية المأثورة أثناء الطواف" },
                         new List<ManasekDuaDto> { new("بين الركن اليماني والحجر الأسود", "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ.", null) },
                         new[] { "سجّل كل شوط بنفسك في العداد؛ التطبيق لا يتحقق تلقائياً من اكتمال الشوط" }, "tawaf-counter", both),
-                    new("sai", 3, "السعي", "بين الصفا والمروة", "walk-outline", "/landingpage/paysage.png",
+                    new("sai", 3, "السعي", "بين الصفا والمروة", "walk-outline", "/landingpage/paysage.webp",
                         new[] { "ابدأ من جبل الصفا", "امشِ إلى جبل المروة", "يُحتسب الذهاب شوطاً والإياب شوطاً", "أكمل سبعة أشواط" },
                         new List<ManasekDuaDto> { new("عند الصفا", "إِنَّ الصَّفَا وَالْمَرْوَةَ مِنْ شَعَائِرِ اللَّهِ.", null) },
                         new[] { "يبدأ الشوط الأول من الصفا وينتهي السابع عند المروة" }, "sai-counter", both),
-                    new("halq", 4, "الحلق أو التقصير", "إنهاء مناسك العمرة", "cut-outline", "/landingpage/dormir.png",
+                    new("halq", 4, "الحلق أو التقصير", "إنهاء مناسك العمرة", "cut-outline", "/landingpage/dormir.webp",
                         new[] { "يفضل الحلق للرجال أو التقصير بإزالة جزء من الشعر", "بعد ذلك تتحلل من الإحرام", "تكون العمرة قد تمت بحمد الله" },
                         new List<ManasekDuaDto> { new("بعد إتمام العمرة", "اللَّهُمَّ تَقَبَّلْ مِنَّا وَمِنْكُمْ صَالِحَ الْأَعْمَالِ.", null) },
                         Array.Empty<string>(), "halq-choice", both)

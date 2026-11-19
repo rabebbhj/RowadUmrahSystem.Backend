@@ -1736,6 +1736,115 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.PointsTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Amount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BalanceAfter")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsExpired")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RelatedUserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RelatedUserName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("PointsTransactions");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.RewardAccount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MonthlyReferralMonth")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MonthlyReferralPoints")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PointsBalance")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ReferralCode")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ReferralCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ReferredByUserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Tier")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("WalletBalance")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReferralCode")
+                        .IsUnique();
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("RewardAccounts");
+                });
+
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.RoomAssignment", b =>
                 {
                     b.Property<int>("Id")
@@ -2215,6 +2324,45 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.ToTable("UserPermissions");
                 });
 
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.WalletTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("BalanceAfter")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("WalletTransactions");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -2609,6 +2757,24 @@ namespace RowadUmrahSystem.Web.Migrations
                     b.Navigation("GroupKhatma");
                 });
 
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.PointsTransaction", b =>
+                {
+                    b.HasOne("RowadUmrahSystem.Web.Models.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.RewardAccount", b =>
+                {
+                    b.HasOne("RowadUmrahSystem.Web.Models.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.RoomAssignment", b =>
                 {
                     b.HasOne("RowadUmrahSystem.Web.Models.Booking", "Booking")
@@ -2662,6 +2828,15 @@ namespace RowadUmrahSystem.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RowadUmrahSystem.Web.Models.WalletTransaction", b =>
+                {
+                    b.HasOne("RowadUmrahSystem.Web.Models.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("RowadUmrahSystem.Web.Models.Accounting.FiscalYear", b =>

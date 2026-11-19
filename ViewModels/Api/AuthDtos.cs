@@ -6,7 +6,8 @@ namespace RowadUmrahSystem.Web.ViewModels.Api
         string FullName,
         string Email,
         string Phone,
-        string Password);
+        string Password,
+        string? ReferralCode = null);
 
     public sealed record VerifyEmailRequestDto(string Email, string Code, bool RememberMe);
 

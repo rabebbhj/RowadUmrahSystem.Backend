@@ -6,13 +6,13 @@
       "id": "single",
       "title": "العمرة المفردة",
       "caption": "العمرة فقط بدون حج",
-      "image": "/landingpage/kaaba.png"
+      "image": "/landingpage/kaaba.webp"
     },
     {
       "id": "tamattu",
       "title": "العمرة مع الحج",
       "caption": "العمرة والحج معاً (التمتع)",
-      "image": "/landingpage/auth-login-bg.png"
+      "image": "/landingpage/auth-login-bg.webp"
     }
   ],
   "steps": [
@@ -22,7 +22,7 @@
       "title": "الإحرام",
       "caption": "النية والتلبية من الميقات",
       "icon": "person-outline",
-      "image": "/landingpage/auth-mosque-bg.png",
+      "image": "/landingpage/auth-mosque-bg.webp",
       "explanation": [
         "الاغتسال والتنظف",
         "ارتداء ملابس الإحرام البيضاء",
@@ -49,7 +49,7 @@
           "id": "preparation",
           "title": "الاستعداد للإحرام",
           "subtitle": "تهيأ بخشوع لتبدأ رحلتك المباركة",
-          "image": "/landingpage/hero-kaaba-premium.png",
+          "image": "/landingpage/hero-kaaba-premium.webp",
           "cta": "تم الاستعداد",
           "blocks": [
             {
@@ -127,7 +127,7 @@
           "id": "attire",
           "title": "ملابس الإحرام",
           "subtitle": "التهيؤ لنسك العمرة",
-          "image": "/landingpage/kaaba.png",
+          "image": "/landingpage/kaaba.webp",
           "cta": "الانتقال إلى النية والتلبية",
           "blocks": [
             {
@@ -143,7 +143,7 @@
                 {
                   "title": "للرجال",
                   "caption": "إزار ورداء أبيضان",
-                  "image": "/landingpage/kaaba.png",
+                  "image": "/landingpage/kaaba.webp",
                   "icon": "man-outline",
                   "items": [
                     {
@@ -166,7 +166,7 @@
                 {
                   "title": "للنساء",
                   "caption": "ببساطة واحتشام",
-                  "image": "/landingpage/auth-mosque-bg.png",
+                  "image": "/landingpage/auth-mosque-bg.webp",
                   "icon": "woman-outline",
                   "items": [
                     {
@@ -221,7 +221,7 @@
           "id": "intention",
           "title": "النية والتلبية",
           "subtitle": "ابدأ رحلتك بخشوع .. من الميقات",
-          "image": "/landingpage/auth-login-bg.png",
+          "image": "/landingpage/auth-login-bg.webp",
           "cta": "بدأت التلبية",
           "blocks": [
             {
@@ -229,7 +229,7 @@
               "title": "من الميقات",
               "subtitle": "استحضر نية العمرة خالصةً لوجه الله تعالى",
               "icon": "location-outline",
-              "image": "/landingpage/auth-mosque-bg.png",
+              "image": "/landingpage/auth-mosque-bg.webp",
               "text": "انوِ العمرة بقلبك",
               "highlight": "لَبَّيْكَ اللَّهُمَّ عُمْرَةً",
               "items": null,
@@ -263,7 +263,7 @@
           "id": "prohibitions",
           "title": "محظورات الإحرام",
           "subtitle": "لتحافظ على إحرامك وتؤدي مناسكك بطمأنينة",
-          "image": "/landingpage/hero-kaaba-premium.png",
+          "image": "/landingpage/hero-kaaba-premium.webp",
           "cta": "الانتقال إلى الطواف",
           "blocks": [
             {
@@ -313,7 +313,7 @@
               "title": "أنت جاهز الآن",
               "subtitle": null,
               "icon": null,
-              "image": "/landingpage/kaaba.png",
+              "image": "/landingpage/kaaba.webp",
               "text": "بعد إتمام الإحرام يمكنك التوجه إلى الطواف حول الكعبة.",
               "highlight": null,
               "items": null,
@@ -329,7 +329,7 @@
       "title": "الطواف",
       "caption": "سبعة أشواط حول الكعبة",
       "icon": "cube-outline",
-      "image": "/landingpage/kaaba.png",
+      "image": "/landingpage/kaaba.webp",
       "explanation": [
         "ابدأ من الحجر الأسود واستلمه إن أمكن",
         "طف حول الكعبة سبعة أشواط",
@@ -359,7 +359,7 @@
       "title": "السعي",
       "caption": "بين الصفا والمروة",
       "icon": "walk-outline",
-      "image": "/landingpage/paysage.png",
+      "image": "/landingpage/paysage.webp",
       "explanation": [
         "ابدأ من جبل الصفا",
         "امشِ إلى جبل المروة",
@@ -389,7 +389,7 @@
       "title": "الحلق أو التقصير",
       "caption": "إنهاء مناسك العمرة",
       "icon": "cut-outline",
-      "image": "/landingpage/dormir.png",
+      "image": "/landingpage/dormir.webp",
       "explanation": [
         "يفضل الحلق للرجال أو التقصير بإزالة جزء من الشعر",
         "بعد ذلك تتحلل من الإحرام",

@@ -102,6 +102,18 @@ builder.Services.AddHttpClient<IVoiceAssistantService, VoiceAssistantService>(cl
     client.BaseAddress = new Uri("https://api.openai.com/v1/");
     client.Timeout = TimeSpan.FromSeconds(60);
 });
+// Recherche de lieux : la cle Google reste ici, l'application ne la voit jamais.
+builder.Services.Configure<PlaceSearchOptions>(builder.Configuration.GetSection("GooglePlaces"));
+builder.Services.AddHttpClient<IPlaceSearchService, PlaceSearchService>(client =>
+{
+    client.BaseAddress = new Uri("https://places.googleapis.com/");
+    client.Timeout = TimeSpan.FromSeconds(12);
+});
+builder.Services.AddHttpClient<IWalkingRouteService, WalkingRouteService>(client =>
+{
+    client.BaseAddress = new Uri("https://routes.googleapis.com/");
+    client.Timeout = TimeSpan.FromSeconds(12);
+});
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = 429;
@@ -123,6 +135,11 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy("public-traveler", context => RateLimitPartition.GetFixedWindowLimiter(
         context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? ClientAddress(context),
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(10), QueueLimit = 0 }));
+    // Place search is billed per call. Without a per-device limit, one phone typing into the
+    // search box could spend the whole daily budget in a minute.
+    options.AddPolicy("places", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? ClientAddress(context),
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
 });
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();

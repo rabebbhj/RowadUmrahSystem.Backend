@@ -34,6 +34,11 @@ namespace RowadUmrahSystem.Web.Data
         public DbSet<BadalMedia> BadalMedia { get; set; }
         public DbSet<BadalPerformer> BadalPerformers { get; set; }
 
+        // نقاط روّاد
+        public DbSet<RewardAccount> RewardAccounts { get; set; }
+        public DbSet<PointsTransaction> PointsTransactions { get; set; }
+        public DbSet<WalletTransaction> WalletTransactions { get; set; }
+
         // Accounting
         public DbSet<Account> Accounts { get; set; }
         public DbSet<AccountBalance> AccountBalances { get; set; }
@@ -116,6 +121,28 @@ namespace RowadUmrahSystem.Web.Data
                     .WithMany()
                     .HasForeignKey(x => x.TravelerId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // نقاط روّاد
+            builder.Entity<RewardAccount>(ra =>
+            {
+                ra.HasIndex(x => x.UserId).IsUnique();
+                ra.HasIndex(x => x.ReferralCode).IsUnique();
+                ra.Property(x => x.WalletBalance).HasPrecision(18, 3);
+                ra.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<PointsTransaction>(pt =>
+            {
+                pt.HasIndex(x => new { x.UserId, x.CreatedAt });
+                pt.HasIndex(x => x.ExpiresAt);
+                pt.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<WalletTransaction>(wt =>
+            {
+                wt.HasIndex(x => new { x.UserId, x.CreatedAt });
+                wt.Property(x => x.Amount).HasPrecision(18, 3);
+                wt.Property(x => x.BalanceAfter).HasPrecision(18, 3);
+                wt.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
             });
 
             builder.Entity<Account>()
