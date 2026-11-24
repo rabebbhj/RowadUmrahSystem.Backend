@@ -130,7 +130,15 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 {
                     distanceMeters = result.Route.DistanceMeters,
                     durationSeconds = result.Route.DurationSeconds,
-                    polyline = result.Route.EncodedPolyline
+                    polyline = result.Route.EncodedPolyline,
+                    steps = result.Route.Steps?.Select(s => new
+                    {
+                        instruction = s.Instruction,
+                        streetName = s.StreetName,
+                        distanceMeters = s.DistanceMeters,
+                        durationSeconds = s.DurationSeconds,
+                        maneuverType = s.ManeuverType
+                    })
                 }
             });
         }

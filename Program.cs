@@ -102,18 +102,38 @@ builder.Services.AddHttpClient<IVoiceAssistantService, VoiceAssistantService>(cl
     client.BaseAddress = new Uri("https://api.openai.com/v1/");
     client.Timeout = TimeSpan.FromSeconds(60);
 });
-// Recherche de lieux : la cle Google reste ici, l'application ne la voit jamais.
+// Recherche de lieux et trajets : Google si la cle est la, sinon OSM (Nominatim + OSRM).
 builder.Services.Configure<PlaceSearchOptions>(builder.Configuration.GetSection("GooglePlaces"));
-builder.Services.AddHttpClient<IPlaceSearchService, PlaceSearchService>(client =>
+builder.Services.AddHttpClient("GooglePlaces", client =>
 {
     client.BaseAddress = new Uri("https://places.googleapis.com/");
     client.Timeout = TimeSpan.FromSeconds(12);
 });
-builder.Services.AddHttpClient<IWalkingRouteService, WalkingRouteService>(client =>
+builder.Services.AddHttpClient("GoogleRoutes", client =>
 {
     client.BaseAddress = new Uri("https://routes.googleapis.com/");
     client.Timeout = TimeSpan.FromSeconds(12);
 });
+builder.Services.AddHttpClient("Nominatim", client =>
+{
+    client.BaseAddress = new Uri("https://nominatim.openstreetmap.org/");
+    client.Timeout = TimeSpan.FromSeconds(12);
+    client.DefaultRequestHeaders.Add("User-Agent", "RowadUmrahApp/1.0");
+});
+builder.Services.AddHttpClient("Photon", client =>
+{
+    client.BaseAddress = new Uri("https://photon.komoot.io/");
+    client.Timeout = TimeSpan.FromSeconds(12);
+    client.DefaultRequestHeaders.Add("User-Agent", "RowadUmrahApp/1.0");
+});
+builder.Services.AddHttpClient("Osrm", client =>
+{
+    client.BaseAddress = new Uri("https://router.project-osrm.org/");
+    client.Timeout = TimeSpan.FromSeconds(12);
+    client.DefaultRequestHeaders.Add("User-Agent", "RowadUmrahApp/1.0");
+});
+builder.Services.AddSingleton<IPlaceSearchService, PlaceSearchService>();
+builder.Services.AddSingleton<IWalkingRouteService, WalkingRouteService>();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = 429;
