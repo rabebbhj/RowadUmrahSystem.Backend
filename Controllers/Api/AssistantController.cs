@@ -36,7 +36,7 @@ public sealed class AssistantController(IVoiceAssistantService service, IAntifor
         csrfToken = antiforgery.GetAndStoreTokens(HttpContext).RequestToken
     });
 
-    [HttpPost("chat"), ValidateCsrfUnlessDev, RequestSizeLimit(32768)]
+    [HttpPost("chat"), AllowAnonymous, ValidateCsrfUnlessDev, RequestSizeLimit(32768)]
     public Task<IActionResult> Chat(AssistantChatRequest input, CancellationToken ct) => Guard(async () =>
     {
         if (string.IsNullOrWhiteSpace(input.Message) || (input.History ?? []).Any(turn => turn == null || string.IsNullOrWhiteSpace(turn.Content)))
@@ -47,7 +47,7 @@ public sealed class AssistantController(IVoiceAssistantService service, IAntifor
         return Ok(new { reply = answer.Reply, demo = false, actions = answer.Actions });
     }, ct);
 
-    [HttpPost("transcribe"), ValidateCsrfUnlessDev, RequestSizeLimit(6 * 1024 * 1024), RequestFormLimits(MultipartBodyLengthLimit = 6 * 1024 * 1024)]
+    [HttpPost("transcribe"), AllowAnonymous, ValidateCsrfUnlessDev, RequestSizeLimit(6 * 1024 * 1024), RequestFormLimits(MultipartBodyLengthLimit = 6 * 1024 * 1024)]
     public Task<IActionResult> Transcribe(IFormFile file, CancellationToken ct) => Guard(async () =>
     {
         Console.WriteLine($"[Ruwad] transcribe: name={file.FileName} type={file.ContentType} size={file.Length}");
@@ -57,7 +57,7 @@ public sealed class AssistantController(IVoiceAssistantService service, IAntifor
         return Ok(new { text = await service.TranscribeAsync(file, ct) });
     }, ct);
 
-    [HttpPost("speech"), ValidateCsrfUnlessDev, RequestSizeLimit(32768)]
+    [HttpPost("speech"), AllowAnonymous, ValidateCsrfUnlessDev, RequestSizeLimit(32768)]
     public Task<IActionResult> Speech(AssistantSpeechRequest input, CancellationToken ct) => Guard(async () =>
         string.IsNullOrWhiteSpace(input.Text) ? BadRequest(new { message = "النص فارغ." }) : File(await service.SpeechAsync(input.Text, ct), "audio/mpeg"), ct);
 

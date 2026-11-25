@@ -140,11 +140,11 @@ builder.Services.AddRateLimiter(options =>
     // A second, daily budget applies only to assistant requests.
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
         context.Request.Path.StartsWithSegments("/api/assistant")
-            ? RateLimitPartition.GetFixedWindowLimiter(context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
+            ? RateLimitPartition.GetFixedWindowLimiter(context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? ClientAddress(context),
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = 200, Window = TimeSpan.FromDays(1), QueueLimit = 0 })
             : RateLimitPartition.GetNoLimiter("other-endpoints"));
     options.AddPolicy("assistant", context => RateLimitPartition.GetFixedWindowLimiter(
-        context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
+        context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? ClientAddress(context),
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
     // Anonymous traveler creation and paid OCR calls used by the public booking form and the app:
     // limited per account, or per IP address for visitors, to stop flooding and OCR cost abuse.
