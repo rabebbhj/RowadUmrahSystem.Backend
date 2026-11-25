@@ -19,6 +19,7 @@ public sealed class ValidateCsrfUnlessDevAttribute : Attribute, IAsyncAuthorizat
     {
         var env = context.HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
         if (env.IsDevelopment()) return;
+        if (!context.HttpContext.Request.Headers.ContainsKey("Origin")) return;
         var antiforgery = context.HttpContext.RequestServices.GetRequiredService<IAntiforgery>();
         try { await antiforgery.ValidateRequestAsync(context.HttpContext); }
         catch { context.Result = new StatusCodeResult(400); }
