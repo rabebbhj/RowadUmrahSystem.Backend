@@ -1,0 +1,656 @@
+[
+  {
+    "id": "rowad-company-6-days",
+    "name": "بكج رواد - رحلة 6 أيام",
+    "shortTitle": "رحلة ثابتة كل خميس",
+    "description": "3 ليال مكة مع مرور المدينة، حسب دليل أسعار وحجوزات شركة رواد.",
+    "durationDays": 6,
+    "durationLabel": "6 أيام",
+    "imageUrl": "/landingpage/paysage.png",
+    "basePrice": 75,
+    "visaSupplement": 0,
+    "currency": "د.ك",
+    "priceMode": "rules",
+    "status": "published",
+    "displayOrder": 1,
+    "transportOptions": [
+      {
+        "id": "bus",
+        "label": "باص",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      },
+      {
+        "id": "private-car",
+        "label": "سيارة خاصة",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      }
+    ],
+    "roomTypes": [
+      {
+        "id": "quad",
+        "label": "غرفة رباعية",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      },
+      {
+        "id": "triple",
+        "label": "غرفة ثلاثية",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      },
+      {
+        "id": "double",
+        "label": "غرفة ثنائية",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      },
+      {
+        "id": "single",
+        "label": "غرفة فردية",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      }
+    ],
+    "departureDates": [
+      "2026-09-24",
+      "2026-10-01",
+      "2026-10-08",
+      "2026-10-15"
+    ],
+    "pricingRules": [
+      {
+        "id": "rw6-a-quad",
+        "name": "مصري / بنغلاديشي / هندي - رباعية",
+        "conditions": [
+          {
+            "field": "nationality",
+            "operator": "in",
+            "value": "مصري,بنغلاديشي,هندي"
+          },
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة رباعية"
+          }
+        ],
+        "price": 200,
+        "priceType": "perPerson",
+        "priority": 100,
+        "active": true
+      },
+      {
+        "id": "rw6-a-triple",
+        "name": "مصري / بنغلاديشي / هندي - ثلاثية",
+        "conditions": [
+          {
+            "field": "nationality",
+            "operator": "in",
+            "value": "مصري,بنغلاديشي,هندي"
+          },
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة ثلاثية"
+          }
+        ],
+        "price": 85,
+        "priceType": "perPerson",
+        "priority": 99,
+        "active": true
+      },
+      {
+        "id": "rw6-a-double",
+        "name": "مصري / بنغلاديشي / هندي - ثنائية",
+        "conditions": [
+          {
+            "field": "nationality",
+            "operator": "in",
+            "value": "مصري,بنغلاديشي,هندي"
+          },
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة ثنائية"
+          }
+        ],
+        "price": 95,
+        "priceType": "perPerson",
+        "priority": 98,
+        "active": true
+      },
+      {
+        "id": "rw6-a-single",
+        "name": "مصري / بنغلاديشي / هندي - فردية",
+        "conditions": [
+          {
+            "field": "nationality",
+            "operator": "in",
+            "value": "مصري,بنغلاديشي,هندي"
+          },
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة فردية"
+          }
+        ],
+        "price": 105,
+        "priceType": "perPerson",
+        "priority": 97,
+        "active": true
+      },
+      {
+        "id": "rw6-b-quad",
+        "name": "سوري / سوداني / نيجيري / أفغاني - رباعية",
+        "conditions": [
+          {
+            "field": "nationality",
+            "operator": "in",
+            "value": "سوري,سوداني,نيجيري,افغاني"
+          },
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة رباعية"
+          }
+        ],
+        "price": 110,
+        "priceType": "perPerson",
+        "priority": 96,
+        "active": true
+      },
+      {
+        "id": "rw6-b-triple",
+        "name": "سوري / سوداني / نيجيري / أفغاني - ثلاثية",
+        "conditions": [
+          {
+            "field": "nationality",
+            "operator": "in",
+            "value": "سوري,سوداني,نيجيري,افغاني"
+          },
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة ثلاثية"
+          }
+        ],
+        "price": 120,
+        "priceType": "perPerson",
+        "priority": 95,
+        "active": true
+      },
+      {
+        "id": "rw6-b-double",
+        "name": "سوري / سوداني / نيجيري / أفغاني - ثنائية",
+        "conditions": [
+          {
+            "field": "nationality",
+            "operator": "in",
+            "value": "سوري,سوداني,نيجيري,افغاني"
+          },
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة ثنائية"
+          }
+        ],
+        "price": 130,
+        "priceType": "perPerson",
+        "priority": 94,
+        "active": true
+      },
+      {
+        "id": "rw6-b-single",
+        "name": "سوري / سوداني / نيجيري / أفغاني - فردية",
+        "conditions": [
+          {
+            "field": "nationality",
+            "operator": "in",
+            "value": "سوري,سوداني,نيجيري,افغاني"
+          },
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة فردية"
+          }
+        ],
+        "price": 140,
+        "priceType": "perPerson",
+        "priority": 93,
+        "active": true
+      },
+      {
+        "id": "rw6-public-quad",
+        "name": "السعر الظاهر قبل اختيار الجنسية - رباعية",
+        "conditions": [
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة رباعية"
+          }
+        ],
+        "price": 75,
+        "priceType": "perPerson",
+        "priority": 60,
+        "active": true
+      },
+      {
+        "id": "rw6-public-triple",
+        "name": "السعر الظاهر قبل اختيار الجنسية - ثلاثية",
+        "conditions": [
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة ثلاثية"
+          }
+        ],
+        "price": 85,
+        "priceType": "perPerson",
+        "priority": 59,
+        "active": true
+      },
+      {
+        "id": "rw6-public-double",
+        "name": "السعر الظاهر قبل اختيار الجنسية - ثنائية",
+        "conditions": [
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة ثنائية"
+          }
+        ],
+        "price": 95,
+        "priceType": "perPerson",
+        "priority": 58,
+        "active": true
+      },
+      {
+        "id": "rw6-public-single",
+        "name": "السعر الظاهر قبل اختيار الجنسية - فردية",
+        "conditions": [
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة فردية"
+          }
+        ],
+        "price": 105,
+        "priceType": "perPerson",
+        "priority": 57,
+        "active": true
+      }
+    ],
+    "pricingProfile": {
+      "enabled": true,
+      "visaPrice": 45,
+      "busPrices": {
+        "6": 20,
+        "10": 30,
+        "11": 30
+      },
+      "makkahRoomPrices": {
+        "6": {
+          "غرفة رباعية": 25,
+          "غرفة ثلاثية": 30,
+          "غرفة ثنائية": 35,
+          "غرفة فردية": 40
+        },
+        "10": {
+          "غرفة رباعية": 35,
+          "غرفة ثلاثية": 40,
+          "غرفة ثنائية": 45,
+          "غرفة فردية": 50
+        },
+        "11": {
+          "غرفة رباعية": 35,
+          "غرفة ثلاثية": 40,
+          "غرفة ثنائية": 45,
+          "غرفة فردية": 50
+        }
+      },
+      "madinahRoomPrices": {
+        "6": {
+          "غرفة رباعية": 0,
+          "غرفة ثلاثية": 0,
+          "غرفة ثنائية": 0,
+          "غرفة فردية": 0
+        },
+        "10": {
+          "غرفة رباعية": 55,
+          "غرفة ثلاثية": 60,
+          "غرفة ثنائية": 65,
+          "غرفة فردية": 70
+        },
+        "11": {
+          "غرفة رباعية": 55,
+          "غرفة ثلاثية": 60,
+          "غرفة ثنائية": 65,
+          "غرفة فردية": 70
+        }
+      }
+    },
+    "createdAt": "2026-09-23T00:00:00Z",
+    "updatedAt": "2026-09-24T07:25:06.9197069Z"
+  },
+  {
+    "id": "rowad-company-11-days",
+    "name": "بكج رواد - رحلة 10 يوماً",
+    "shortTitle": "مكة والمدينة",
+    "description": "6 ليال مكة وليلتان المدينة، رحلة ثابتة يوم الأربعاء حسب دليل شركة رواد.",
+    "durationDays": 10,
+    "durationLabel": "10 أيام",
+    "imageUrl": "/landingpage/avion.png",
+    "basePrice": 95,
+    "visaSupplement": 0,
+    "currency": "د.ك",
+    "priceMode": "rules",
+    "status": "published",
+    "displayOrder": 2,
+    "transportOptions": [
+      {
+        "id": "bus",
+        "label": "باص",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      },
+      {
+        "id": "no-flight",
+        "label": "بدون طيران",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      }
+    ],
+    "roomTypes": [
+      {
+        "id": "quad",
+        "label": "غرفة رباعية",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      },
+      {
+        "id": "triple",
+        "label": "غرفة ثلاثية",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      },
+      {
+        "id": "double",
+        "label": "غرفة ثنائية",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      },
+      {
+        "id": "single",
+        "label": "غرفة فردية",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      }
+    ],
+    "departureDates": [
+      "2026-09-30",
+      "2026-10-07",
+      "2026-10-14",
+      "2026-10-21"
+    ],
+    "pricingRules": [
+      {
+        "id": "rw11-public-quad",
+        "name": "السعر الظاهر قبل اختيار الجنسية - رباعية",
+        "conditions": [
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة رباعية"
+          }
+        ],
+        "price": 95,
+        "priceType": "perPerson",
+        "priority": 70,
+        "active": true
+      },
+      {
+        "id": "rw11-public-triple",
+        "name": "السعر الظاهر قبل اختيار الجنسية - ثلاثية",
+        "conditions": [
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة ثلاثية"
+          }
+        ],
+        "price": 100,
+        "priceType": "perPerson",
+        "priority": 69,
+        "active": true
+      },
+      {
+        "id": "rw11-public-double",
+        "name": "السعر الظاهر قبل اختيار الجنسية - ثنائية",
+        "conditions": [
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة ثنائية"
+          }
+        ],
+        "price": 135,
+        "priceType": "perPerson",
+        "priority": 68,
+        "active": true
+      },
+      {
+        "id": "rw11-public-single",
+        "name": "السعر الظاهر قبل اختيار الجنسية - فردية",
+        "conditions": [
+          {
+            "field": "roomType",
+            "operator": "equals",
+            "value": "غرفة فردية"
+          }
+        ],
+        "price": 280,
+        "priceType": "perPerson",
+        "priority": 67,
+        "active": true
+      }
+    ],
+    "pricingProfile": {
+      "enabled": true,
+      "visaPrice": 45,
+      "busPrices": {
+        "6": 20,
+        "10": 30,
+        "11": 30
+      },
+      "makkahRoomPrices": {
+        "6": {
+          "غرفة رباعية": 25,
+          "غرفة ثلاثية": 30,
+          "غرفة ثنائية": 35,
+          "غرفة فردية": 40
+        },
+        "10": {
+          "غرفة رباعية": 35,
+          "غرفة ثلاثية": 40,
+          "غرفة ثنائية": 45,
+          "غرفة فردية": 50
+        },
+        "11": {
+          "غرفة رباعية": 35,
+          "غرفة ثلاثية": 40,
+          "غرفة ثنائية": 45,
+          "غرفة فردية": 50
+        }
+      },
+      "madinahRoomPrices": {
+        "6": {
+          "غرفة رباعية": 0,
+          "غرفة ثلاثية": 0,
+          "غرفة ثنائية": 0,
+          "غرفة فردية": 0
+        },
+        "10": {
+          "غرفة رباعية": 55,
+          "غرفة ثلاثية": 60,
+          "غرفة ثنائية": 65,
+          "غرفة فردية": 70
+        },
+        "11": {
+          "غرفة رباعية": 55,
+          "غرفة ثلاثية": 60,
+          "غرفة ثنائية": 65,
+          "غرفة فردية": 70
+        }
+      }
+    },
+    "createdAt": "2026-09-23T00:00:00Z",
+    "updatedAt": "2026-09-28T21:30:19.0825212Z"
+  },
+  {
+    "id": "umrah-flexible",
+    "name": "باقة العمرة المرنة",
+    "shortTitle": "اختر رحلتك",
+    "description": "باقة عمرة مرنة يختار فيها المسافر بداية ونهاية الرحلة.",
+    "durationDays": 6,
+    "durationLabel": "6 أيام فأكثر",
+    "imageUrl": "/landingpage/avion.png",
+    "basePrice": 75,
+    "visaSupplement": 0,
+    "currency": "د.ك",
+    "priceMode": "rules",
+    "status": "published",
+    "displayOrder": 3,
+    "transportOptions": [
+      {
+        "id": "private-car",
+        "label": "سيارة خاصة",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      }
+    ],
+    "roomTypes": [
+      {
+        "id": "quad",
+        "label": "غرفة رباعية",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      },
+      {
+        "id": "triple",
+        "label": "غرفة ثلاثية",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      },
+      {
+        "id": "double",
+        "label": "غرفة ثنائية",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      },
+      {
+        "id": "single",
+        "label": "غرفة فردية",
+        "active": true,
+        "supplement": 0,
+        "price": null
+      }
+    ],
+    "departureDates": [],
+    "pricingRules": [
+      {
+        "id": "rule-flex-6-default",
+        "name": "السعر الأساسي - 6 أيام",
+        "conditions": [
+          {
+            "field": "durationDays",
+            "operator": "equals",
+            "value": "6"
+          }
+        ],
+        "price": 75,
+        "priceType": "perPerson",
+        "priority": 90,
+        "active": true
+      },
+      {
+        "id": "rule-flex-10-default",
+        "name": "السعر الأساسي - 10 أيام فأكثر",
+        "conditions": [
+          {
+            "field": "durationDays",
+            "operator": "equals",
+            "value": "10"
+          }
+        ],
+        "price": 95,
+        "priceType": "perPerson",
+        "priority": 90,
+        "active": true
+      },
+      {
+        "id": "rule-flex-default",
+        "name": "السعر الافتراضي",
+        "conditions": [],
+        "price": 75,
+        "priceType": "perPerson",
+        "priority": 1,
+        "active": true
+      }
+    ],
+    "pricingProfile": {
+      "enabled": true,
+      "visaPrice": 20,
+      "busPrices": {
+        "6": 0,
+        "10": 0
+      },
+      "makkahRoomPrices": {
+        "6": {
+          "غرفة رباعية": 25,
+          "غرفة ثلاثية": 30,
+          "غرفة ثنائية": 35,
+          "غرفة فردية": 40
+        },
+        "10": {
+          "غرفة رباعية": 35,
+          "غرفة ثلاثية": 40,
+          "غرفة ثنائية": 45,
+          "غرفة فردية": 50
+        }
+      },
+      "madinahRoomPrices": {
+        "6": {
+          "غرفة رباعية": 0,
+          "غرفة ثلاثية": 0,
+          "غرفة ثنائية": 0,
+          "غرفة فردية": 0
+        },
+        "10": {
+          "غرفة رباعية": 55,
+          "غرفة ثلاثية": 60,
+          "غرفة ثنائية": 65,
+          "غرفة فردية": 70
+        }
+      }
+    },
+    "createdAt": "2026-10-02T00:00:00Z",
+    "updatedAt": "2026-10-02T00:00:00Z"
+  }
+]

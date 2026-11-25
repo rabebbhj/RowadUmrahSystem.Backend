@@ -121,6 +121,22 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 traveler.ResidenceNumber));
         }
 
+        /// <summary>Is this passport number already on an active (holding) booking?</summary>
+        [Authorize]
+        [HttpGet("check-passport")]
+        public async Task<ActionResult> CheckPassport([FromQuery, Required] string passportNumber)
+        {
+            if (string.IsNullOrWhiteSpace(passportNumber)) return Ok(new { duplicate = false });
+            var now = DateTime.UtcNow;
+            var holding = BookingFlowService.Holding(_context.Bookings, now).Select(booking => booking.Id);
+            var match = await _context.BookingTravelers.AsNoTracking()
+                .Where(link => holding.Contains(link.BookingId) && link.Traveler.PassportNumber == passportNumber && !link.Traveler.IsDeleted)
+                .Select(link => new { link.Traveler.FullName, link.Booking.PackageName, link.Booking.DepartureDate })
+                .FirstOrDefaultAsync();
+            if (match == null) return Ok(new { duplicate = false });
+            return Ok(new { duplicate = true, fullName = match.FullName, packageName = match.PackageName, departureDate = match.DepartureDate });
+        }
+
         /// <summary>
         /// Price lines and total for a draft, with blocking errors and notices (seats included).
         /// With paymentMethods=true (signed in), the methods MyFatoorah offers for that total.

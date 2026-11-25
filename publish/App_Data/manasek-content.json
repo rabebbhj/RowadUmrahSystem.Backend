@@ -1,0 +1,584 @@
+{
+  "version": 1,
+  "updatedAt": "2026-10-21T00:23:03.1564204Z",
+  "types": [
+    {
+      "id": "single",
+      "title": "العمرة المفردة",
+      "caption": "العمرة فقط بدون حج",
+      "image": "/landingpage/kaaba.webp"
+    },
+    {
+      "id": "tamattu",
+      "title": "العمرة مع الحج",
+      "caption": "العمرة والحج معاً (التمتع)",
+      "image": "/landingpage/auth-login-bg.webp"
+    }
+  ],
+  "steps": [
+    {
+      "id": "ihram",
+      "order": 1,
+      "title": "الإحرام",
+      "caption": "النية والتلبية من الميقات",
+      "icon": "person-outline",
+      "image": "/landingpage/auth-mosque-bg.webp",
+      "explanation": [
+        "الاغتسال والتنظف",
+        "ارتداء ملابس الإحرام البيضاء",
+        "أداء ركعتي سنة الإحرام",
+        "النية وقول التلبية"
+      ],
+      "duas": [
+        {
+          "title": "التلبية",
+          "arabic": "لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لَا شَرِيكَ لَكَ.",
+          "transliteration": "Labbaik Allahumma labbaik, labbaika la sharika laka labbaik, inna alhamda wa ni'mata laka wal-mulk, la sharika lak."
+        }
+      ],
+      "notes": [
+        "تأكد من الميقات المخصص لرحلتك مع المشرف"
+      ],
+      "tool": null,
+      "appliesTo": [
+        "single",
+        "tamattu"
+      ],
+      "pages": [
+        {
+          "id": "preparation",
+          "title": "الاستعداد للإحرام",
+          "subtitle": "تهيأ بخشوع لتبدأ رحلتك المباركة",
+          "image": "/landingpage/hero-kaaba-premium.webp",
+          "cta": "تم الاستعداد",
+          "blocks": [
+            {
+              "kind": "checklist",
+              "title": "قبل أن تُحرم",
+              "subtitle": "جهز نفسك بدنياً ومعنوياً قبل نية الإحرام",
+              "icon": "clipboard-outline",
+              "image": null,
+              "text": null,
+              "highlight": null,
+              "items": [
+                {
+                  "title": "الاغتسال",
+                  "caption": "للنظافة والاستعداد للطاعة",
+                  "icon": "water-outline"
+                },
+                {
+                  "title": "تقليم الأظافر",
+                  "caption": "من سنن الفطرة والنظافة",
+                  "icon": "cut-outline"
+                },
+                {
+                  "title": "التطيب للرجال قبل النية",
+                  "caption": "يُستحب التطيب قبل الإحرام للرجال",
+                  "icon": "flask-outline"
+                },
+                {
+                  "title": "إزالة ما يحتاج من الشعر",
+                  "caption": "كالشعر الزائد تحت الإبطين وما شابه",
+                  "icon": "cut-outline"
+                },
+                {
+                  "title": "التأكد من الميقات",
+                  "caption": "معرفة الميقات حسب موقعك وطريقك",
+                  "icon": "location-outline"
+                }
+              ],
+              "groups": null
+            },
+            {
+              "kind": "checkgrid",
+              "title": "قائمة التجهيز",
+              "subtitle": "أهم المستلزمات التي ستحتاجها في هذه المرحلة",
+              "icon": "briefcase-outline",
+              "image": null,
+              "text": null,
+              "highlight": null,
+              "items": [
+                {
+                  "title": "سجادة صغيرة",
+                  "caption": null,
+                  "icon": "albums-outline"
+                },
+                {
+                  "title": "زجاجة ماء",
+                  "caption": null,
+                  "icon": "water-outline"
+                },
+                {
+                  "title": "حقيبة خفيفة",
+                  "caption": null,
+                  "icon": "bag-handle-outline"
+                },
+                {
+                  "title": "مظلة",
+                  "caption": null,
+                  "icon": "umbrella-outline"
+                }
+              ],
+              "groups": null
+            }
+          ]
+        },
+        {
+          "id": "attire",
+          "title": "ملابس الإحرام",
+          "subtitle": "التهيؤ لنسك العمرة",
+          "image": "/landingpage/kaaba.webp",
+          "cta": "الانتقال إلى النية والتلبية",
+          "blocks": [
+            {
+              "kind": "attire",
+              "title": null,
+              "subtitle": null,
+              "icon": null,
+              "image": null,
+              "text": null,
+              "highlight": null,
+              "items": null,
+              "groups": [
+                {
+                  "title": "للرجال",
+                  "caption": "إزار ورداء أبيضان",
+                  "image": "/landingpage/kaaba.webp",
+                  "icon": "man-outline",
+                  "items": [
+                    {
+                      "title": "إزار ورداء أبيضان",
+                      "caption": null,
+                      "icon": "shirt-outline"
+                    },
+                    {
+                      "title": "غير مخيطين",
+                      "caption": null,
+                      "icon": "close-circle-outline"
+                    },
+                    {
+                      "title": "صندل مناسب",
+                      "caption": null,
+                      "icon": "footsteps-outline"
+                    }
+                  ]
+                },
+                {
+                  "title": "للنساء",
+                  "caption": "ببساطة واحتشام",
+                  "image": "/landingpage/auth-mosque-bg.webp",
+                  "icon": "woman-outline",
+                  "items": [
+                    {
+                      "title": "ملابس محتشمة عادية",
+                      "caption": null,
+                      "icon": "shirt-outline"
+                    },
+                    {
+                      "title": "دون لون محدد",
+                      "caption": null,
+                      "icon": "color-palette-outline"
+                    },
+                    {
+                      "title": "من دون تبرج",
+                      "caption": null,
+                      "icon": "sparkles-outline"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "notes",
+              "title": "ملاحظات",
+              "subtitle": null,
+              "icon": "document-text-outline",
+              "image": null,
+              "text": null,
+              "highlight": null,
+              "items": [
+                {
+                  "title": "تجنب تغطية الرأس للرجال",
+                  "caption": null,
+                  "icon": "man-outline"
+                },
+                {
+                  "title": "تغطية الوجه محل خلاف للنساء بحسب الحاجة",
+                  "caption": null,
+                  "icon": "alert-circle-outline"
+                },
+                {
+                  "title": "الراحة والستر أولاً",
+                  "caption": null,
+                  "icon": "heart-outline"
+                }
+              ],
+              "groups": null
+            }
+          ]
+        },
+        {
+          "id": "intention",
+          "title": "النية والتلبية",
+          "subtitle": "ابدأ رحلتك بخشوع .. من الميقات",
+          "image": "/landingpage/auth-login-bg.webp",
+          "cta": "بدأت التلبية",
+          "blocks": [
+            {
+              "kind": "intention",
+              "title": "من الميقات",
+              "subtitle": "استحضر نية العمرة خالصةً لوجه الله تعالى",
+              "icon": "location-outline",
+              "image": "/landingpage/auth-mosque-bg.webp",
+              "text": "انوِ العمرة بقلبك",
+              "highlight": "لَبَّيْكَ اللَّهُمَّ عُمْرَةً",
+              "items": null,
+              "groups": null
+            },
+            {
+              "kind": "recitation",
+              "title": "ردد الآن",
+              "subtitle": "واستمع إلى التلبية بصوت واضح",
+              "icon": "pulse-outline",
+              "image": null,
+              "text": "لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ، إِنَّ الْحَمْدَ وَالنِّعْمَةَ لَكَ وَالْمُلْكَ، لَا شَرِيكَ لَكَ.",
+              "highlight": null,
+              "items": null,
+              "groups": null
+            },
+            {
+              "kind": "tip",
+              "title": "تنبيه",
+              "subtitle": null,
+              "icon": "bulb-outline",
+              "image": null,
+              "text": "استمر في التلبية من وقت الإحرام وحتى بدء الطواف في المسجد الحرام.",
+              "highlight": null,
+              "items": null,
+              "groups": null
+            }
+          ]
+        },
+        {
+          "id": "prohibitions",
+          "title": "محظورات الإحرام",
+          "subtitle": "لتحافظ على إحرامك وتؤدي مناسكك بطمأنينة",
+          "image": "/landingpage/hero-kaaba-premium.webp",
+          "cta": "الانتقال إلى الطواف",
+          "blocks": [
+            {
+              "kind": "list",
+              "title": "محظورات الإحرام",
+              "subtitle": "يجب تجنب المحظورات التالية أثناء الإحرام",
+              "icon": "ban-outline",
+              "image": null,
+              "text": null,
+              "highlight": null,
+              "items": [
+                {
+                  "title": "عدم قص الشعر أو الأظافر",
+                  "caption": "يمنع قص الشعر وبعضه أو الأظافر أثناء الإحرام",
+                  "icon": "cut-outline"
+                },
+                {
+                  "title": "عدم استعمال الطيب بعد الإحرام",
+                  "caption": "يمنع استعمال العطور والطيب ومشتقاته",
+                  "icon": "flask-outline"
+                },
+                {
+                  "title": "عدم عقد النكاح أو الخطبة",
+                  "caption": "يمنع عقد النكاح أو الخطبة أو التعرض لهما",
+                  "icon": "ellipse-outline"
+                },
+                {
+                  "title": "تجنب الجماع ومقدماته",
+                  "caption": "يمنع الجماع وكل ما يؤدي إليه من مقدمات",
+                  "icon": "people-outline"
+                },
+                {
+                  "title": "اجتناب الصيد البري",
+                  "caption": "يمنع صيد الحيوانات البرية وقت الإحرام",
+                  "icon": "paw-outline"
+                },
+                {
+                  "title": "للرجال: عدم تغطية الرأس ولبس المخيط",
+                  "caption": "يمنع على الرجل تغطية الرأس ولبس الملابس المخيطة",
+                  "icon": "shirt-outline"
+                }
+              ],
+              "groups": null
+            },
+            {
+              "kind": "success",
+              "title": "أنت جاهز الآن",
+              "subtitle": null,
+              "icon": null,
+              "image": "/landingpage/kaaba.webp",
+              "text": "بعد إتمام الإحرام يمكنك التوجه إلى الطواف حول الكعبة.",
+              "highlight": null,
+              "items": null,
+              "groups": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tawaf",
+      "order": 2,
+      "title": "الطواف",
+      "caption": "سبعة أشواط حول الكعبة",
+      "icon": "cube-outline",
+      "image": "/landingpage/kaaba.webp",
+      "explanation": [
+        "ابدأ من الحجر الأسود واستلمه إن أمكن",
+        "طف حول الكعبة سبعة أشواط",
+        "اجعل الكعبة على يسارك دائماً",
+        "اقرأ الأدعية المأثورة أثناء الطواف"
+      ],
+      "duas": [
+        {
+          "title": "بين الركن اليماني والحجر الأسود",
+          "arabic": "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ.",
+          "transliteration": null
+        }
+      ],
+      "notes": [
+        "سجّل كل شوط بنفسك في العداد؛ التطبيق لا يتحقق تلقائياً من اكتمال الشوط"
+      ],
+      "tool": "tawaf-counter",
+      "appliesTo": [
+        "single",
+        "tamattu"
+      ],
+      "pages": null
+    },
+    {
+      "id": "sai",
+      "order": 3,
+      "title": "السعي",
+      "caption": "بين الصفا والمروة",
+      "icon": "walk-outline",
+      "image": "/landingpage/paysage.webp",
+      "explanation": [
+        "ابدأ من جبل الصفا",
+        "امشِ إلى جبل المروة",
+        "يُحتسب الذهاب شوطاً والإياب شوطاً",
+        "أكمل سبعة أشواط"
+      ],
+      "duas": [
+        {
+          "title": "عند الصفا",
+          "arabic": "إِنَّ الصَّفَا وَالْمَرْوَةَ مِنْ شَعَائِرِ اللَّهِ.",
+          "transliteration": null
+        }
+      ],
+      "notes": [
+        "يبدأ الشوط الأول من الصفا وينتهي السابع عند المروة"
+      ],
+      "tool": "sai-counter",
+      "appliesTo": [
+        "single",
+        "tamattu"
+      ],
+      "pages": null
+    },
+    {
+      "id": "halq",
+      "order": 4,
+      "title": "الحلق أو التقصير",
+      "caption": "إنهاء مناسك العمرة",
+      "icon": "cut-outline",
+      "image": "/landingpage/dormir.webp",
+      "explanation": [
+        "يفضل الحلق للرجال أو التقصير بإزالة جزء من الشعر",
+        "بعد ذلك تتحلل من الإحرام",
+        "تكون العمرة قد تمت بحمد الله"
+      ],
+      "duas": [
+        {
+          "title": "بعد إتمام العمرة",
+          "arabic": "اللَّهُمَّ تَقَبَّلْ مِنَّا وَمِنْكُمْ صَالِحَ الْأَعْمَالِ.",
+          "transliteration": null
+        }
+      ],
+      "notes": [],
+      "tool": "halq-choice",
+      "appliesTo": [
+        "single",
+        "tamattu"
+      ],
+      "pages": null
+    }
+  ],
+  "preparation": [
+    "جواز السفر ساري المفعول والتأشيرة",
+    "ملابس الإحرام وحذاء مريح",
+    "رقم مشرف الرحلة وعنوان الفندق",
+    "زجاجة ماء وأدوية شخصية"
+  ],
+  "tips": [
+    "احرص على شرب الماء",
+    "اتبع إرشادات المنظمين",
+    "يمكنك سؤال مساعد رواد في أي وقت"
+  ],
+  "completion": {
+    "title": "تمت العمرة بنجاح",
+    "message": "تقبل الله منا ومنكم",
+    "verse": "﴿ رَبَّنَا تَقَبَّلْ مِنَّا إِنَّكَ أَنتَ السَّمِيعُ الْعَلِيمُ ﴾"
+  },
+  "disclaimer": "يرجى مراجعة المحتوى الشرعي مع مرشد ديني موثوق؛ هذا الدليل للتيسير ولا يغني عن السؤال.",
+  "tools": {
+    "reviewNote": "المحتوى للمراجعة من [جهة شرعية معتمدة] قبل النشر.",
+    "guideNote": "المحتوى مراجع من [جهة شرعية معتمدة]. للمسائل الخاصة اسأل مشرف رحلتك أو أهل العلم.",
+    "guide": [
+      {
+        "stepId": "ihram",
+        "summary": "من الميقات: نية ولبس وتلبية.",
+        "keyPoints": [
+          "اغتسل وتطيّب (للرجال) قبل النية.",
+          "الرجال: إزار ورداء. النساء: لباس محتشم.",
+          "انوِ العمرة وأكثِر من التلبية."
+        ]
+      },
+      {
+        "stepId": "tawaf",
+        "summary": "7 أشواط حول الكعبة تبدأ وتنتهي عند الحجر الأسود.",
+        "keyPoints": [
+          "قبل الطواف: ادعُ بدعاء دخول مكة.",
+          "للرجال: الاضطباع (الرداء تحت الكتف الأيمن) والرمل في الأشواط الثلاثة الأولى.",
+          "الكعبة عن يسارك طوال الطواف.",
+          "بعد الطواف: صلِّ ركعتين خلف مقام إبراهيم، ثم أعِد الرداء على كتفك الأيمن."
+        ]
+      },
+      {
+        "stepId": "sai",
+        "summary": "7 أشواط بين الصفا والمروة.",
+        "keyPoints": [
+          "ابدأ بالصفا واختم بالمروة.",
+          "7 أشواط.",
+          "الرجال: أسرِع بين العلمين."
+        ]
+      },
+      {
+        "stepId": "halq",
+        "summary": "به تنتهي العمرة.",
+        "keyPoints": [
+          "الرجل: حلق أو تقصير من كل الرأس.",
+          "المرأة: قدر أنملة.",
+          "به تنتهي العمرة ويحلّ الإحرام."
+        ]
+      }
+    ],
+    "mistakes": [
+      {
+        "stepId": "ihram",
+        "step": "الإحرام",
+        "wrong": "تجاوز الميقات دون إحرام",
+        "right": "أحرِم من الميقات، وفي الطائرة عند محاذاته."
+      },
+      {
+        "stepId": "tawaf",
+        "step": "الطواف",
+        "wrong": "الطواف من داخل حِجر إسماعيل",
+        "right": "طُف من خلف الحِجر، فهو من الكعبة."
+      },
+      {
+        "stepId": "tawaf",
+        "step": "الطواف",
+        "wrong": "المزاحمة وإيذاء الناس لتقبيل الحجر",
+        "right": "الإشارة إلى الحجر من بعيد تكفي."
+      },
+      {
+        "stepId": "sai",
+        "step": "السعي",
+        "wrong": "البدء بالمروة",
+        "right": "ابدأ السعي بالصفا واختمه بالمروة."
+      },
+      {
+        "stepId": "halq",
+        "step": "التقصير",
+        "wrong": "قصّ شعرات قليلة من جهة واحدة",
+        "right": "للرجل: التقصير من جميع الرأس أو الحلق."
+      }
+    ],
+    "prohibitions": {
+      "statusTitle": "أنت في حالة إحرام",
+      "statusText": "تنتهي بعد الحلق أو التقصير",
+      "common": [
+        "إزالة الشعر",
+        "تقليم الأظافر",
+        "الطيب بعد الإحرام",
+        "قتل الصيد",
+        "عقد النكاح",
+        "الجماع ومقدماته"
+      ],
+      "men": [
+        "تغطية الرأس",
+        "لبس المخيط"
+      ],
+      "women": [
+        "النقاب",
+        "القفّازان"
+      ],
+      "advice": "وقعتَ في محظور ناسياً أو جاهلاً؟ لا تقلق واسأل مشرف رحلتك."
+    },
+    "duaMoments": [
+      {
+        "id": "ihram",
+        "label": "الإحرام",
+        "stepIds": [
+          "ihram"
+        ]
+      },
+      {
+        "id": "entry",
+        "label": "دخول مكة",
+        "stepIds": []
+      },
+      {
+        "id": "tawaf",
+        "label": "الطواف",
+        "stepIds": [
+          "tawaf"
+        ]
+      },
+      {
+        "id": "sai",
+        "label": "السعي",
+        "stepIds": [
+          "sai"
+        ]
+      },
+      {
+        "id": "travel",
+        "label": "السفر",
+        "stepIds": []
+      }
+    ],
+    "extraDuas": [
+      {
+        "moment": "entry",
+        "title": "دعاء دخول مكة",
+        "text": "اللهم هذا حرمك وأمنك، فحرمني على النار، وأمني من عذابك يوم تبعث عبادك، واجعلني من أوليائك وأهل طاعتك.",
+        "source": "للمراجعة من جهة شرعية معتمدة",
+        "audioUrl": null
+      },
+      {
+        "moment": "travel",
+        "title": "دعاء السفر",
+        "text": "سبحان الذي سخّر لنا هذا وما كنا له مقرنين، وإنا إلى ربنا لمنقلبون.",
+        "source": "سورة الزخرف (43): 13–14 — للمراجعة من جهة معتمدة",
+        "audioUrl": null
+      }
+    ],
+    "counterTips": {
+      "tawafEarly": "للرجال: الرَّمَل في الأشواط الثلاثة الأولى إن تيسّر.",
+      "tawafOther": "لا يوجد دعاء مخصّص لكل شوط، ادعُ بما تشاء واذكر الله.",
+      "tawafDone": "تقبّل الله طوافك. صلِّ ركعتين خلف المقام إن تيسّر، ثم توجّه إلى السعي.",
+      "saiGreen": "للرجال: الإسراع",
+      "saiDone": "تقبّل الله سعيك. التالي: الحلق أو التقصير.",
+      "doubtRule": null
+    }
+  }
+}
