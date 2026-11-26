@@ -8,7 +8,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
     [Route("api/package-pricing")]
     public class PackagePricingApiController : ControllerBase
     {
-        private static readonly string[] PackageDays = { "10 أيام", "6 أيام" };
+        private static readonly string[] PackageDays = { "11 يوماً", "6 أيام" };
         private static readonly string[] Nationalities =
         {
             "هندي",

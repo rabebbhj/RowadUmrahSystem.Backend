@@ -341,11 +341,11 @@
   },
   {
     "id": "rowad-company-11-days",
-    "name": "بكج رواد - رحلة 10 يوماً",
+    "name": "بكج رواد - رحلة 11 يوماً",
     "shortTitle": "مكة والمدينة",
     "description": "6 ليال مكة وليلتان المدينة، رحلة ثابتة يوم الأربعاء حسب دليل شركة رواد.",
-    "durationDays": 10,
-    "durationLabel": "10 أيام",
+    "durationDays": 11,
+    "durationLabel": "11 يوماً",
     "imageUrl": "/landingpage/avion.png",
     "basePrice": 95,
     "visaSupplement": 0,
@@ -590,13 +590,13 @@
         "active": true
       },
       {
-        "id": "rule-flex-10-default",
-        "name": "السعر الأساسي - 10 أيام فأكثر",
+        "id": "rule-flex-11-default",
+        "name": "السعر الأساسي - 11 يوماً فأكثر",
         "conditions": [
           {
             "field": "durationDays",
             "operator": "equals",
-            "value": "10"
+            "value": "11"
           }
         ],
         "price": 95,

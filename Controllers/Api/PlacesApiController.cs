@@ -73,6 +73,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 source = result.Source switch
                 {
                     PlaceSource.Google => "google",
+                    PlaceSource.OpenStreetMap => "openstreetmap",
                     PlaceSource.Cache => "cache",
                     PlaceSource.QuotaReached => "quota",
                     PlaceSource.NotConfigured => "not-configured",
@@ -120,6 +121,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                 source = result.Source switch
                 {
                     PlaceSource.Google => "google",
+                    PlaceSource.OpenStreetMap => "openstreetmap",
                     PlaceSource.Cache => "cache",
                     PlaceSource.QuotaReached => "quota",
                     PlaceSource.NotConfigured => "not-configured",

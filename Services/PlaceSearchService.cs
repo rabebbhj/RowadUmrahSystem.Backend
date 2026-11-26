@@ -38,6 +38,7 @@ public sealed record PlaceCoordinate(double Latitude, double Longitude);
 public enum PlaceSource
 {
     Google,
+    OpenStreetMap,
     Cache,
     NotConfigured,
     QuotaReached,

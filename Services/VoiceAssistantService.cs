@@ -164,9 +164,12 @@ public sealed class VoiceAssistantService(HttpClient client, IOptions<VoiceAssis
         foreach (var turn in (input.History ?? []).TakeLast(8))
             messages.Add(new { role = turn.Role, content = turn.Content });
         messages.Add(new { role = "user", content = input.Message });
+        var isVoice = input.Voice;
+        if (isVoice)
+            messages.Add(new { role = "system", content = "المستخدم يتحدث بالصوت. أجب بجملتين أو ثلاث فقط. كن مختصراً وواضحاً. لا تكتب قوائم طويلة. إذا طلب دعاءً اكتب النص فقط بدون شرح." });
         using var request = new HttpRequestMessage(HttpMethod.Post, "chat/completions")
         {
-            Content = JsonContent.Create(new { model = settings.ChatModel, messages, temperature = .45, max_completion_tokens = 2000 })
+            Content = JsonContent.Create(new { model = settings.ChatModel, messages, temperature = .45, max_completion_tokens = isVoice ? 400 : 2000 })
         };
         using var response = await SendAsync(request, ct);
         using var json = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(ct), cancellationToken: ct);

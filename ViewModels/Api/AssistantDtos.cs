@@ -16,6 +16,7 @@ public sealed class AssistantChatRequest
     [MaxLength(8)]
     public AssistantTurn[]? History { get; set; }
     public AssistantTripContext? Context { get; set; }
+    public bool Voice { get; set; }
 }
 /// <summary>
 /// What the mobile app knows about the pilgrim's trip. It is supplied by the client,

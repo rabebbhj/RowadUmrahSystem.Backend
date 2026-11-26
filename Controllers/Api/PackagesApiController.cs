@@ -281,7 +281,7 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         }
 
         private const string FlexibleUmrahPackageId = "umrah-flexible";
-        private const string LegacyUmrah10PackageId = "umrah-10-days";
+        private const string LegacyUmrah10PackageId = "umrah-11-days";
         private const string LegacyUmrah6PackageId = "umrah-6-days";
 
         private static List<TravelPackageDto> MergeFlexibleUmrahPackages(List<TravelPackageDto> packages)
@@ -446,9 +446,9 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     90,
                     true),
                 new(
-                    "rule-flex-10-default",
-                    "السعر الأساسي - 10 أيام فأكثر",
-                    new List<PricingConditionDto> { new("durationDays", "equals", "10") },
+                    "rule-flex-11-default",
+                    "السعر الأساسي - 11 يوماً فأكثر",
+                    new List<PricingConditionDto> { new("durationDays", "equals", "11") },
                     longPackage.BasePrice,
                     "perPerson",
                     90,
@@ -471,12 +471,12 @@ namespace RowadUmrahSystem.Web.Controllers.Api
             return new List<TravelPackageDto>
             {
                 NormalizePackage(new TravelPackageDto(
-                    "umrah-10-days",
-                    "باقة العمرة 10 أيام",
+                    "umrah-11-days",
+                    "باقة العمرة 11 يوماً",
                     "رحلة متكاملة لا تنسى",
                     "باقة عمرة تشمل الإقامة والتنقلات وخدمة المتابعة.",
-                    10,
-                    "10 أيام",
+                    11,
+                    "11 يوماً",
                     "/landingpage/avion.webp",
                     95m,
                     0m,
@@ -499,8 +499,8 @@ namespace RowadUmrahSystem.Web.Controllers.Api
                     new List<string> { "2026-10-07", "2026-10-14", "2026-10-21" },
                     new List<PricingRuleDto>
                     {
-                        new("rule-10-default", "السعر الأساسي - 10 أيام", Array.Empty<PricingConditionDto>(), 95m, "perPerson", 10, true),
-                        new("rule-10-double", "غرفة ثنائية - باص", new List<PricingConditionDto>
+                        new("rule-11-default", "السعر الأساسي - 11 يوماً", Array.Empty<PricingConditionDto>(), 95m, "perPerson", 10, true),
+                        new("rule-11-double", "غرفة ثنائية - باص", new List<PricingConditionDto>
                         {
                             new("roomType", "equals", "غرفة مزدوجة"),
                             new("transport", "equals", "باص")

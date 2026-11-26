@@ -192,7 +192,7 @@ public sealed class WalkingRouteService : IWalkingRouteService
             var route = await CallOsrmAsync(fromLat, fromLng, toLat, toLng, ct);
             if (route is null) return new WalkingRouteResult(PlaceSource.Unavailable, null, 0);
             cache[key] = (DateTimeOffset.UtcNow.AddHours(_settings.CacheHours), route);
-            return new WalkingRouteResult(PlaceSource.Google, route, 0);
+            return new WalkingRouteResult(PlaceSource.OpenStreetMap, route, 0);
         }
         catch (Exception error) when (error is not OperationCanceledException)
         {
