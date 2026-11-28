@@ -1,0 +1,166 @@
+{
+  "version": "01",
+  "status": "draft",
+  "verifiedAgainstSupplierContracts": false,
+  "currency": "د.ك",
+
+  "_readme": [
+    "Appendix (ب) of the Terms requires this matrix to exist BEFORE the service is sold commercially,",
+    "and forbids adopting any percentage, amount or 'non-refundable' label that has not been matched",
+    "against the actual supplier contracts: « ويجب ألا تعتمد أي نسبة أو مبلغ أو وصف (غير قابل",
+    "للاسترداد) إلا بعد مطابقته مع العقود الفعلية مع الموردين وطبيعة الخدمة والقواعد القانونية الآمرة ».",
+    "",
+    "So this file ships with the STRUCTURE filled and the commercial numbers deliberately empty.",
+    "A component with no matching rule is reported as 'undetermined' — never as zero refund and never",
+    "as a full refund. That is the point: the software refuses to invent a figure, and the back office",
+    "is handed the exact list of what is still missing.",
+    "",
+    "Set status to 'active' and verifiedAgainstSupplierContracts to true only once every rule below",
+    "carries a basis taken from a real contract. RefundCalculator refuses to quote a customer-facing",
+    "refund while status is 'draft'."
+  ],
+
+  "components": [
+    {
+      "id": "visa",
+      "label": "التأشيرة والرسوم الحكومية",
+      "quoteLines": ["visa"],
+      "stages": ["not_submitted", "submitted", "issued"],
+      "article": "73"
+    },
+    {
+      "id": "ticket",
+      "label": "تذكرة الطيران",
+      "quoteLines": [],
+      "stages": ["not_issued", "issued", "flown"],
+      "article": "74"
+    },
+    {
+      "id": "hotel",
+      "label": "الفندق والإقامة",
+      "quoteLines": ["supplements"],
+      "stages": ["not_confirmed", "confirmed", "stayed"],
+      "article": "74"
+    },
+    {
+      "id": "transport",
+      "label": "النقل والحافلات",
+      "quoteLines": ["bus"],
+      "stages": ["not_confirmed", "confirmed", "used"],
+      "article": "74"
+    },
+    {
+      "id": "insurance",
+      "label": "التأمين",
+      "quoteLines": [],
+      "stages": ["not_issued", "issued"],
+      "article": "74"
+    },
+    {
+      "id": "package",
+      "label": "الباقة",
+      "quoteLines": ["pack"],
+      "stages": ["not_started", "confirmed", "performed"],
+      "article": "72",
+      "bundled": true,
+      "_note": [
+        "The 'pack' price line bundles several of the components article 72 requires to be settled",
+        "SEPARATELY (ticket, hotel, agency service). Until the agency declares how that single price",
+        "divides, this component cannot be settled per component and the calculator reports it as",
+        "undetermined. Fill 'split' below with the real share of each component."
+      ],
+      "split": []
+    }
+  ],
+
+  "_splitExample": {
+    "_comment": "Shape expected in components[].split once the real shares are known.",
+    "example": [
+      { "component": "ticket", "share": 0.0, "basis": "" },
+      { "component": "hotel", "share": 0.0, "basis": "" },
+      { "component": "service", "share": 0.0, "basis": "" }
+    ]
+  },
+
+  "reasons": [
+    { "id": "client", "label": "إلغاء بطلب العميل", "article": "71" },
+    { "id": "no_show", "label": "عدم الحضور", "article": "60" },
+    { "id": "visa_refused", "label": "رفض التأشيرة", "article": "28, 73" },
+    { "id": "visa_delayed", "label": "تأخر التأشيرة", "article": "73" },
+    { "id": "supplier_cancelled", "label": "إلغاء مقدم الخدمة", "article": "78" },
+    { "id": "company_cancelled", "label": "إلغاء من جانب الشركة", "article": "77" },
+    { "id": "supplier_default", "label": "تعثر مقدم الخدمة", "article": "79" },
+    { "id": "force_majeure", "label": "قوة قاهرة", "article": "80, 81" }
+  ],
+
+  "rules": [
+    {
+      "_source": "Article 72 — « ويخصم فقط ما يجوز خصمه … بما في ذلك قيمة الخدمات التي تم تنفيذها ».",
+      "_determinedBy": "terms",
+      "components": ["visa", "ticket", "hotel", "transport", "insurance", "package"],
+      "stages": ["issued", "flown", "stayed", "used", "performed"],
+      "reasons": ["client", "no_show"],
+      "deduction": { "kind": "performedValue", "value": 0, "basis": "المادة (72): تُخصم قيمة الخدمات التي تم تنفيذها فعلياً." }
+    },
+    {
+      "_source": "Article 77 — the company cancels for a reason of its own and offers no alternative.",
+      "_determinedBy": "terms",
+      "_note": [
+        "The visa is deliberately NOT in this rule. Article 77 gives the customer back what is due",
+        "for the cancelled service, while article 73 says the visa amount follows the stage reached",
+        "and what the authority actually kept. Once the application is in, those two pull in",
+        "different directions, and resolving that is a lawyer's call, not a default. So",
+        "visa/submitted and visa/issued under 'company_cancelled' stay open cells on purpose."
+      ],
+      "components": ["ticket", "hotel", "transport", "insurance", "package"],
+      "stages": ["not_submitted", "not_issued", "not_confirmed", "not_started", "submitted", "issued", "confirmed"],
+      "reasons": ["company_cancelled"],
+      "deduction": { "kind": "none", "value": 0, "basis": "المادة (77): يحق للعميل استرداد المبلغ المستحق عن الخدمة الملغاة." }
+    },
+    {
+      "_source": "Article 73 — government fees follow the competent authority's own refund rules.",
+      "_determinedBy": "terms",
+      "components": ["visa"],
+      "stages": ["submitted", "issued"],
+      "reasons": ["client", "visa_refused", "visa_delayed", "no_show", "force_majeure", "supplier_cancelled", "supplier_default"],
+      "deduction": { "kind": "actualSupplierCost", "value": 0, "basis": "المادة (73): يُحدَّد المبلغ وفق المرحلة التي وصل إليها الطلب والرسوم المدفوعة والخدمة التي نُفِّذت فعلياً." }
+    },
+    {
+      "_source": "Article 73 — nothing is due yet while the application has not been submitted.",
+      "_determinedBy": "terms",
+      "components": ["visa"],
+      "stages": ["not_submitted"],
+      "reasons": ["client", "visa_refused", "visa_delayed", "company_cancelled", "force_majeure", "supplier_cancelled", "supplier_default"],
+      "deduction": { "kind": "none", "value": 0, "basis": "المادة (73): لم يبدأ الإجراء ولم تُدفع رسوم حكومية بعد." }
+    }
+  ],
+
+  "_rulesToFill": [
+    "Everything below is a COMMERCIAL term that only the supplier contracts can settle. Each entry",
+    "must become a rule above, with a basis quoting the contract clause it comes from.",
+    "",
+    "ticket / issued / client          — carrier penalty by fare class (article 74)",
+    "ticket / issued / visa_refused    — carrier rules when the visa is refused (articles 28, 74)",
+    "hotel  / confirmed / client       — hotel cancellation window and penalty (article 74)",
+    "hotel  / confirmed / no_show      — hotel no-show charge (articles 60, 74)",
+    "transport / confirmed / client    — bus operator terms (article 74)",
+    "insurance / issued / client       — policy terms (article 74)",
+    "package                           — the 'split' above, then the rules of each share",
+    "supplier_cancelled / supplier_default / force_majeure for every component (articles 78, 79, 80)",
+    "",
+    "Time tiers: article 71 makes the TIME THE REQUEST IS RECEIVED decisive. Add 'daysBeforeDeparture'",
+    "to a rule ({ \"from\": 15, \"to\": 30 }) to make it apply only inside that window."
+  ],
+
+  "forbidden": {
+    "_source": "Article 72 — « ولا يجوز اعتبار كامل المبلغ غير قابل للاسترداد لمجرد ورود وصف عام بذلك ».",
+    "genericBasisPhrases": [
+      "غير قابل للاسترداد",
+      "non remboursable",
+      "non-refundable",
+      "حسب الشروط",
+      "وفق السياسة",
+      "سياسة الشركة"
+    ]
+  }
+}

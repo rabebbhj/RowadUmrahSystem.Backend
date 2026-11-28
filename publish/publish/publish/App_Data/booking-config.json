@@ -1,0 +1,300 @@
+{
+  "currency": "د.ك",
+  "currencyIso": "KWD",
+  "visaFees": {
+    "rowad": 45,
+    "existing": 5
+  },
+  "fewSeatsThreshold": 5,
+  "paymentHoldMinutes": 15,
+  "draftExpiryDays": 7,
+  "minPassportValidityMonths": 6,
+  "extractionConfidenceThreshold": 0.8,
+  "roomingFreezeDaysBeforeDeparture": 3,
+  "frequentNationalities": [
+    "مصري",
+    "سوري",
+    "أردني",
+    "هندي",
+    "باكستاني"
+  ],
+  "nationalities": [
+    {
+      "name": "مصري",
+      "visaType": "umrah"
+    },
+    {
+      "name": "هندي",
+      "visaType": "umrah"
+    },
+    {
+      "name": "بنغلاديشي",
+      "visaType": "umrah"
+    },
+    {
+      "name": "اندونيسي",
+      "visaType": "umrah"
+    },
+    {
+      "name": "تونسي",
+      "visaType": "umrah"
+    },
+    {
+      "name": "جزائري",
+      "visaType": "umrah"
+    },
+    {
+      "name": "فلسطيني",
+      "visaType": "umrah"
+    },
+    {
+      "name": "سوري",
+      "visaType": "tourist"
+    },
+    {
+      "name": "مالي",
+      "visaType": "tourist"
+    },
+    {
+      "name": "سوداني",
+      "visaType": "tourist"
+    },
+    {
+      "name": "باكستاني",
+      "visaType": "tourist"
+    },
+    {
+      "name": "مغربي",
+      "visaType": "tourist"
+    },
+    {
+      "name": "أردني",
+      "visaType": "tourist"
+    }
+  ],
+  "documents": {
+    "civilIdRequired": true,
+    "civilIdMinAge": 0,
+    "personalPhotoRequired": false
+  },
+  "packs": [
+    {
+      "packageId": "rowad-company-6-days",
+      "nights": {
+        "makkah": 3,
+        "madinah": 0
+      },
+      "adultPrice": null,
+      "childPrice": null,
+      "priceByNationality": {},
+      "busPrice": 20,
+      "seatsPerDeparture": 45,
+      "hotels": {
+        "makkah": [
+          "durrat-rahaf",
+          "abraj-altaiseer"
+        ],
+        "madinah": []
+      }
+    },
+    {
+      "packageId": "rowad-company-11-days",
+      "nights": {
+        "makkah": 5,
+        "madinah": 2
+      },
+      "adultPrice": null,
+      "childPrice": null,
+      "priceByNationality": {},
+      "busPrice": 30,
+      "seatsPerDeparture": 45,
+      "hotels": {
+        "makkah": [
+          "durrat-rahaf",
+          "abraj-altaiseer"
+        ],
+        "madinah": [
+          "madinah-tbd"
+        ]
+      }
+    }
+  ],
+  "hotels": [
+    {
+      "id": "durrat-rahaf",
+      "name": "درة رهف",
+      "city": "makkah",
+      "stars": null,
+      "district": "",
+      "walkMinutes": null,
+      "description": "فندق درة رهف في مكة المكرمة: بهو واسع، ومصلى داخل الفندق، ومطعم، وغرف ثنائية وعائلية، مع دورات مياه مجهّزة لذوي الإعاقة.",
+      "amenities": [
+        "غرف لغير المدخنين",
+        "خدمة الغرف",
+        "مرافق لذوي الإعاقة",
+        "موقف مجاني",
+        "واي فاي مجاني",
+        "غرف عائلية",
+        "مصلى داخل الفندق",
+        "مطعم"
+      ],
+      "photos": [
+        "/images/hotels/durrat-rahaf/01.jpg",
+        "/images/hotels/durrat-rahaf/02.jpg",
+        "/images/hotels/durrat-rahaf/03.jpg",
+        "/images/hotels/durrat-rahaf/04.jpg",
+        "/images/hotels/durrat-rahaf/05.jpg",
+        "/images/hotels/durrat-rahaf/06.jpg",
+        "/images/hotels/durrat-rahaf/07.jpg",
+        "/images/hotels/durrat-rahaf/08.jpg"
+      ],
+      "latitude": null,
+      "longitude": null,
+      "placeholder": false,
+      "supplementPerPersonPerNight": 0,
+      "rooms": [
+        {
+          "type": "double",
+          "beds": 2,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "triple",
+          "beds": 3,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "quad",
+          "beds": 4,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "single",
+          "beds": 1,
+          "roomsPerDeparture": 10,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        }
+      ]
+    },
+    {
+      "id": "abraj-altaiseer",
+      "name": "أبراج التيسير",
+      "city": "makkah",
+      "stars": null,
+      "district": "",
+      "walkMinutes": null,
+      "description": "فندق أبراج التيسير في مكة المكرمة: غرف ثنائية وثلاثية ورباعية بتصميم دافئ، ومطعم واسع، وبهو للاستراحة، واستقبال على مدار الساعة.",
+      "amenities": [
+        "موقف خاص",
+        "واي فاي مجاني",
+        "مطعم",
+        "مرافق لذوي الإعاقة",
+        "استقبال 24 ساعة",
+        "مصعد",
+        "خدمة غسيل الملابس",
+        "تكييف",
+        "غلاية شاي وقهوة في الغرف",
+        "إفطار"
+      ],
+      "photos": [
+        "/images/hotels/abraj-altaiseer/01.jpg",
+        "/images/hotels/abraj-altaiseer/02.jpg",
+        "/images/hotels/abraj-altaiseer/03.jpg",
+        "/images/hotels/abraj-altaiseer/04.jpg",
+        "/images/hotels/abraj-altaiseer/05.jpg",
+        "/images/hotels/abraj-altaiseer/06.jpg",
+        "/images/hotels/abraj-altaiseer/07.jpg",
+        "/images/hotels/abraj-altaiseer/08.jpg",
+        "/images/hotels/abraj-altaiseer/09.jpg",
+        "/images/hotels/abraj-altaiseer/10.jpg",
+        "/images/hotels/abraj-altaiseer/11.jpg"
+      ],
+      "latitude": null,
+      "longitude": null,
+      "placeholder": false,
+      "supplementPerPersonPerNight": 0,
+      "rooms": [
+        {
+          "type": "double",
+          "beds": 2,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "triple",
+          "beds": 3,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "quad",
+          "beds": 4,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "single",
+          "beds": 1,
+          "roomsPerDeparture": 10,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        }
+      ]
+    },
+    {
+      "id": "madinah-tbd",
+      "name": "فندق المدينة المنورة",
+      "city": "madinah",
+      "stars": null,
+      "district": "يحدّده روّاد قبل السفر",
+      "walkMinutes": null,
+      "description": "يؤكّد روّاد اسم فندق المدينة المنورة قبل السفر.",
+      "amenities": [],
+      "photos": [],
+      "latitude": null,
+      "longitude": null,
+      "placeholder": true,
+      "supplementPerPersonPerNight": 0,
+      "rooms": [
+        {
+          "type": "double",
+          "beds": 2,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "triple",
+          "beds": 3,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "quad",
+          "beds": 4,
+          "roomsPerDeparture": 20,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        },
+        {
+          "type": "single",
+          "beds": 1,
+          "roomsPerDeparture": 10,
+          "familySupplementPerRoomPerNight": 0,
+          "sharedSupplementPerBedPerNight": 0
+        }
+      ]
+    }
+  ]
+}
