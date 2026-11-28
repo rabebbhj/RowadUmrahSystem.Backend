@@ -459,6 +459,41 @@ using (var scope = app.Services.CreateScope())
         travelerUser.IsActive = true;
         await userManager.UpdateAsync(travelerUser);
     }
+
+    // Google Play review account — no OTP, pre-confirmed, role Traveler.
+    var reviewEmail = "review@ruwadomra.com";
+    var reviewPassword = "GoogleReview2026!";
+
+    var reviewUser = await userManager.FindByEmailAsync(reviewEmail);
+
+    if (reviewUser == null)
+    {
+        reviewUser = new ApplicationUser
+        {
+            UserName = reviewEmail,
+            Email = reviewEmail,
+            EmailConfirmed = true,
+            FullName = "Google Review",
+            PhoneNumber = "+966500000000",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = await userManager.CreateAsync(reviewUser, reviewPassword);
+
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(reviewUser, "Traveler");
+        }
+    }
+    else
+    {
+        var resetToken = await userManager.GeneratePasswordResetTokenAsync(reviewUser);
+        await userManager.ResetPasswordAsync(reviewUser, resetToken, reviewPassword);
+        reviewUser.EmailConfirmed = true;
+        reviewUser.IsActive = true;
+        await userManager.UpdateAsync(reviewUser);
+    }
 }
 
 app.Run();

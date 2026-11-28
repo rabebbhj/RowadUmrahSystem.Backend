@@ -515,5 +515,27 @@ namespace RowadUmrahSystem.Web.Controllers.Api
         {
             return string.Join(" ", result.Errors.Select(error => error.Description));
         }
+
+        [HttpPost("delete-request")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RequestAccountDeletion([FromBody] DeleteAccountRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.Email))
+                return BadRequest(new { message = "البريد الإلكتروني مطلوب." });
+
+            var user = await _userManager.FindByEmailAsync(request.Email.Trim());
+            if (user != null)
+            {
+                user.IsActive = false;
+                await _userManager.UpdateAsync(user);
+            }
+
+            return Ok(new { message = "تم استلام طلب حذف الحساب. سيتم معالجته خلال 30 يوماً." });
+        }
     }
+}
+
+public class DeleteAccountRequest
+{
+    public string? Email { get; set; }
 }

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حذف الحساب - روّاد عمرة</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: #141210;
+            color: #F7F3EC;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 520px;
+            width: 100%;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .logo h1 {
+            font-size: 28px;
+            color: #D4AE62;
+            margin-bottom: 4px;
+        }
+        .logo p {
+            font-size: 14px;
+            color: #9A9488;
+        }
+        .card {
+            background: #1E1C18;
+            border: 1px solid #2A2720;
+            border-radius: 16px;
+            padding: 32px 24px;
+        }
+        .card h2 {
+            font-size: 20px;
+            color: #F7F3EC;
+            margin-bottom: 8px;
+        }
+        .card .subtitle {
+            font-size: 14px;
+            color: #9A9488;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+        .warning {
+            background: rgba(196, 64, 64, 0.1);
+            border: 1px solid rgba(196, 64, 64, 0.3);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .warning h3 {
+            font-size: 14px;
+            color: #C44040;
+            margin-bottom: 8px;
+        }
+        .warning ul {
+            font-size: 13px;
+            color: #D4CFC5;
+            line-height: 1.8;
+            padding-right: 18px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            color: #D4CFC5;
+            margin-bottom: 8px;
+        }
+        input[type="email"] {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid #2A2720;
+            background: #141210;
+            color: #F7F3EC;
+            font-size: 16px;
+            direction: ltr;
+            text-align: left;
+            outline: none;
+            margin-bottom: 16px;
+        }
+        input[type="email"]:focus {
+            border-color: #D4AE62;
+        }
+        .checkbox-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        .checkbox-row input[type="checkbox"] {
+            margin-top: 4px;
+            accent-color: #D4AE62;
+        }
+        .checkbox-row label {
+            font-size: 13px;
+            color: #9A9488;
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-delete {
+            background: #C44040;
+            color: #FFF;
+        }
+        .btn-delete:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+        .success {
+            display: none;
+            text-align: center;
+            padding: 20px 0;
+        }
+        .success .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .success h3 {
+            font-size: 18px;
+            color: #D4AE62;
+            margin-bottom: 8px;
+        }
+        .success p {
+            font-size: 14px;
+            color: #9A9488;
+            line-height: 1.7;
+        }
+        .info {
+            margin-top: 24px;
+            padding: 16px;
+            background: rgba(212, 174, 98, 0.08);
+            border: 1px solid rgba(212, 174, 98, 0.15);
+            border-radius: 10px;
+        }
+        .info h3 {
+            font-size: 14px;
+            color: #D4AE62;
+            margin-bottom: 8px;
+        }
+        .info p {
+            font-size: 13px;
+            color: #9A9488;
+            line-height: 1.7;
+        }
+        .footer {
+            margin-top: 32px;
+            text-align: center;
+            font-size: 12px;
+            color: #5A5650;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>روّاد عمرة</h1>
+            <p>Rowad Umrah</p>
+        </div>
+
+        <div class="card">
+            <div id="form-section">
+                <h2>طلب حذف الحساب</h2>
+                <p class="subtitle">
+                    يمكنك طلب حذف حسابك وجميع البيانات المرتبطة به من تطبيق روّاد عمرة.
+                </p>
+
+                <div class="warning">
+                    <h3>تنبيه: سيتم حذف البيانات التالية نهائياً</h3>
+                    <ul>
+                        <li>معلومات الحساب (الاسم، البريد الإلكتروني، رقم الهاتف)</li>
+                        <li>بيانات الموقع وسجل المناسك</li>
+                        <li>محادثات المساعد الصوتي والكتابي</li>
+                        <li>الصور والمستندات المرفقة</li>
+                    </ul>
+                </div>
+
+                <label for="email">البريد الإلكتروني المسجّل في التطبيق</label>
+                <input type="email" id="email" placeholder="example@email.com" required>
+
+                <div class="checkbox-row">
+                    <input type="checkbox" id="confirm">
+                    <label for="confirm">أؤكد أنني أريد حذف حسابي وجميع بياناتي نهائياً، وأفهم أن هذا الإجراء لا يمكن التراجع عنه.</label>
+                </div>
+
+                <button class="btn-delete" id="submit-btn" disabled onclick="submitRequest()">
+                    إرسال طلب الحذف
+                </button>
+            </div>
+
+            <div class="success" id="success-section">
+                <div class="icon">✓</div>
+                <h3>تم استلام طلبك</h3>
+                <p>
+                    سنقوم بمراجعة طلبك وحذف حسابك وجميع بياناتك خلال 30 يوماً كحد أقصى.
+                    ستتلقى رسالة تأكيد على بريدك الإلكتروني عند اكتمال الحذف.
+                </p>
+            </div>
+
+            <div class="info">
+                <h3>معلومات إضافية</h3>
+                <p>
+                    يتم معالجة طلبات الحذف خلال 30 يوماً. خلال هذه الفترة، يمكنك التواصل معنا
+                    لإلغاء الطلب. بعد الحذف، لا يمكن استرجاع أي بيانات.
+                </p>
+                <p style="margin-top: 8px;">
+                    للتواصل: support@ruwadomra.com
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            &copy; 2026 Rowad Umrah. جميع الحقوق محفوظة.
+        </div>
+    </div>
+
+    <script>
+        var emailInput = document.getElementById('email');
+        var confirmBox = document.getElementById('confirm');
+        var submitBtn = document.getElementById('submit-btn');
+
+        function checkForm() {
+            var emailValid = emailInput.value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+            submitBtn.disabled = !(emailValid && confirmBox.checked);
+        }
+
+        emailInput.addEventListener('input', checkForm);
+        confirmBox.addEventListener('change', checkForm);
+
+        function submitRequest() {
+            if (submitBtn.disabled) return;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'جارٍ الإرسال...';
+
+            fetch('/api/auth/delete-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: emailInput.value })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function() {
+                document.getElementById('form-section').style.display = 'none';
+                document.getElementById('success-section').style.display = 'block';
+            })
+            .catch(function() {
+                document.getElementById('form-section').style.display = 'none';
+                document.getElementById('success-section').style.display = 'block';
+            });
+        }
+    </script>
+</body>
+</html>
